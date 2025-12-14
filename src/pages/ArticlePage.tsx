@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowLeft, Play, Clock, Calendar, Quote, ChevronRight , User} from "lucide-react";
-import { ARTICLE_DATABASE } from "@/data/mockdata";
+import { ARTICLE_DATABASE } from "@/data/mockData";
 import { PageTransition } from "@/components/PageTransition";
 import { Footer } from "@/components/Footer";
 
