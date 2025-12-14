@@ -119,7 +119,7 @@ const Reviews = () => {
           </section>
 
           {/* Review Sections with refs for Weapon Wheel navigation */}
-          <div ref={storyRef} id="story" className="px-4 md:px-8 max-w-5xl mx-auto mb-16">
+          {/* <div ref={storyRef} id="story" className="px-4 md:px-8 max-w-5xl mx-auto mb-16">
             <FadeInView>
               <h2 className="font-display text-3xl mb-4 text-primary">STORY</h2>
               <p className="text-muted-foreground leading-relaxed">
@@ -128,9 +128,9 @@ const Reviews = () => {
                 with modern game design sensibilities.
               </p>
             </FadeInView>
-          </div>
+          </div> */}
 
-          <div ref={gameplayRef} id="gameplay" className="px-4 md:px-8 max-w-5xl mx-auto mb-16">
+          {/* <div ref={gameplayRef} id="gameplay" className="px-4 md:px-8 max-w-5xl mx-auto mb-16">
             <FadeInView>
               <h2 className="font-display text-3xl mb-4 text-primary">GAMEPLAY</h2>
               <p className="text-muted-foreground leading-relaxed">
@@ -139,9 +139,9 @@ const Reviews = () => {
                 challenging enough to engage without becoming frustrating.
               </p>
             </FadeInView>
-          </div>
+          </div> */}
 
-          <div ref={graphicsRef} id="graphics" className="px-4 md:px-8 max-w-5xl mx-auto mb-16">
+          {/* <div ref={graphicsRef} id="graphics" className="px-4 md:px-8 max-w-5xl mx-auto mb-16">
             <FadeInView>
               <h2 className="font-display text-3xl mb-4 text-primary">GRAPHICS</h2>
               <p className="text-muted-foreground leading-relaxed">
@@ -161,7 +161,7 @@ const Reviews = () => {
                 is highly recommended.
               </p>
             </FadeInView>
-          </div>
+          </div> */}
 
           {/* Review Feed */}
           <section className="px-4 md:px-8 max-w-5xl mx-auto pb-20">
