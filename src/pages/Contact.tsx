@@ -10,47 +10,47 @@ import { SecurityAuthModal } from "@/components/SecurityAuthModal";
 import { FactionComments } from "@/components/FactionComments";
 
 const Contact = () => {
-  const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    message: "",
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // const { toast } = useToast();
+  // const [formData, setFormData] = useState({
+  //   name: "",
+  //   email: "",
+  //   message: "",
+  // });
+  // const [isSubmitting, setIsSubmitting] = useState(false);
+  // const [showAuthModal, setShowAuthModal] = useState(false);
+  // const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
     
     // Feature 8: Show Security Auth Modal before submitting
-    if (!isAuthenticated) {
-      setShowAuthModal(true);
-      return;
-    }
+    // if (!isAuthenticated) {
+    //   setShowAuthModal(true);
+    //   return;
+    // }
     
-    setIsSubmitting(true);
+    // setIsSubmitting(true);
 
     // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    // await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    toast({
-      title: "Message sent successfully",
-      description: "We'll get back to you within 24 hours.",
-    });
+    // toast({
+    //   title: "Message sent successfully",
+    //   description: "We'll get back to you within 24 hours.",
+    // });
 
-    setFormData({ name: "", email: "", message: "" });
-    setIsSubmitting(false);
-  };
+    // setFormData({ name: "", email: "", message: "" });
+    // setIsSubmitting(false);
+  // };
 
-  const handleAuthSuccess = () => {
-    setShowAuthModal(false);
-    setIsAuthenticated(true);
-    toast({
-      title: "Access Granted",
-      description: "You can now submit your message.",
-    });
-  };
+  // const handleAuthSuccess = () => {
+  //   setShowAuthModal(false);
+  //   setIsAuthenticated(true);
+  //   toast({
+  //     title: "Access Granted",
+  //     description: "You can now submit your message.",
+  //   });
+  // };
 
   return (
     <PageTransition>
@@ -58,9 +58,9 @@ const Contact = () => {
         <BackgroundBeams />
 
         {/* Content */}
-        <section className="relative z-10 pt-32 pb-20 px-4 md:px-8 max-w-3xl mx-auto">
+        {/* <section className="relative z-10 pt-32 pb-20 px-4 md:px-8 max-w-3xl mx-auto">
           {/* Terminal Header */}
-          <FadeInView>
+          {/* <FadeInView>
             <div className="mb-12 text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
                 <Terminal className="w-4 h-4 text-primary" />
@@ -75,13 +75,13 @@ const Contact = () => {
                 {">"} Ready to collaborate? Drop us a line and our team will respond within 24 hours.
               </p>
             </div>
-          </FadeInView>
+          </FadeInView> */}
 
           {/* Form */}
-          <FadeInView delay={0.3}>
+          {/* <FadeInView delay={0.3}>
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Name Input */}
-              <div className="relative group">
+              {/* <div className="relative group">
                 <label className="block text-xs font-mono text-muted-foreground mb-2 uppercase tracking-wider">
                   {">"} Your Name
                 </label>
@@ -96,10 +96,10 @@ const Contact = () => {
                     className="w-full pl-12 pr-4 py-4 bg-muted/30 border border-border rounded-lg font-mono text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all"
                   />
                 </div>
-              </div>
+              </div>  */}
 
               {/* Email Input */}
-              <div className="relative group">
+              {/* <div className="relative group">
                 <label className="block text-xs font-mono text-muted-foreground mb-2 uppercase tracking-wider">
                   {">"} Email Address
                 </label>
@@ -114,10 +114,10 @@ const Contact = () => {
                     className="w-full pl-12 pr-4 py-4 bg-muted/30 border border-border rounded-lg font-mono text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all"
                   />
                 </div>
-              </div>
+              </div> */}
 
               {/* Message Input */}
-              <div className="relative group">
+              {/* <div className="relative group">
                 <label className="block text-xs font-mono text-muted-foreground mb-2 uppercase tracking-wider">
                   {">"} Message
                 </label>
@@ -132,10 +132,10 @@ const Contact = () => {
                     className="w-full pl-12 pr-4 py-4 bg-muted/30 border border-border rounded-lg font-mono text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all resize-none"
                   />
                 </div>
-              </div>
+              </div> */}
 
               {/* Submit Button */}
-              <motion.button
+              {/* <motion.button
                 type="submit"
                 disabled={isSubmitting}
                 whileHover={{ scale: 1.02 }}
@@ -164,17 +164,17 @@ const Contact = () => {
                 )}
               </motion.button>
             </form>
-          </FadeInView>
+          </FadeInView> */}
 
           {/* Decorative Terminal Lines */}
-          <FadeInView delay={0.5}>
+          {/* <FadeInView delay={0.5}>
             <div className="mt-16 font-mono text-xs text-muted-foreground/50 space-y-1">
               <p>{">"} Connection established: GameTout HQ</p>
               <p>{">"} Encryption: AES-256</p>
               <p>{">"} Status: {isAuthenticated ? "Authenticated" : "Awaiting verification"}_</p>
             </div>
-          </FadeInView>
-        </section>
+          </FadeInView> */}
+        {/* </section> */}
 
         {/* Feature 10: Faction Wars Comments */}
         <section className="relative z-10 py-20 px-4 md:px-8 max-w-3xl mx-auto">
@@ -192,11 +192,11 @@ const Contact = () => {
         <Footer />
 
         {/* Feature 8: Security Clearance Auth Modal */}
-        <SecurityAuthModal
+        {/* <SecurityAuthModal
           isOpen={showAuthModal}
           onClose={() => setShowAuthModal(false)}
           onSuccess={handleAuthSuccess}
-        />
+        /> */}
       </main>
     </PageTransition>
   );

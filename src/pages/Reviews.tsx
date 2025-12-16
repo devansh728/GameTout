@@ -100,7 +100,7 @@ const Reviews = () => {
           </section>
 
           {/* Feature 4: Comparison Slider (RTX On/Off) */}
-          <section className="px-4 md:px-8 max-w-5xl mx-auto mb-20">
+          {/* <section className="px-4 md:px-8 max-w-5xl mx-auto mb-20">
             <FadeInView>
               <h2 className="font-display text-3xl mb-4">
                 Graphics <span className="text-gradient-gold">Comparison</span>
@@ -116,7 +116,7 @@ const Reviews = () => {
               afterLabel="QUALITY: ULTRA"
               className="aspect-video"
             />
-          </section>
+          </section> */}
 
           {/* Review Sections with refs for Weapon Wheel navigation */}
           {/* <div ref={storyRef} id="story" className="px-4 md:px-8 max-w-5xl mx-auto mb-16">

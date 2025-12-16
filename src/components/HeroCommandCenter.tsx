@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-// 1. Ensure Link is imported
-import { Link } from "react-router-dom"; 
-import { Mic, Play, User, Star, ArrowRight, ShieldCheck, Zap, ChevronLeft, ChevronRight, UserPlus, ExternalLink, List, Film } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Mic, Play, Star, ArrowRight, Zap, ChevronLeft, ChevronRight, UserPlus, List, Film, Building2, MapPin, Globe, Gamepad2 } from "lucide-react";
 
 // --- DUMMY DATA ---
 const operatives = [
@@ -10,6 +9,41 @@ const operatives = [
   { id: 2, type: "dev", name: "Priya Nair", role: "3D Modeler (Lvl 4)", rate: "$35/hr", img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80" },
   { id: 3, type: "cta", name: "Recruitment Open", role: "Join The Network", rate: "Apply Now", img: "" },
   { id: 4, type: "dev", name: "Vikram Singh", role: "Unity Dev (Lvl 6)", rate: "$55/hr", img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80" },
+];
+
+const studios = [
+  { 
+    id: 1, 
+    name: "Rockstar India", 
+    location: "Bangalore", 
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Rockstar_Games_Logo.svg/1200px-Rockstar_Games_Logo.svg.png",
+    cover: "https://images.unsplash.com/photo-1621495932599-270364c74031?w=800", // GTA V Vibe
+    games: "GTA VI, RDR2" 
+  },
+  { 
+    id: 2, 
+    name: "Ubisoft", 
+    location: "Mumbai / Pune", 
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Ubisoft_logo.svg/2560px-Ubisoft_logo.svg.png",
+    cover: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800", // AC Vibe
+    games: "Prince of Persia" 
+  },
+  { 
+    id: 3, 
+    name: "Nodding Heads", 
+    location: "Pune", 
+    logo: "https://pbs.twimg.com/profile_images/1283335538356940802/0Y0W0W0W_400x400.jpg", 
+    cover: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800", // Raji Vibe
+    games: "Raji: Ancient Epic" 
+  },
+  { 
+    id: 4, 
+    name: "SuperGaming", 
+    location: "Pune", 
+    logo: "https://supergaming.com/logo.png",
+    cover: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=800", // Indus Vibe
+    games: "Indus Battle Royale" 
+  },
 ];
 
 // --- 1. PORTFOLIO DECK (Unchanged) ---
@@ -30,7 +64,7 @@ const PortfolioDeck = () => {
   const currentOp = operatives[index];
 
   return (
-    <div className="h-[500px] relative bg-[#050505] border border-white/10 flex flex-col group">
+    <div className="h-[500px] relative bg-[#050505] border border-white/10 flex flex-col group rounded-sm overflow-hidden">
       <div className="absolute top-0 left-0 right-0 z-20 bg-[#050505] border-b border-white/10 h-16 flex justify-between items-center px-6">
          <div className="flex items-center gap-2 text-green-500 font-mono text-xs font-bold uppercase tracking-wider">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -106,7 +140,113 @@ const PortfolioDeck = () => {
   );
 };
 
-// --- 2. MEDIA CARD (Correct Links) ---
+// --- 2. STUDIO RAIL (UPGRADED: Holographic Dossier Deck) ---
+const StudioRail = () => {
+    const [index, setIndex] = useState(0);
+    const [direction, setDirection] = useState(0);
+
+    const nextSlide = () => {
+        setDirection(1);
+        setIndex((prev) => (prev + 1) % studios.length);
+    };
+
+    const prevSlide = () => {
+        setDirection(-1);
+        setIndex((prev) => (prev - 1 + studios.length) % studios.length);
+    };
+
+    const currentStudio = studios[index];
+
+    return (
+        <div className="group relative h-64 border border-white/10 bg-[#0a0a0a] overflow-hidden flex flex-col cursor-pointer">
+            
+            {/* Header Overlay */}
+            <div className="absolute top-0 left-0 right-0 z-30 px-4 py-3 flex justify-between items-start bg-gradient-to-b from-black/90 to-transparent pointer-events-none">
+                <div className="flex items-center gap-2 text-[#FFAB00] text-xs font-mono font-bold uppercase tracking-wider drop-shadow-md">
+                    <Building2 className="w-3 h-3" /> Top Studios
+                </div>
+                <div className="pointer-events-auto flex gap-1">
+                     <button onClick={prevSlide} className="p-1.5 rounded bg-black/50 text-white hover:bg-[#FFAB00] hover:text-black border border-white/10 transition-all"><ChevronLeft className="w-3 h-3" /></button>
+                     <button onClick={nextSlide} className="p-1.5 rounded bg-black/50 text-white hover:bg-[#FFAB00] hover:text-black border border-white/10 transition-all"><ChevronRight className="w-3 h-3" /></button>
+                </div>
+            </div>
+
+            {/* MAIN CONTENT AREA */}
+            <div className="flex-1 relative overflow-hidden">
+                <AnimatePresence mode="popLayout" initial={false} custom={direction}>
+                    <motion.div
+                        key={currentStudio.id}
+                        custom={direction}
+                        variants={{
+                            enter: (dir) => ({ x: dir > 0 ? "100%" : "-100%", opacity: 0, scale: 1.1 }),
+                            center: { x: 0, opacity: 1, scale: 1 },
+                            exit: (dir) => ({ x: dir > 0 ? "-20%" : "20%", opacity: 0, scale: 0.9 }),
+                        }}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        className="absolute inset-0 w-full h-full"
+                    >
+                        {/* Background Image (Cover Art) */}
+                        <img 
+                            src={currentStudio.cover} 
+                            alt={currentStudio.name} 
+                            className="w-full h-full object-cover transition-transform duration-[3s] ease-linear scale-100 group-hover:scale-110 opacity-60" 
+                        />
+                        
+                        {/* Gradient Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                        
+                        {/* Tech Grid Overlay (Subtle) */}
+                        <div className="absolute inset-0 opacity-10 bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:20px_20px]" />
+
+                        {/* Content HUD */}
+                        <div className="absolute bottom-0 left-0 right-0 p-5 flex flex-col gap-2 z-20">
+                            
+                            {/* Studio Logo Badge */}
+                            <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded border border-white/20 p-1 mb-1">
+                                <img src={currentStudio.logo} className="w-full h-full object-contain" />
+                            </div>
+
+                            <div>
+                                <h3 className="font-display text-3xl text-white uppercase leading-none drop-shadow-xl tracking-wide group-hover:text-[#FFAB00] transition-colors">
+                                    {currentStudio.name}
+                                </h3>
+                                
+                                <div className="flex items-center gap-4 mt-2 text-[10px] font-mono uppercase tracking-wider text-gray-300">
+                                    <span className="flex items-center gap-1">
+                                        <MapPin className="w-3 h-3 text-[#FFAB00]" /> {currentStudio.location}
+                                    </span>
+                                    <span className="flex items-center gap-1 border-l border-white/20 pl-4">
+                                        <Gamepad2 className="w-3 h-3 text-[#FFAB00]" /> {currentStudio.games}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                </AnimatePresence>
+            </div>
+
+            {/* Bottom Action Bar */}
+            <Link 
+                to="/studios" 
+                className="relative z-20 h-10 border-t border-white/10 bg-black/80 backdrop-blur-md flex items-center justify-between px-4 group/btn hover:bg-[#FFAB00] transition-colors"
+            >
+                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 group-hover/btn:text-black">
+                    Access Dossier
+                </span>
+                <ArrowRight className="w-3 h-3 text-gray-400 group-hover/btn:text-black group-hover/btn:translate-x-1 transition-transform" />
+            </Link>
+
+            {/* Decorative Corner Accents */}
+            <div className="absolute top-2 left-2 w-2 h-2 border-t border-l border-[#FFAB00]/50 z-30" />
+            <div className="absolute top-2 right-2 w-2 h-2 border-t border-r border-[#FFAB00]/50 z-30" />
+        </div>
+    );
+};
+
+// --- 3. MEDIA CARD (Unchanged) ---
 const MediaCard = ({ title, subtitle, icon: Icon, image, label, cta, link, categoryLink, viewAllLabel }: any) => (
   <motion.div 
     className="group relative h-64 overflow-hidden border border-white/10 bg-[#0a0a0a] cursor-pointer block"
@@ -117,7 +257,7 @@ const MediaCard = ({ title, subtitle, icon: Icon, image, label, cta, link, categ
     <img src={image} alt={title} className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-20 group-hover:scale-105 group-hover:blur-[2px] transition-all duration-500" />
     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
 
-    <div className="absolute inset-0 p-8 flex flex-col justify-end overflow-hidden">
+    <div className="absolute inset-0 p-6 flex flex-col justify-end overflow-hidden">
       <div className="absolute top-0 right-0 bg-black/60 backdrop-blur-md px-4 py-2 border-b border-l border-white/10 z-20">
         <div className="flex items-center gap-2 text-[#FFAB00] text-xs font-mono font-bold uppercase tracking-wider">
           <Icon className="w-3 h-3" /> {label}
@@ -126,30 +266,30 @@ const MediaCard = ({ title, subtitle, icon: Icon, image, label, cta, link, categ
 
       <motion.div 
         className="relative z-10"
-        variants={{ rest: { y: 0 }, hover: { y: -50 } }}
+        variants={{ rest: { y: 0 }, hover: { y: -40 } }}
         transition={{ duration: 0.4, ease: "easeOut" }}
       >
-        <h3 className="font-display text-2xl md:text-3xl text-white uppercase leading-none mb-2 drop-shadow-lg group-hover:text-white transition-colors">{title}</h3>
-        <p className="text-gray-300 text-sm max-w-sm border-l-2 border-[#FFAB00] pl-3 drop-shadow-md line-clamp-2">{subtitle}</p>
+        <h3 className="font-display text-xl md:text-2xl text-white uppercase leading-none mb-2 drop-shadow-lg group-hover:text-white transition-colors line-clamp-2">{title}</h3>
+        <p className="text-gray-300 text-xs max-w-sm border-l-2 border-[#FFAB00] pl-3 drop-shadow-md line-clamp-2">{subtitle}</p>
       </motion.div>
 
       <motion.div 
-        className="absolute bottom-0 left-0 right-0 p-6 flex gap-3 bg-gradient-to-t from-black to-transparent"
+        className="absolute bottom-0 left-0 right-0 p-4 flex gap-2 bg-gradient-to-t from-black to-transparent"
         variants={{ rest: { y: "100%", opacity: 0 }, hover: { y: 0, opacity: 1 } }}
         transition={{ duration: 0.3, ease: "circOut" }}
       >
-        <Link to={link} className="flex-1 bg-[#FFAB00] text-black h-12 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider hover:bg-white transition-colors shadow-lg rounded-sm">
-            <Play className="w-4 h-4 fill-black" /> {cta}
+        <Link to={link} className="flex-1 bg-[#FFAB00] text-black h-10 flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider hover:bg-white transition-colors shadow-lg rounded-sm">
+            <Play className="w-3 h-3 fill-black" /> {cta}
         </Link>
-        <Link to={categoryLink} className="flex-1 bg-white/10 backdrop-blur-md border border-white/20 text-white h-12 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider hover:bg-white hover:text-black transition-all rounded-sm">
-            <List className="w-4 h-4" /> {viewAllLabel}
+        <Link to={categoryLink} className="flex-1 bg-white/10 backdrop-blur-md border border-white/20 text-white h-10 flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider hover:bg-white hover:text-black transition-all rounded-sm">
+            <List className="w-3 h-3" /> {viewAllLabel}
         </Link>
       </motion.div>
     </div>
   </motion.div>
 );
 
-// --- 3. DOCUMENTARY CARD (FIXED LINKS) ---
+// --- 4. DOCUMENTARY CARD (Unchanged) ---
 const DocumentaryCard = () => (
     <motion.div 
         className="lg:col-span-8 h-[500px] relative rounded-sm overflow-hidden border border-white/10 group cursor-pointer"
@@ -178,7 +318,6 @@ const DocumentaryCard = () => (
             variants={{ rest: { y: "100%" }, hover: { y: 0 } }}
             transition={{ duration: 0.3, ease: "circOut" }}
         >
-            {/* 2. FIXED: Link to the Article Page, NOT /documentary/watch */}
             <Link to="/content/documentary/ac-evolution" className="flex items-center gap-4 group/btn">
                 <div className="w-12 h-12 rounded-full bg-[#FFAB00] flex items-center justify-center shadow-[0_0_20px_#FFAB00]">
                     <Play className="w-5 h-5 text-black fill-black ml-1 group-hover/btn:scale-110 transition-transform" />
@@ -189,7 +328,6 @@ const DocumentaryCard = () => (
                 </div>
             </Link>
 
-            {/* 3. FIXED: Link using React Router */}
             <Link to="/documentary" className="flex items-center gap-2 text-xs font-bold uppercase text-gray-400 hover:text-white transition-colors border border-white/10 px-4 py-3 rounded hover:bg-white/5">
                 <Film className="w-4 h-4" /> View Full Library
             </Link>
@@ -200,7 +338,9 @@ const DocumentaryCard = () => (
 // --- MAIN COMPONENT ---
 export const HeroCommandCenter = () => {
   return (
-    <section className="pt-24 pb-12 px-4 md:px-8 max-w-7xl mx-auto">
+    <section className="pt-6 pb-12 px-4 md:px-8 max-w-7xl mx-auto">
+      
+      {/* 1. TOP ROW (Documentary + Portfolio) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
         <DocumentaryCard />
         <div className="lg:col-span-4">
@@ -208,30 +348,41 @@ export const HeroCommandCenter = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <MediaCard 
-            title="The Dark Layers of Gaming"
-            subtitle="Feat. Zassar. We discuss toxicity, trolls, and content creation struggles."
-            image="https://img.youtube.com/vi/FKBwFAju-0o/maxresdefault.jpg"
-            icon={Mic}
-            label="On Air Now"
-            cta="Listen"
-            viewAllLabel="All Episodes"
-            link="/content/podcast/dark-layers" // FIXED: Links to Article
-            categoryLink="/podcast"
-          />
+      {/* 2. BOTTOM ROW (Podcast + Reviews + Studios) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <div className="lg:col-span-4">
+              <MediaCard 
+                title="The Dark Layers of Gaming"
+                subtitle="Feat. Zassar. We discuss toxicity, trolls."
+                image="https://img.youtube.com/vi/FKBwFAju-0o/maxresdefault.jpg"
+                icon={Mic}
+                label="On Air"
+                cta="Listen"
+                viewAllLabel="Archive"
+                link="/content/podcast/dark-layers"
+                categoryLink="/podcast"
+              />
+          </div>
 
-          <MediaCard 
-            title="Alba: A Wild Adventure"
-            subtitle="A cozy masterpiece that proves you don't need violence to be impactful."
-            image="https://img.youtube.com/vi/bssnEF16BTs/maxresdefault.jpg"
-            icon={Star}
-            label="Verdict: Masterpiece"
-            cta="Read"
-            viewAllLabel="All Reviews"
-            link="/content/review/alba-adventure" // FIXED: Links to Article
-            categoryLink="/reviews"
-          />
+          <div className="lg:col-span-4">
+              <MediaCard 
+                title="Alba: A Wild Adventure"
+                subtitle="A cozy masterpiece. No violence needed."
+                image="https://img.youtube.com/vi/bssnEF16BTs/maxresdefault.jpg"
+                icon={Star}
+                label="Review"
+                cta="Read"
+                viewAllLabel="All Reviews"
+                link="/content/review/alba-adventure"
+                categoryLink="/reviews"
+              />
+          </div>
+
+          <div className="lg:col-span-4">
+              <StudioRail />
+          </div>
+
       </div>
     </section>
   );

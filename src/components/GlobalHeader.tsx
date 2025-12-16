@@ -1,24 +1,39 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation, Link } from "react-router-dom";
-import { Menu, X, ChevronDown, User, ShieldCheck } from "lucide-react";
+import { Menu, X, ChevronDown, User, ShieldCheck, Moon, Sun} from "lucide-react";
+import { useTheme } from "@/components/ThemeProvider"
 
 // --- NAVIGATION LINKS ---
 const navItems = [
   { path: "/", label: "Featured" },
   { path: "/reviews", label: "Reviews" },
-  { path: "/documentary", label: "Docs" },
+  { path: "/documentary", label: "Documentary" },
   { path: "/podcast", label: "Podcast" },
   { path: "/portfolios", label: "Portfolio" },
   { path: "/studios", label: "Studios" },
-  { path: "/contact", label: "Contact" },
-  { path: "/opinion", label: "Opinion" },
+  { path: "/contact", label: "Community" },
   { path: "/about", label: "About" },
 ];
 
 interface GlobalHeaderProps {
   onLoginClick: () => void;
   isAuthenticated: boolean;
+}
+
+export function ThemeToggle() {
+  const { theme, setTheme } = useTheme()
+
+  return (
+    <button
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      className="p-2 rounded-full border border-border bg-surface text-foreground hover:border-brand transition-colors"
+    >
+      <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+      <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+      <span className="sr-only">Toggle theme</span>
+    </button>
+  )
 }
 
 export const GlobalHeader = ({ onLoginClick, isAuthenticated }: GlobalHeaderProps) => {
@@ -43,7 +58,7 @@ export const GlobalHeader = ({ onLoginClick, isAuthenticated }: GlobalHeaderProp
 
             {/* Brand Logo - NOW LARGER */}
             <Link to="/" className="flex flex-col group relative z-50">
-                <h1 className="font-display text-3xl md:text-5xl font-bold uppercase text-white leading-none tracking-tighter group-hover:text-[#FFAB00] transition-colors drop-shadow-xl">
+                <h1 className="font-display text-3xl md:text-5xl font-bold uppercase text-white leading-none tracking-normal group-hover:text-[#FFAB00] transition-colors drop-shadow-xl">
                 Game<span className="text-[#FFAB00] group-hover:text-white transition-colors">Tout</span>
                 </h1>
             </Link>

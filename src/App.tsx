@@ -19,9 +19,9 @@ import Studios from "./pages/Studios";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import ArticlePage from "./pages/ArticlePage";
+import Podcast from "./pages/Podcast";
 
 // Placeholders
-const Podcast = () => <div className="pt-32 text-white text-center">Podcast Page Coming Soon</div>;
 const Opinion = () => <div className="pt-32 text-white text-center">Opinion Page Coming Soon</div>;
 
 const queryClient = new QueryClient();
