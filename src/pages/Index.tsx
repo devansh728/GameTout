@@ -27,15 +27,21 @@ const Index = () => {
         {/* 4. THE COMMAND DECK (Replaces VideoHero) */}
         <HeroCommandCenter />
 
+        <NexusHub />
+
+        <PortfolioRail />
+
         {/* Feature 2: Mixed-Media Bento Grid */}
         <MixedMediaGrid />
 
-        <NexusHub />
+        
+
+        
 
         {/* ZONE 3: Reviews (Swipeable) */}
         {/* <ReviewRail /> */}
 
-        <PortfolioRail />
+        
 
         {/* ZONE 4: Documentaries (Cinema Mode) */}
         <DocumentaryTheater />

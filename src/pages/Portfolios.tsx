@@ -8,6 +8,7 @@ import { Footer } from "@/components/Footer";
 import { CreatePortfolioModal } from "@/components/CreatePortfolioModal";
 import { ProfileViewModal } from "@/components/ProfileViewModal";
 import { Link } from "react-router-dom";
+import { PremiumCard } from "@/components/PremiumCard";
 
 // --- MOCK DATA ---
 const roles = ["All", "Programmer", "Artist", "Designer", "Audio", "Producer"];
@@ -26,6 +27,7 @@ const generateDevs = (count: number) => Array.from({ length: count }).map((_, i)
   badges: i % 2 === 0 ? ["AAA Shipped", "Unity"] : ["ZBrush", "Indie"],
   skills: [{ name: "Unreal 5", level: 90 }, { name: "C++", level: 85 }],
   category: i % 3 === 0 ? "Programmer" : (i % 3 === 1 ? "Artist" : "Designer"),
+  isPremium: i === 0 || i === 4 || i === 7, 
 }));
 
 const developers = generateDevs(20);
@@ -74,6 +76,7 @@ const TacticalRow = ({ dev, onClick }: { dev: any; onClick: () => void }) => (
     className="group flex flex-col md:flex-row items-center gap-4 p-4 bg-black/40 border border-white/5 hover:border-[#FFAB00] rounded-sm transition-all duration-200 hover:bg-white/5 cursor-pointer"
     onClick={onClick}
   >
+    {dev.isPremium && <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#FFAB00] shadow-[0_0_10px_#FFAB00]" />}
     <div className="flex items-center gap-4 w-full md:w-1/4">
       <img src={dev.avatar} alt={dev.name} className="w-10 h-10 rounded-full object-cover border border-white/20" />
       <div>
@@ -110,6 +113,51 @@ const TacticalRow = ({ dev, onClick }: { dev: any; onClick: () => void }) => (
       </div>
     </div>
   </motion.div>
+);
+
+// CARD CONTENT (Shared between Premium and Normal)
+const CardContent = ({ dev }: { dev: any }) => (
+    <div className="p-8 flex flex-col h-full relative z-20">
+        <div className="flex justify-between items-start mb-6">
+            <div className="flex -space-x-2">
+                {dev.badges.map((b: string, idx: number) => (
+                    <div key={idx} className="w-6 h-6 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[10px] text-[#FFAB00]" title={b}>
+                        <Award className="w-3 h-3" />
+                    </div>
+                ))}
+            </div>
+            <StatusBadge status={dev.status} />
+        </div>
+        <div className="text-center mb-6">
+            <div className="relative inline-block mb-4">
+                {/* Enhanced glow for premium */}
+                <div className={`absolute inset-0 rounded-full blur-md opacity-20 animate-pulse ${dev.isPremium ? "bg-[#FFAB00] opacity-50" : "bg-[#FFAB00]"}`} />
+                <img src={dev.avatar} alt={dev.name} className={`relative w-24 h-24 rounded-full object-cover border-2 ${dev.isPremium ? "border-[#FFAB00]" : "border-[#FFAB00]/50"}`} />
+            </div>
+            <h3 className={`font-display text-3xl leading-none mb-1 ${dev.isPremium ? "text-white drop-shadow-[0_0_5px_rgba(255,171,0,0.5)]" : "text-white"}`}>{dev.name}</h3>
+            <p className="text-[#FFAB00] text-xs font-bold uppercase tracking-widest">{dev.role}</p>
+        </div>
+        <div className="grid grid-cols-2 gap-4 mb-6 p-4 bg-white/5 rounded border border-white/10">
+            <div className="text-center border-r border-white/10">
+                <p className="text-[10px] text-gray-500 uppercase">Location</p>
+                <p className="text-white text-xs font-bold flex justify-center items-center gap-1"><MapPin className="w-3 h-3" /> {dev.location}</p>
+            </div>
+            <div className="text-center">
+                <p className="text-[10px] text-gray-500 uppercase">Experience</p>
+                <p className="text-white text-xs font-bold">{dev.exp}</p>
+            </div>
+        </div>
+        <div className="flex-1 space-y-3 mb-6">
+            {dev.skills.slice(0, 2).map((skill: any, idx: number) => (
+                <SkillBar key={idx} skill={skill.name} level={skill.level} />
+            ))}
+        </div>
+        <div className="flex gap-3 mt-auto">
+            <button className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-black text-xs font-bold uppercase transition-colors shadow-lg rounded-sm ${dev.isPremium ? "bg-[#FFD700] hover:bg-white hover:shadow-[0_0_20px_#FFD700]" : "bg-[#FFAB00] hover:bg-white hover:shadow-[#FFAB00]/50"}`}>
+                <Briefcase className="w-4 h-4" /> View Dossier
+            </button>
+        </div>
+    </div>
 );
 
 const CategoryRail = ({ title, items, onSelect }: { title: string; items: any[]; onSelect: (dev: any) => void }) => {
@@ -154,59 +202,15 @@ const CategoryRail = ({ title, items, onSelect }: { title: string; items: any[];
                         onClick={() => onSelect(dev)}
                     >
                         <PerspectiveItem className="h-full w-full">
-                            {/* UPDATED VISUALS: Golden Tint in Resting State */}
-                            <EvervaultCard className="h-full bg-gradient-to-b from-[#0a0a0a] to-[#12100b] border border-[#FFAB00]/10 hover:border-[#FFAB00]/50 shadow-[0_0_20px_rgba(0,0,0,0.5)]">
-                                <div className="p-8 flex flex-col h-full relative z-20">
-                                    
-                                    {/* Top Metadata */}
-                                    <div className="flex justify-between items-start mb-6">
-                                        <div className="flex -space-x-2">
-                                            {dev.badges.map((b: string, idx: number) => (
-                                                <div key={idx} className="w-6 h-6 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[10px] text-[#FFAB00]" title={b}>
-                                                    <Award className="w-3 h-3" />
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <StatusBadge status={dev.status} />
-                                    </div>
-
-                                    {/* Identity Block */}
-                                    <div className="text-center mb-6">
-                                        <div className="relative inline-block mb-4">
-                                            <div className="absolute inset-0 rounded-full bg-[#FFAB00] blur-md opacity-20 animate-pulse" />
-                                            <img src={dev.avatar} alt={dev.name} className="relative w-24 h-24 rounded-full object-cover border-2 border-[#FFAB00]" />
-                                        </div>
-                                        <h3 className="font-display text-3xl text-white leading-none mb-1">{dev.name}</h3>
-                                        <p className="text-[#FFAB00] text-xs font-bold uppercase tracking-widest">{dev.role}</p>
-                                    </div>
-
-                                    {/* Stats Grid */}
-                                    <div className="grid grid-cols-2 gap-4 mb-6 p-4 bg-white/5 rounded border border-white/10">
-                                        <div className="text-center border-r border-white/10">
-                                            <p className="text-[10px] text-gray-500 uppercase">Location</p>
-                                            <p className="text-white text-xs font-bold flex justify-center items-center gap-1"><MapPin className="w-3 h-3" /> {dev.location}</p>
-                                        </div>
-                                        <div className="text-center">
-                                            <p className="text-[10px] text-gray-500 uppercase">Experience</p>
-                                            <p className="text-white text-xs font-bold">{dev.exp}</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Skills */}
-                                    <div className="flex-1 space-y-3 mb-6">
-                                        {dev.skills.slice(0, 2).map((skill: any, idx: number) => (
-                                            <SkillBar key={idx} skill={skill.name} level={skill.level} />
-                                        ))}
-                                    </div>
-
-                                    {/* Footer Actions */}
-                                    <div className="flex gap-3 mt-auto">
-                                        <button className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-[#FFAB00] text-black text-xs font-bold uppercase hover:bg-white transition-colors shadow-lg hover:shadow-[#FFAB00]/50 rounded-sm">
-                                            <Briefcase className="w-4 h-4" /> View Dossier
-                                        </button>
-                                    </div>
-                                </div>
-                            </EvervaultCard>
+                            {dev.isPremium ? (
+                                <PremiumCard className="h-full shadow-[0_0_30px_rgba(255,171,0,0.15)]">
+                                    <CardContent dev={dev} />
+                                </PremiumCard>
+                            ) : (
+                                <EvervaultCard className="h-full bg-[#0a0a0a] shadow-2xl">
+                                    <CardContent dev={dev} />
+                                </EvervaultCard>
+                            )}
                         </PerspectiveItem>
                     </motion.div>
                 ))}
@@ -234,12 +238,15 @@ const Portfolios = () => {
 
   // Filter Logic
   const getFilteredDevs = (category: string) => {
-    return developers.filter((dev) => {
+    let filtered = developers.filter((dev) => {
       const roleMatch = category === "All" || dev.category === category;
       const searchMatch = dev.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           dev.role.toLowerCase().includes(searchQuery.toLowerCase());
       return roleMatch && searchMatch;
     });
+
+    return filtered.sort((a, b) => (a.isPremium === b.isPremium ? 0 : a.isPremium ? -1 : 1));
+
   };
 
   return (
@@ -377,34 +384,15 @@ const Portfolios = () => {
                     <FadeInView key={dev.id} delay={index * 0.05}>
                         <div onClick={() => setSelectedDev(dev)} className="cursor-pointer h-full">
                             <PerspectiveItem className="h-full">
-                                <EvervaultCard className="h-full bg-[#0a0a0a]">
-                                    {/* Same inner content as rail... duplicating for demo brevity */}
-                                    <div className="p-8 flex flex-col h-full relative z-20">
-                                        <div className="absolute top-4 right-4 text-right">
-                                            <StatusBadge status={dev.status} />
-                                        </div>
-                                        <div className="flex items-start gap-4 mb-4 mt-2">
-                                            <img src={dev.avatar} alt={dev.name} className="w-16 h-16 rounded-full object-cover border-2 border-[#FFAB00]/50" />
-                                            <div>
-                                                <h3 className="font-display text-xl text-white leading-none mb-1">{dev.name}</h3>
-                                                <p className="text-[#FFAB00] text-xs font-bold uppercase">{dev.role}</p>
-                                                <p className="text-gray-500 text-[10px] flex items-center gap-1 mt-1 font-mono uppercase">
-                                                    <MapPin className="w-3 h-3" /> {dev.location}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className="flex-1 space-y-3 mb-6">
-                                            {dev.skills.slice(0, 3).map((skill: any, idx: number) => (
-                                                <SkillBar key={idx} skill={skill.name} level={skill.level} />
-                                            ))}
-                                        </div>
-                                        <div className="flex gap-3 mt-auto">
-                                            <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[#FFAB00] text-black rounded-sm text-xs font-bold uppercase hover:bg-white transition-colors">
-                                                <Briefcase className="w-3 h-3" /> Dossier
-                                            </button>
-                                        </div>
-                                    </div>
-                                </EvervaultCard>
+                                {dev.isPremium ? (
+                                    <PremiumCard className="h-full shadow-[0_0_30px_rgba(255,171,0,0.15)]">
+                                        <CardContent dev={dev} />
+                                    </PremiumCard>
+                                ) : (
+                                    <EvervaultCard className="h-full bg-[#0a0a0a]">
+                                        <CardContent dev={dev} />
+                                    </EvervaultCard>
+                                )}
                             </PerspectiveItem>
                         </div>
                     </FadeInView>
