@@ -5,11 +5,15 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
-import { GlobalHeader } from "@/components/GlobalHeader"; // NEW IMPORT
-import { SecurityAuthModal } from "@/components/SecurityAuthModal"; // Moved here
+import { GlobalHeader } from "@/components/GlobalHeader"; 
+import { SecurityAuthModal } from "@/components/SecurityAuthModal"; 
+import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { PreviewProvider } from "@/admin/context/PreviewContext";
+import CreatePost from "@/admin/pages/CreatePost";
+import AdminArticlePreview from "@/admin/pages/AdminArticlePreview";
+import { AdminGuard } from "@/admin/AdminGuard";
 
 
-// Pages
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Documentary from "./pages/Documentary";
@@ -21,7 +25,6 @@ import NotFound from "./pages/NotFound";
 import ArticlePage from "./pages/ArticlePage";
 import Podcast from "./pages/Podcast";
 
-// Placeholders
 const Opinion = () => <div className="pt-32 text-white text-center">Opinion Page Coming Soon</div>;
 
 const queryClient = new QueryClient();
@@ -42,44 +45,52 @@ const AnimatedRoutes = () => {
         <Route path="/studios" element={<Studios />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="*" element={<NotFound />} />
+        <Route path="/admin" element={<CreatePost/>} /> // Temporary admin route
+        <Route 
+            path="/admin/create-post" 
+            element={
+                <AdminGuard>
+                    <CreatePost />
+                </AdminGuard>
+            } 
+        />
+        <Route path="/admin/preview" element={<AdminArticlePreview />} />
       </Routes>
     </AnimatePresence>
   );
 };
-
-const App = () => {
-  // Authentication State is now Global
+const AppLayout = () => {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  const handleAuthSuccess = () => {
-    setIsAuthenticated(true);
-    setIsAuthOpen(false);
-  };
+  const { user } = useAuth(); 
 
   return (
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <GlobalHeader 
+          onLoginClick={() => setIsAuthOpen(true)}
+          isAuthenticated={!!user}
+        />
+        <SecurityAuthModal 
+          isOpen={isAuthOpen}
+          onClose={() => setIsAuthOpen(false)}
+          onSuccess={() => setIsAuthOpen(false)}
+        />
+        <AnimatedRoutes />
+      </BrowserRouter>
+    </TooltipProvider>
+  );
+};
+
+const App = () => {
+  return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          
-          {/* Global Header (Visible on all pages) */}
-          <GlobalHeader 
-            onLoginClick={() => setIsAuthOpen(true)}
-            isAuthenticated={isAuthenticated}
-          />
-
-          {/* Global Auth Modal */}
-          <SecurityAuthModal 
-            isOpen={isAuthOpen}
-            onClose={() => setIsAuthOpen(false)}
-            onSuccess={handleAuthSuccess}
-          />
-
-          <AnimatedRoutes />
-        </BrowserRouter>
-      </TooltipProvider>
+      <AuthProvider>
+        <PreviewProvider>
+          <AppLayout />
+        </PreviewProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };

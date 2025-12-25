@@ -1,7 +1,8 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Lock, Unlock, X, Terminal, Fingerprint, Mail, Key, Github, Chrome, ChevronRight, ArrowRight } from "lucide-react";
+import { Shield, Lock, Unlock, X, Terminal, Fingerprint, Mail, Key, Github, Chrome, ChevronRight, ArrowRight, AlertCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useAuth } from "@/context/AuthContext";
 
 interface SecurityAuthModalProps {
   isOpen: boolean;
@@ -14,9 +15,14 @@ export const SecurityAuthModal = ({
   onClose,
   onSuccess,
 }: SecurityAuthModalProps) => {
+  const { loginWithGoogle, loginWithGithub, loginWithEmail, registerWithEmail } = useAuth();
   const [sliderValue, setSliderValue] = useState(0);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const sliderRef = useRef<HTMLDivElement>(null);
 
   // --- SLIDER LOGIC ---
@@ -38,19 +44,45 @@ export const SecurityAuthModal = ({
     if (sliderValue < 95 && !isUnlocked) setSliderValue(0);
   };
 
-  const handleAuthSubmit = (e: React.FormEvent) => {
+  const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate API Login Delay
-    setTimeout(() => {
-        onSuccess(); // Close modal and update state
-        resetState();
-    }, 1500);
+    setError(null);
+    setLoading(true);
+
+    try {
+      if (authMode === "login") {
+        await loginWithEmail(email, password);
+      } else {
+        await registerWithEmail(email, password);
+      }
+      onSuccess(); 
+      resetState();
+    } catch (err: any) {
+      setError(err.message.replace("Firebase:", "").trim());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSocialLogin = async (provider: "google" | "github") => {
+    setError(null);
+    try {
+      if (provider === "google") await loginWithGoogle();
+      if (provider === "github") await loginWithGithub();
+      onSuccess();
+      resetState();
+    } catch (err: any) {
+      setError("Social authentication failed. Please try again.");
+    }
   };
 
   const resetState = () => {
     setSliderValue(0);
     setIsUnlocked(false);
     setAuthMode("login");
+    setEmail("");
+    setPassword("");
+    setError(null);
   };
 
   return (
@@ -157,6 +189,14 @@ export const SecurityAuthModal = ({
                     </button>
                 </div>
 
+                {/* Error Display */}
+                {error && (
+                    <div className="p-3 bg-red-900/30 border border-red-500/50 rounded flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 text-red-500 mt-0.5" />
+                        <span className="text-xs text-red-200">{error}</span>
+                    </div>
+                )}
+
                 <form onSubmit={handleAuthSubmit} className="space-y-4">
                     <div className="space-y-2">
                         <label className="text-xs font-mono text-gray-400 uppercase">Agent ID / Email</label>
@@ -164,8 +204,11 @@ export const SecurityAuthModal = ({
                             <Mail className="absolute left-3 top-3 w-4 h-4 text-gray-500" />
                             <input 
                                 type="email" 
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 placeholder="name@gametout.com"
                                 className="w-full bg-black border border-white/20 p-2.5 pl-10 text-sm text-white focus:border-[#FFAB00] focus:outline-none rounded-sm transition-colors font-mono"
+                                required
                             />
                         </div>
                     </div>
@@ -173,17 +216,21 @@ export const SecurityAuthModal = ({
                     <div className="space-y-2">
                         <label className="text-xs font-mono text-gray-400 uppercase">Security Key</label>
                         <div className="relative">
-                            <Key className="absolute left-3 top-3 w-4 h-4 text-gray-500" />
                             <input 
                                 type="password" 
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 placeholder="••••••••"
                                 className="w-full bg-black border border-white/20 p-2.5 pl-10 text-sm text-white focus:border-[#FFAB00] focus:outline-none rounded-sm transition-colors font-mono"
+                                required
                             />
                         </div>
                     </div>
 
-                    <button className="w-full bg-white hover:bg-[#FFAB00] text-black font-bold uppercase py-3 tracking-widest transition-colors duration-200">
-                        {authMode === "login" ? "Establish Link" : "Create Dossier"}
+                    <button 
+                        disabled={loading}
+                        className="w-full bg-white hover:bg-[#FFAB00] text-black font-bold uppercase py-3 tracking-widest transition-colors duration-200">
+                        {loading ? "Authenticating..." : (authMode === "login" ? "Establish Link" : "Create Dossier")}
                     </button>
                 </form>
 
@@ -198,11 +245,19 @@ export const SecurityAuthModal = ({
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                    <button className="flex items-center justify-center gap-2 p-2 border border-white/10 hover:border-[#FFAB00] hover:bg-white/5 transition-colors group">
+                    <button 
+                        type="button"
+                        onClick={() => handleSocialLogin("google")}
+                        className="flex items-center justify-center gap-2 p-2 border border-white/10 hover:border-[#FFAB00] hover:bg-white/5 transition-colors group"
+                    >
                         <Chrome className="w-4 h-4 text-gray-400 group-hover:text-white" />
                         <span className="text-xs font-bold text-gray-400 group-hover:text-white uppercase">Google</span>
                     </button>
-                    <button className="flex items-center justify-center gap-2 p-2 border border-white/10 hover:border-[#FFAB00] hover:bg-white/5 transition-colors group">
+                    <button 
+                        type="button"
+                        onClick={() => handleSocialLogin("github")}
+                        className="flex items-center justify-center gap-2 p-2 border border-white/10 hover:border-[#FFAB00] hover:bg-white/5 transition-colors group"
+                    >
                         <Github className="w-4 h-4 text-gray-400 group-hover:text-white" />
                         <span className="text-xs font-bold text-gray-400 group-hover:text-white uppercase">GitHub</span>
                     </button>
