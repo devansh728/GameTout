@@ -1,63 +1,231 @@
-import { useState, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Briefcase, ExternalLink, UserPlus, List, Grid, CheckCircle, Clock, XCircle, Award, Zap, Search, ChevronRight, ChevronLeft, Terminal, Filter, ArrowRight } from "lucide-react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
+import { MapPin, UserPlus, List, Grid, CheckCircle, Clock, XCircle, Zap, Search, Terminal, Filter, Loader2, AlertCircle, RefreshCw, Crown, Sparkles, Shield, Lock, Calendar, Radio, Wifi, Cpu, Signal, Activity, Hexagon, Triangle, Circle} from "lucide-react";
 import { PageTransition, FadeInView } from "@/components/PageTransition";
-import { EvervaultCard } from "@/components/EvervaultCard";
-import { SkillBar } from "@/components/HealthBar";
 import { Footer } from "@/components/Footer";
 import { CreatePortfolioModal } from "@/components/CreatePortfolioModal";
 import { ProfileViewModal } from "@/components/ProfileViewModal";
-import { Link } from "react-router-dom";
-import { PremiumCard } from "@/components/PremiumCard";
+import { CompactHeader } from "@/components/CompactHeader";
+// New Components for redesigned UI
+import { BasicPortfolioCard } from "@/components/BasicPortfolioCard";
+import { PremiumPortfolioCard } from "@/components/PremiumPortfolioCard";
+import { ResponsiveMasonryGrid } from "@/components/MasonryGrid";
+import { PricingModal } from "@/components/PricingModal";
+import { ClassifiedOverlay } from "@/components/ClassifiedOverlay";
 
-// --- MOCK DATA ---
+// API Hooks
+import { usePortfolios, usePortfolioRails } from "@/hooks/usePortfolios";
+import { usePortfolioSearch } from "@/hooks/usePortfolioSearch";
+import { useEliteAccess } from "@/hooks/useEliteAccess";
+import { Developer } from "@/types/portfolio";
+
+// Demo Data for showcasing new design
+import { demoPortfolios, getDemoByCategory } from "@/data/demoPortfolios";
+
+// Portfolio Service for API calls
+import { portfolioService } from "@/services/portfolioService";
+
+// --- FILTER OPTIONS ---
 const roles = ["All", "Programmer", "Artist", "Designer", "Audio", "Producer"];
-const availabilityOptions = ["All", "Open for Work", "Freelance", "Deployed"];
 
-const generateDevs = (count: number) => Array.from({ length: count }).map((_, i) => ({
-  id: i + 1,
-  name: i % 2 === 0 ? "Aditya Kumar" : "Priya Nair",
-  role: i % 3 === 0 ? "Senior Game Programmer" : (i % 3 === 1 ? "3D Character Artist" : "Level Designer"),
-  location: i % 2 === 0 ? "Bangalore" : "Mumbai",
-  avatar: i % 2 === 0 ? "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200" : "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200",
-  portfolio: "#",
-  status: i % 3 === 0 ? "Open for Work" : (i % 3 === 1 ? "Freelance" : "Deployed"),
-  rate: i % 2 === 0 ? "$45/hr" : "$30/hr",
-  exp: "5 Yrs",
-  badges: i % 2 === 0 ? ["AAA Shipped", "Unity"] : ["ZBrush", "Indie"],
-  skills: [{ name: "Unreal 5", level: 90 }, { name: "C++", level: 85 }],
-  category: i % 3 === 0 ? "Programmer" : (i % 3 === 1 ? "Artist" : "Designer"),
-  isPremium: i === 0 || i === 4 || i === 7, 
-}));
+// Rotating categories for the animated tagline
+const rotatingCategories = [
+  { text: "Game Developers", color: "#FFAB00" },
+  { text: "Programmers", color: "#00FF88" },
+  { text: "3D Artists", color: "#FF6B6B" },
+  { text: "Game Designers", color: "#00D4FF" },
+  { text: "Audio Engineers", color: "#A855F7" },
+  { text: "Producers", color: "#F97316" },
+];
 
-const developers = generateDevs(20);
+// --- ANIMATED TAGLINE COMPONENT ---
+const AnimatedTagline = () => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isGlitching, setIsGlitching] = useState(false);
 
-// --- 3D TILT WRAPPER ---
-const PerspectiveItem = ({ children, className }: { children: React.ReactNode; className?: string }) => {
-    // (Animation logic remains the same as previous)
-    const ref = useRef<HTMLDivElement>(null);
-    return (
-        <div ref={ref} className={`perspective-1000 ${className}`}>
-            {children}
-        </div>
-    );
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsGlitching(true);
+      setTimeout(() => {
+        setCurrentIndex((prev) => (prev + 1) % rotatingCategories.length);
+        setIsGlitching(false);
+      }, 150);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const currentCategory = rotatingCategories[currentIndex];
+
+  return (
+    <div className="flex items-center gap-2 text-xs md:text-sm font-mono">
+      <span className="text-gray-500">{'>'} The centralized mainframe of India's elite</span>
+      <div className="relative inline-flex items-center min-w-[140px]">
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={currentIndex}
+            initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
+            animate={{ 
+              opacity: 1, 
+              y: 0, 
+              filter: "blur(0px)",
+            }}
+            exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className={`font-bold uppercase tracking-wide ${isGlitching ? "animate-pulse" : ""}`}
+            style={{ 
+              color: currentCategory.color,
+              textShadow: `0 0 10px ${currentCategory.color}50, 0 0 20px ${currentCategory.color}30`,
+            }}
+          >
+            {currentCategory.text}
+          </motion.span>
+        </AnimatePresence>
+        
+        {/* Glitch overlay effect */}
+        {isGlitching && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 1, 0] }}
+            transition={{ duration: 0.15 }}
+            className="absolute inset-0 flex items-center"
+          >
+            <span 
+              className="font-bold uppercase tracking-wide opacity-50"
+              style={{ 
+                color: currentCategory.color,
+                transform: "translateX(2px)",
+                filter: "blur(1px)"
+              }}
+            >
+              {currentCategory.text}
+            </span>
+          </motion.div>
+        )}
+      </div>
+      
+      {/* Blinking cursor */}
+      <motion.span
+        animate={{ opacity: [1, 1, 0, 0] }}
+        transition={{ duration: 1, repeat: Infinity, times: [0, 0.5, 0.5, 1] }}
+        className="text-[#FFAB00] font-bold"
+      >
+        _
+      </motion.span>
+    </div>
+  );
 };
 
-// --- COMPONENTS ---
+// --- COMPACT HEADER COMPONENT ---
+const DCompactHeader = ({ 
+  onCreateProfile, 
+  isDemoMode, 
+  onToggleDemo 
+}: { 
+  onCreateProfile: () => void;
+  isDemoMode: boolean;
+  onToggleDemo: () => void;
+}) => {
+  return (
+    <section className="px-4 md:px-8 max-w-7xl mx-auto mb-6 relative z-10">
+      {/* Top Status Bar */}
+      <div className="flex items-center justify-between gap-4 mb-3 py-2 border-b border-white/5">
+        <div className="flex items-center gap-3">
+          {/* Live indicator */}
+          <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/30 rounded-full">
+            <motion.div
+              animate={{ scale: [1, 1.2, 1], opacity: [1, 0.5, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]"
+            />
+            <span className="text-[10px] font-mono text-green-400 uppercase tracking-wider">Live</span>
+          </div>
+          
+          {/* Connection status */}
+          <div className="hidden md:flex items-center gap-2 text-[10px] font-mono text-gray-600">
+            <Wifi className="w-3 h-3 text-[#FFAB00]" />
+            <span>SECURE_CONNECTION</span>
+            <span className="text-[#FFAB00]">//</span>
+            <span>NODE_ACTIVE</span>
+          </div>
+        </div>
+
+        {/* Demo Mode Toggle - positioned in corner */}
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={onToggleDemo}
+          className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide transition-all ${
+            isDemoMode 
+              ? "bg-purple-500/20 text-purple-400 border border-purple-500/30" 
+              : "bg-white/5 text-gray-600 border border-white/10 hover:text-white"
+          }`}
+        >
+          <Radio className="w-3 h-3" />
+          {isDemoMode ? "Demo" : "Live"}
+        </motion.button>
+      </div>
+
+      {/* Main Header Row */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        
+        {/* Left: Title & Tagline */}
+        <div className="flex-1">
+          {/* Compact Title */}
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="font-display text-3xl md:text-4xl text-white uppercase tracking-tight leading-none">
+              Talent
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFAB00] via-yellow-400 to-[#FFAB00] ml-2">
+                Network
+              </span>
+            </h1>
+            
+            {/* Stats Badge */}
+            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
+              <Zap className="w-3 h-3 text-[#FFAB00]" />
+              <span className="text-[10px] font-mono text-gray-400">
+                <span className="text-white font-bold">847</span> Active Profiles
+              </span>
+            </div>
+          </div>
+          
+          {/* Animated Tagline */}
+          <AnimatedTagline />
+        </div>
+
+        {/* Right: CTA Button */}
+        <motion.button
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={onCreateProfile}
+          className="group relative flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#FFAB00] to-[#FF8C00] text-black font-bold uppercase text-sm tracking-wide overflow-hidden rounded-sm shadow-[0_0_20px_rgba(255,171,0,0.3)] hover:shadow-[0_0_30px_rgba(255,171,0,0.5)] transition-shadow"
+        >
+          <UserPlus className="w-4 h-4" />
+          <span>Create Profile</span>
+          
+          {/* Shine effect */}
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full"
+            animate={{ translateX: ["−100%", "200%"] }}
+            transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+          />
+        </motion.button>
+      </div>
+    </section>
+  );
+};
+
+// --- COMPONENTS (keeping existing ones) ---
 
 const StatusBadge = ({ status }: { status: string }) => {
   let color = "bg-gray-500";
-  let icon = <Clock className="w-3 h-3" />;
 
   if (status === "Open for Work") {
     color = "bg-green-500 shadow-[0_0_10px_#22c55e]";
-    icon = <CheckCircle className="w-3 h-3" />;
   } else if (status === "Freelance") {
     color = "bg-[#FFAB00] shadow-[0_0_10px_#FFAB00]";
-    icon = <Zap className="w-3 h-3 text-black" />;
   } else if (status === "Deployed") {
     color = "bg-red-500";
-    icon = <XCircle className="w-3 h-3" />;
   }
 
   return (
@@ -68,19 +236,27 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
-// FIXED: Added onClick prop to interface
-const TacticalRow = ({ dev, onClick }: { dev: any; onClick: () => void }) => (
+// Tactical Row for list view
+const TacticalRow = ({ dev, onClick, isRestricted, onUnlock }: { 
+  dev: Developer; 
+  onClick: () => void;
+  isRestricted?: boolean;
+  onUnlock?: () => void;
+}) => (
   <motion.div
     initial={{ opacity: 0, x: -20 }}
     animate={{ opacity: 1, x: 0 }}
-    className="group flex flex-col md:flex-row items-center gap-4 p-4 bg-black/40 border border-white/5 hover:border-[#FFAB00] rounded-sm transition-all duration-200 hover:bg-white/5 cursor-pointer"
-    onClick={onClick}
+    className="group flex flex-col md:flex-row items-center gap-4 p-4 bg-black/40 border border-white/5 hover:border-[#FFAB00] rounded-sm transition-all duration-200 hover:bg-white/5 cursor-pointer relative"
+    onClick={isRestricted ? onUnlock : onClick}
   >
     {dev.isPremium && <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#FFAB00] shadow-[0_0_10px_#FFAB00]" />}
     <div className="flex items-center gap-4 w-full md:w-1/4">
-      <img src={dev.avatar} alt={dev.name} className="w-10 h-10 rounded-full object-cover border border-white/20" />
+      <img src={dev.avatar} alt={dev.name} className="w-10 h-10 rounded-full object-cover border border-white/20" loading="lazy" />
       <div>
-        <h4 className="font-display text-white text-lg leading-none">{dev.name}</h4>
+        <h4 className="font-display text-white text-lg leading-none flex items-center gap-2">
+          {dev.name}
+          {dev.isPremium && <Crown className="w-4 h-4 text-[#FFAB00]" />}
+        </h4>
         <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
           <MapPin className="w-3 h-3" /> {dev.location}
         </div>
@@ -95,159 +271,282 @@ const TacticalRow = ({ dev, onClick }: { dev: any; onClick: () => void }) => (
       </div>
     </div>
     <div className="w-full md:w-1/6 flex items-center gap-6 font-mono text-sm">
-      <div className="text-gray-400">
-        <span className="block text-[10px] uppercase">EXP</span>
-        <span className="text-white">{dev.exp}</span>
-      </div>
-      <div className="text-gray-400">
-        <span className="block text-[10px] uppercase">Rate</span>
-        <span className="text-white">{dev.rate}</span>
-      </div>
+      {isRestricted ? (
+        <div className="flex items-center gap-2 text-gray-500">
+          <Lock className="w-4 h-4" />
+          <span className="text-xs">Classified</span>
+        </div>
+      ) : (
+        <>
+          <div className="text-gray-400">
+            <span className="block text-[10px] uppercase">EXP</span>
+            <span className="text-white">{dev.exp}</span>
+          </div>
+          <div className="text-gray-400">
+            <span className="block text-[10px] uppercase">Rate</span>
+            <span className="text-white">{dev.rate || "N/A"}</span>
+          </div>
+        </>
+      )}
     </div>
     <div className="w-full md:w-1/3 flex items-center justify-between gap-4">
       <StatusBadge status={dev.status} />
       <div className="flex gap-2">
         <button className="px-3 py-1 bg-white/5 hover:bg-[#FFAB00] hover:text-black text-xs font-bold uppercase border border-white/10 transition-colors">
-          View
+          {isRestricted ? "Unlock" : "View"}
         </button>
       </div>
     </div>
   </motion.div>
 );
 
-// CARD CONTENT (Shared between Premium and Normal)
-const CardContent = ({ dev }: { dev: any }) => (
-    <div className="p-8 flex flex-col h-full relative z-20">
-        <div className="flex justify-between items-start mb-6">
-            <div className="flex -space-x-2">
-                {dev.badges.map((b: string, idx: number) => (
-                    <div key={idx} className="w-6 h-6 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[10px] text-[#FFAB00]" title={b}>
-                        <Award className="w-3 h-3" />
-                    </div>
-                ))}
-            </div>
-            <StatusBadge status={dev.status} />
-        </div>
-        <div className="text-center mb-6">
-            <div className="relative inline-block mb-4">
-                {/* Enhanced glow for premium */}
-                <div className={`absolute inset-0 rounded-full blur-md opacity-20 animate-pulse ${dev.isPremium ? "bg-[#FFAB00] opacity-50" : "bg-[#FFAB00]"}`} />
-                <img src={dev.avatar} alt={dev.name} className={`relative w-24 h-24 rounded-full object-cover border-2 ${dev.isPremium ? "border-[#FFAB00]" : "border-[#FFAB00]/50"}`} />
-            </div>
-            <h3 className={`font-display text-3xl leading-none mb-1 ${dev.isPremium ? "text-white drop-shadow-[0_0_5px_rgba(255,171,0,0.5)]" : "text-white"}`}>{dev.name}</h3>
-            <p className="text-[#FFAB00] text-xs font-bold uppercase tracking-widest">{dev.role}</p>
-        </div>
-        <div className="grid grid-cols-2 gap-4 mb-6 p-4 bg-white/5 rounded border border-white/10">
-            <div className="text-center border-r border-white/10">
-                <p className="text-[10px] text-gray-500 uppercase">Location</p>
-                <p className="text-white text-xs font-bold flex justify-center items-center gap-1"><MapPin className="w-3 h-3" /> {dev.location}</p>
-            </div>
-            <div className="text-center">
-                <p className="text-[10px] text-gray-500 uppercase">Experience</p>
-                <p className="text-white text-xs font-bold">{dev.exp}</p>
-            </div>
-        </div>
-        <div className="flex-1 space-y-3 mb-6">
-            {dev.skills.slice(0, 2).map((skill: any, idx: number) => (
-                <SkillBar key={idx} skill={skill.name} level={skill.level} />
-            ))}
-        </div>
-        <div className="flex gap-3 mt-auto">
-            <button className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-black text-xs font-bold uppercase transition-colors shadow-lg rounded-sm ${dev.isPremium ? "bg-[#FFD700] hover:bg-white hover:shadow-[0_0_20px_#FFD700]" : "bg-[#FFAB00] hover:bg-white hover:shadow-[#FFAB00]/50"}`}>
-                <Briefcase className="w-4 h-4" /> View Dossier
-            </button>
-        </div>
+// SKELETON LOADER for cards
+const CardSkeleton = () => (
+  <div className="w-[280px] h-[280px] bg-black/40 border border-white/5 rounded-xl animate-pulse">
+    <div className="p-6 flex flex-col h-full items-center justify-center">
+      <div className="w-20 h-20 rounded-full bg-white/10 mb-4" />
+      <div className="w-32 h-5 bg-white/10 rounded mb-2" />
+      <div className="w-24 h-4 bg-white/10 rounded mb-4" />
+      <div className="w-20 h-8 bg-white/10 rounded" />
     </div>
+  </div>
 );
 
-const CategoryRail = ({ title, items, onSelect }: { title: string; items: any[]; onSelect: (dev: any) => void }) => {
-    const scrollRef = useRef<HTMLDivElement>(null);
+// ERROR STATE component
+const ErrorState = ({ message, onRetry }: { message: string; onRetry?: () => void }) => (
+  <div className="flex flex-col items-center justify-center py-20 text-center">
+    <AlertCircle className="w-16 h-16 text-red-500/50 mb-4" />
+    <h3 className="font-display text-2xl text-white mb-2">CONNECTION FAILED</h3>
+    <p className="text-gray-500 font-mono mb-6">{message}</p>
+    {onRetry && (
+      <button
+        onClick={onRetry}
+        className="flex items-center gap-2 px-6 py-3 bg-[#FFAB00] text-black font-bold uppercase hover:bg-white transition-colors"
+      >
+        <RefreshCw className="w-4 h-4" /> Retry Connection
+      </button>
+    )}
+  </div>
+);
 
-    const scroll = (direction: "left" | "right") => {
-        if (scrollRef.current) {
-            const scrollAmount = 400;
-            scrollRef.current.scrollBy({ left: direction === "left" ? -scrollAmount : scrollAmount, behavior: "smooth" });
-        }
-    };
+// EMPTY STATE component
+const EmptyState = ({ category }: { category: string }) => (
+  <div className="flex flex-col items-center justify-center py-20 text-center">
+    <Terminal className="w-16 h-16 text-gray-700 mb-4" />
+    <h3 className="font-display text-2xl text-white mb-2">NO OPERATIVES FOUND</h3>
+    <p className="text-gray-500 font-mono">
+      No portfolios in {category === "All" ? "the database" : `${category} division`} yet.
+    </p>
+  </div>
+);
 
-    if (items.length === 0) return null;
-
+// Elite Access Banner (Compact version)
+const EliteAccessBanner = ({ 
+  isElite, 
+  onUpgrade,
+  daysRemaining = 0,
+  isExpiringSoon = false,
+}: { 
+  isElite: boolean; 
+  onUpgrade: () => void;
+  daysRemaining?: number;
+  isExpiringSoon?: boolean;
+}) => {
+  if (isElite) {
     return (
-        <div className="mb-16 relative group/rail">
-            <div className="flex items-end justify-between mb-6 px-1 border-b border-white/5 pb-2">
-                <h3 className="font-display text-2xl md:text-4xl text-white uppercase flex items-center gap-3 tracking-wide">
-                    <span className="w-1.5 h-8 bg-[#FFAB00] shadow-[0_0_10px_#FFAB00]" />
-                    {title} 
-                    <span className="text-white/20 text-lg font-mono tracking-widest">[{items.length}]</span>
-                </h3>
-                <div className="flex gap-1 opacity-0 group-hover/rail:opacity-100 transition-opacity duration-300">
-                    <button onClick={() => scroll("left")} className="p-3 bg-black border border-white/10 hover:bg-[#FFAB00] hover:text-black hover:border-[#FFAB00] transition-all"><ChevronLeft className="w-5 h-5" /></button>
-                    <button onClick={() => scroll("right")} className="p-3 bg-black border border-white/10 hover:bg-[#FFAB00] hover:text-black hover:border-[#FFAB00] transition-all"><ChevronRight className="w-5 h-5" /></button>
-                </div>
-            </div>
-
-            <div 
-                ref={scrollRef}
-                className="flex gap-8 overflow-x-auto pb-12 pt-4 px-2 scrollbar-none snap-x snap-mandatory mask-linear-fade-right"
-                style={{ perspective: "1000px" }}
-            >
-                {items.map((dev, i) => (
-                    <motion.div 
-                        key={dev.id + title}
-                        className="snap-center min-w-[340px] w-[340px] h-[480px] cursor-pointer"
-                        initial={{ opacity: 0, x: 50 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.5, delay: i * 0.05 }}
-                        viewport={{ once: true }}
-                        onClick={() => onSelect(dev)}
-                    >
-                        <PerspectiveItem className="h-full w-full">
-                            {dev.isPremium ? (
-                                <PremiumCard className="h-full shadow-[0_0_30px_rgba(255,171,0,0.15)]">
-                                    <CardContent dev={dev} />
-                                </PremiumCard>
-                            ) : (
-                                <EvervaultCard className="h-full bg-[#0a0a0a] shadow-2xl">
-                                    <CardContent dev={dev} />
-                                </EvervaultCard>
-                            )}
-                        </PerspectiveItem>
-                    </motion.div>
-                ))}
-                
-                {/* "View All" Card */}
-                <div className="snap-center min-w-[200px] flex items-center justify-center">
-                    <Link to="#" className="w-full h-[80%] flex flex-col items-center justify-center border border-dashed border-[#FFAB00]/20 hover:border-[#FFAB00] rounded-xl group transition-all hover:bg-[#FFAB00]/5">
-                        <div className="w-16 h-16 rounded-full bg-[#FFAB00]/5 flex items-center justify-center group-hover:bg-[#FFAB00] transition-colors mb-4 shadow-lg group-hover:shadow-[#FFAB00]/50 group-hover:scale-110 duration-300">
-                            <ArrowRight className="w-8 h-8 text-[#FFAB00] group-hover:text-black" />
-                        </div>
-                        <span className="font-display text-xl text-gray-500 group-hover:text-white uppercase tracking-wider">Expand {title}</span>
-                    </Link>
-                </div>
-            </div>
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={`flex items-center justify-between gap-3 px-4 py-2 mb-4 rounded-sm ${
+          isExpiringSoon 
+            ? "bg-gradient-to-r from-orange-500/10 to-transparent border-l-2 border-orange-500" 
+            : "bg-gradient-to-r from-[#FFAB00]/10 to-transparent border-l-2 border-[#FFAB00]"
+        }`}
+      >
+        <div className="flex items-center gap-2">
+          <Crown className={`w-4 h-4 ${isExpiringSoon ? "text-orange-500" : "text-[#FFAB00]"}`} />
+          <span className={`font-bold uppercase text-xs tracking-wide ${isExpiringSoon ? "text-orange-500" : "text-[#FFAB00]"}`}>
+            Elite Active
+          </span>
         </div>
+        {daysRemaining > 0 && (
+          <div className="flex items-center gap-2 text-xs">
+            <span className={isExpiringSoon ? "text-orange-400" : "text-gray-400"}>
+              {daysRemaining}d left
+            </span>
+            {isExpiringSoon && (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={onUpgrade}
+                className="px-2 py-0.5 bg-orange-500 text-black text-[10px] font-bold uppercase rounded"
+              >
+                Renew
+              </motion.button>
+            )}
+          </div>
+        )}
+      </motion.div>
     );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex items-center justify-between gap-4 px-4 py-3 bg-gradient-to-r from-[#FFAB00]/5 via-[#FFAB00]/10 to-transparent border border-[#FFAB00]/20 rounded-sm mb-4"
+    >
+      <div className="flex items-center gap-3">
+        <Shield className="w-5 h-5 text-[#FFAB00]" />
+        <div>
+          <span className="text-white font-bold text-sm">Unlock Full Access</span>
+          <span className="text-gray-500 text-xs ml-2 hidden md:inline">• Complete profiles & contact info</span>
+        </div>
+      </div>
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={onUpgrade}
+        className="px-4 py-1.5 bg-gradient-to-r from-[#FFAB00] to-[#FFD700] text-black font-bold uppercase text-xs rounded-sm shadow-[0_0_15px_rgba(255,171,0,0.3)]"
+      >
+        <Crown className="w-3 h-3 inline mr-1" />
+        Get Elite
+      </motion.button>
+    </motion.div>
+  );
 };
 
 const Portfolios = () => {
   const [activeRole, setActiveRole] = useState("All");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedDev, setSelectedDev] = useState<any>(null);
+  const [isPricingOpen, setIsPricingOpen] = useState(false);
+  const [selectedDev, setSelectedDev] = useState<Developer | null>(null);
+  const [selectedDevId, setSelectedDevId] = useState<number | null>(null);
+  const [showClassified, setShowClassified] = useState(false);
+  
+  // Environment-controlled demo mode
+  const showDemoFeature = import.meta.env.VITE_SHOW_DEMO === 'true';
+  const [isDemoMode, setIsDemoMode] = useState(showDemoFeature);
+  
+  // Portfolio count state
+  const [totalProfiles, setTotalProfiles] = useState(0);
 
-  // Filter Logic
-  const getFilteredDevs = (category: string) => {
-    let filtered = developers.filter((dev) => {
-      const roleMatch = category === "All" || dev.category === category;
-      const searchMatch = dev.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          dev.role.toLowerCase().includes(searchQuery.toLowerCase());
-      return roleMatch && searchMatch;
-    });
+  // Elite Access Hook
+  const { 
+    isElite, 
+    isAuthenticated, 
+    canViewFullProfile, 
+    upgradeToElite,
+    refreshStatus,
+    daysRemaining,
+    isExpiringSoon,
+  } = useEliteAccess({ demoMode: isDemoMode });
 
-    return filtered.sort((a, b) => (a.isPremium === b.isPremium ? 0 : a.isPremium ? -1 : 1));
+  // API Hooks
+  const { 
+    developers: apiDevelopers, 
+    loading: listLoading, 
+    error: listError, 
+    getByCategory,
+    fetchPortfolios,
+    refresh: refreshList
+  } = usePortfolios({ category: activeRole, autoFetch: !isDemoMode });
 
+  const { 
+    rails, 
+    loading: railsLoading, 
+    error: railsError,
+    refresh: refreshRails 
+  } = usePortfolioRails();
+
+  const {
+    results: searchResults,
+    loading: searchLoading,
+    error: searchError,
+    searchQuery,
+    setSearchQuery,
+    isSearching,
+    totalResults,
+    clear: clearSearch
+  } = usePortfolioSearch({ debounceMs: 300, minChars: 2 });
+
+  // Fetch total portfolio count on mount
+  useEffect(() => {
+    const fetchCount = async () => {
+      try {
+        if (isDemoMode) {
+          setTotalProfiles(demoPortfolios.length);
+        } else {
+          const { count } = await portfolioService.getCount();
+          setTotalProfiles(count);
+        }
+      } catch (error) {
+        console.error("Failed to fetch portfolio count:", error);
+        // Fallback to demo count on error
+        setTotalProfiles(demoPortfolios.length);
+      }
+    };
+    fetchCount();
+  }, [isDemoMode]);
+
+  // Determine data source (demo or API)
+  const developers = useMemo(() => {
+    if (isDemoMode) {
+      return activeRole === "All" ? demoPortfolios : getDemoByCategory(activeRole);
+    }
+    return apiDevelopers;
+  }, [isDemoMode, activeRole, apiDevelopers]);
+
+  // Determine which data to show
+  const isSearchActive = searchQuery.length >= 2;
+  const displayDevelopers = useMemo(() => {
+    if (isSearchActive) {
+      if (isDemoMode) {
+        const query = searchQuery.toLowerCase();
+        return demoPortfolios.filter(d => 
+          d.name.toLowerCase().includes(query) ||
+          d.role.toLowerCase().includes(query) ||
+          d.badges.some(b => b.toLowerCase().includes(query))
+        );
+      }
+      return searchResults;
+    }
+    return developers;
+  }, [isSearchActive, isDemoMode, searchQuery, searchResults, developers]);
+
+  const isRestricted = !isElite && isAuthenticated;
+
+  const handleSelectDev = (dev: Developer) => {
+    if (isRestricted && !canViewFullProfile(dev.id)) {
+      setSelectedDev(dev);
+      setShowClassified(true);
+    } else {
+      setSelectedDev(dev);
+      setSelectedDevId(dev.id);
+    }
   };
+
+  const handleUnlockClick = () => {
+    setIsPricingOpen(true);
+  };
+
+  const handlePlanSelect = async (plan: "viewer" | "creator") => {
+    await upgradeToElite(plan);
+    await refreshStatus();
+    setShowClassified(false);
+  };
+
+  const handleCategoryChange = (category: string) => {
+    setActiveRole(category);
+    clearSearch();
+    if (!isDemoMode && category !== "All") {
+      fetchPortfolios(category, 0);
+    }
+  };
+
+  const isLoading = isDemoMode ? false : (activeRole === "All" && !isSearchActive) ? railsLoading : listLoading;
+  const error = isDemoMode ? null : (activeRole === "All" && !isSearchActive) ? railsError : listError;
 
   return (
     <PageTransition>
@@ -261,88 +560,127 @@ const Portfolios = () => {
 
         {/* MODALS */}
         <CreatePortfolioModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-        <ProfileViewModal isOpen={!!selectedDev} onClose={() => setSelectedDev(null)} developer={selectedDev} />
+        <PricingModal 
+          isOpen={isPricingOpen} 
+          onClose={() => setIsPricingOpen(false)}
+          onSelectPlan={handlePlanSelect}
+          demoMode={isDemoMode}
+        />
+        
+        <ProfileViewModal 
+          isOpen={!!selectedDev && !showClassified} 
+          onClose={() => {
+            setSelectedDev(null);
+            setSelectedDevId(null);
+          }} 
+          developer={selectedDev}
+          portfolioId={selectedDevId}
+        />
 
-        {/* HEADER SECTION */}
-        <section className="px-4 md:px-8 max-w-7xl mx-auto mb-10 flex flex-col md:flex-row justify-between items-end gap-6 relative z-10">
-          <FadeInView>
-            <span className="inline-block px-4 py-1 rounded-full bg-[#FFAB00]/10 text-[#FFAB00] text-sm font-bold font-mono mb-4 border border-[#FFAB00]/20 animate-pulse">
-              // SECURE_CONNECTION_ESTABLISHED
-            </span>
-            <h1 className="font-display text-6xl md:text-8xl mb-4 text-white uppercase tracking-tighter">
-              Talent <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFAB00] to-yellow-500">Network</span>
-            </h1>
-            <p className="text-gray-400 text-lg max-w-2xl font-mono">
-              The centralized mainframe of India's elite game developers.
-            </p>
-          </FadeInView>
+        {/* Classified Overlay Modal */}
+        <AnimatePresence>
+          {showClassified && selectedDev && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+            >
+              <div 
+                className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                onClick={() => {
+                  setShowClassified(false);
+                  setSelectedDev(null);
+                }}
+              />
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="relative w-full max-w-md"
+              >
+                <ClassifiedOverlay 
+                  developer={selectedDev}
+                  onUnlock={handleUnlockClick}
+                />
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setIsModalOpen(true)}
-            className="group relative px-8 py-4 bg-[#0a0a0a] border border-[#FFAB00] text-[#FFAB00] font-bold uppercase tracking-widest overflow-hidden hover:text-black transition-colors shadow-[0_0_30px_rgba(255,171,0,0.3)]"
-          >
-            <span className="relative z-10 flex items-center gap-3">
-              <UserPlus className="w-5 h-5" /> Initialize Profile
-            </span>
-            <div className="absolute inset-0 bg-[#FFAB00] translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-          </motion.button>
-        </section>
+        {/* NEW COMPACT HEADER */}
+        <CompactHeader 
+          onCreateProfile={() => setIsModalOpen(true)}
+          isDemoMode={isDemoMode}
+          onToggleDemo={() => setIsDemoMode(!isDemoMode)}
+          totalProfiles={totalProfiles}
+          showDemoToggle={showDemoFeature}
+        />
 
         {/* CONTROL DECK */}
-        <section className="sticky top-20 z-40 bg-[#0a0a0a]/80 backdrop-blur-xl border-y border-white/10 py-4 mb-16 shadow-2xl">
-          <div className="px-4 md:px-8 max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 items-center">
+        <section className="sticky top-20 z-40 bg-[#0a0a0a]/90 backdrop-blur-xl border-y border-white/10 py-3 mb-6 shadow-2xl">
+          <div className="px-4 md:px-8 max-w-7xl mx-auto flex flex-col lg:flex-row gap-4 items-center">
             
             {/* Search Module */}
             <div className="relative w-full lg:w-1/3 group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-[#FFAB00] transition-colors" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-[#FFAB00] transition-colors" />
                 <input 
                     type="text" 
-                    placeholder="SCAN DATABASE..." 
-                    className="w-full bg-black/50 border border-white/10 rounded-none px-12 py-3 text-sm text-white focus:outline-none focus:border-[#FFAB00] focus:bg-black/80 transition-all font-mono uppercase placeholder:text-gray-700"
+                    placeholder="Search talents..." 
+                    className="w-full bg-black/50 border border-white/10 rounded-sm px-10 py-2 text-sm text-white focus:outline-none focus:border-[#FFAB00] focus:bg-black/80 transition-all font-mono placeholder:text-gray-600"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
-                <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                    <Terminal className="w-4 h-4 text-[#FFAB00] animate-pulse opacity-0 group-focus-within:opacity-100" />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                    {isSearching && <Loader2 className="w-4 h-4 text-[#FFAB00] animate-spin" />}
+                    {searchQuery && !isSearching && (
+                        <button 
+                            onClick={clearSearch}
+                            className="text-gray-500 hover:text-white transition-colors"
+                        >
+                            <XCircle className="w-4 h-4" />
+                        </button>
+                    )}
                 </div>
+                {isSearchActive && (
+                    <div className="absolute -bottom-5 left-0 text-[10px] font-mono text-gray-500">
+                        <span className="text-[#FFAB00]">{isDemoMode ? displayDevelopers.length : totalResults}</span> results
+                    </div>
+                )}
             </div>
 
             {/* Filter Tabs */}
             <div className="flex-1 w-full overflow-x-auto pb-1 scrollbar-none">
-              <div className="flex gap-2">
-                <div className="flex items-center gap-2 px-4 text-gray-500 border-r border-white/10 mr-2">
-                    <Filter className="w-4 h-4" /> <span className="text-[10px] font-bold uppercase">Division</span>
-                </div>
+              <div className="flex gap-1.5 items-center">
+                <Filter className="w-4 h-4 text-gray-600 mr-2 shrink-0" />
                 {roles.map((role) => (
                   <button
                     key={role}
-                    onClick={() => setActiveRole(role)}
-                    className={`whitespace-nowrap px-6 py-2 text-xs font-bold uppercase tracking-wider transition-all skew-x-[-10deg] ${activeRole === role
-                        ? "bg-[#FFAB00] text-black shadow-[0_0_15px_rgba(255,171,0,0.4)]"
+                    onClick={() => handleCategoryChange(role)}
+                    className={`whitespace-nowrap px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition-all rounded-sm ${activeRole === role
+                        ? "bg-[#FFAB00] text-black shadow-[0_0_10px_rgba(255,171,0,0.4)]"
                         : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
                       }`}
                   >
-                    <span className="skew-x-[10deg] inline-block">{role}</span>
+                    {role}
                   </button>
                 ))}
               </div>
             </div>
 
             {/* View Toggle */}
-            <div className="flex items-center bg-black border border-white/10 p-1 shrink-0 gap-1">
+            <div className="flex items-center bg-black/50 border border-white/10 p-0.5 shrink-0 gap-0.5 rounded-sm">
               <button
                 onClick={() => setViewMode("grid")}
-                className={`p-2 transition-colors ${viewMode === "grid" ? "bg-[#FFAB00] text-black" : "text-gray-500 hover:text-white"}`}
-                title="Gallery View"
+                className={`p-1.5 rounded-sm transition-colors ${viewMode === "grid" ? "bg-[#FFAB00] text-black" : "text-gray-500 hover:text-white"}`}
+                title="Grid View"
               >
                 <Grid className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setViewMode("list")}
-                className={`p-2 transition-colors ${viewMode === "list" ? "bg-[#FFAB00] text-black" : "text-gray-500 hover:text-white"}`}
-                title="Tactical View"
+                className={`p-1.5 rounded-sm transition-colors ${viewMode === "list" ? "bg-[#FFAB00] text-black" : "text-gray-500 hover:text-white"}`}
+                title="List View"
               >
                 <List className="w-4 h-4" />
               </button>
@@ -351,74 +689,115 @@ const Portfolios = () => {
         </section>
 
         {/* DATABASE CONTENT */}
-        <section className="px-4 md:px-8 max-w-7xl mx-auto pb-20 min-h-[500px] relative z-10">
+        <section className="px-4 md:px-8 max-w-[1600px] mx-auto pb-20 min-h-[500px] relative z-10">
+          
+          {/* Elite Access Banner */}
+          <EliteAccessBanner 
+            isElite={isElite} 
+            onUpgrade={handleUnlockClick} 
+            daysRemaining={daysRemaining}
+            isExpiringSoon={isExpiringSoon}
+          />
+
           <AnimatePresence mode="wait">
 
-            {/* SCENARIO 1: "ALL" SELECTED (Netflix Style Rails) */}
-            {activeRole === "All" && viewMode === "grid" && !searchQuery ? (
-                <motion.div
-                    key="netflix-view"
-                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                    className="space-y-8"
-                >
-                    <CategoryRail title="Elite Operatives" items={developers.slice(0, 6)} onSelect={setSelectedDev} />
-                    <CategoryRail title="Engineering Division" items={developers.filter(d => d.category === "Programmer")} onSelect={setSelectedDev} />
-                    <CategoryRail title="Visual Arts Corps" items={developers.filter(d => d.category === "Artist")} onSelect={setSelectedDev} />
-                    <CategoryRail title="System Architects" items={developers.filter(d => d.category === "Designer")} onSelect={setSelectedDev} />
-                </motion.div>
-            ) : (
-
-            /* SCENARIO 2: FILTERED GRID or SEARCH RESULTS */
-            viewMode === "grid" ? (
+            {/* ERROR STATE */}
+            {error && !isLoading && (
               <motion.div
-                key="filtered-grid"
+                key="error"
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               >
-                 <div className="flex items-center gap-2 mb-8 text-gray-500 font-mono text-sm uppercase border-b border-[#FFAB00]/30 pb-2 inline-block">
-                    <Terminal className="w-4 h-4 text-[#FFAB00]" />
-                    Targeting: <span className="text-white">{activeRole}</span> // Hits: <span className="text-[#FFAB00]">{getFilteredDevs(activeRole).length}</span>
-                 </div>
-
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {getFilteredDevs(activeRole).map((dev, index) => (
-                    <FadeInView key={dev.id} delay={index * 0.05}>
-                        <div onClick={() => setSelectedDev(dev)} className="cursor-pointer h-full">
-                            <PerspectiveItem className="h-full">
-                                {dev.isPremium ? (
-                                    <PremiumCard className="h-full shadow-[0_0_30px_rgba(255,171,0,0.15)]">
-                                        <CardContent dev={dev} />
-                                    </PremiumCard>
-                                ) : (
-                                    <EvervaultCard className="h-full bg-[#0a0a0a]">
-                                        <CardContent dev={dev} />
-                                    </EvervaultCard>
-                                )}
-                            </PerspectiveItem>
-                        </div>
-                    </FadeInView>
-                    ))}
-                 </div>
+                <ErrorState 
+                  message={error} 
+                  onRetry={() => activeRole === "All" ? refreshRails() : refreshList()} 
+                />
               </motion.div>
-            ) : (
+            )}
 
-              /* SCENARIO 3: LIST VIEW (Tactical Table) */
+            {/* SEARCH ERROR */}
+            {searchError && isSearchActive && !isDemoMode && (
+              <motion.div
+                key="search-error"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              >
+                <ErrorState message={searchError} onRetry={() => setSearchQuery(searchQuery)} />
+              </motion.div>
+            )}
+
+            {/* MASONRY GRID VIEW */}
+            {viewMode === "grid" && !error ? (
+              <motion.div
+                key="masonry-grid"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              >
+                {/* Category Header - Compact */}
+                <div className="flex items-center gap-2 mb-6 text-gray-500 font-mono text-xs uppercase">
+                  <Terminal className="w-3 h-3 text-[#FFAB00]" />
+                  {isSearchActive ? (
+                    <>Searching: <span className="text-white">"{searchQuery}"</span></>
+                  ) : (
+                    <><span className="text-white">{activeRole}</span> • <span className="text-[#FFAB00]">{displayDevelopers.length}</span> profiles</>
+                  )}
+                  {isLoading && <Loader2 className="w-3 h-3 text-[#FFAB00] animate-spin ml-2" />}
+                  {isDemoMode && (
+                    <span className="ml-2 px-2 py-0.5 bg-purple-500/20 text-purple-400 text-[10px] rounded-full">DEMO</span>
+                  )}
+                </div>
+
+                {/* Loading Skeletons */}
+                {isLoading && displayDevelopers.length === 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                      <div key={i} className="flex items-center justify-center">
+                        <CardSkeleton />
+                      </div>
+                    ))}
+                  </div>
+                ) : displayDevelopers.length === 0 ? (
+                  <EmptyState category={isSearchActive ? `"${searchQuery}"` : activeRole} />
+                ) : (
+                  <ResponsiveMasonryGrid
+                    developers={displayDevelopers}
+                    onSelectDev={handleSelectDev}
+                    isRestricted={isRestricted}
+                    onUnlockClick={handleUnlockClick}
+                  />
+                )}
+              </motion.div>
+            ) : !error && (
+
+              /* LIST VIEW */
               <motion.div
                 key="list"
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="flex flex-col gap-3"
+                className="flex flex-col gap-2"
               >
                 <div className="hidden md:flex px-4 py-2 text-[10px] font-mono text-gray-600 uppercase tracking-widest border-b border-white/10 mb-2">
                   <div className="w-1/4">Operative ID</div>
                   <div className="w-1/4">Specialization</div>
-                  <div className="w-1/6">Stats</div>
+                  <div className="w-1/6">Stats {isRestricted && <Lock className="w-3 h-3 inline text-red-500 ml-1" />}</div>
                   <div className="w-1/3">Status & Action</div>
                 </div>
 
-                {getFilteredDevs(activeRole).map((dev) => (
-                  <TacticalRow key={dev.id} dev={dev} onClick={() => setSelectedDev(dev)} />
-                ))}
+                {isLoading && displayDevelopers.length === 0 ? (
+                  <div className="flex items-center justify-center py-20">
+                    <Loader2 className="w-8 h-8 text-[#FFAB00] animate-spin" />
+                  </div>
+                ) : displayDevelopers.length === 0 ? (
+                  <EmptyState category={isSearchActive ? `"${searchQuery}"` : activeRole} />
+                ) : (
+                  displayDevelopers.map((dev) => (
+                    <TacticalRow 
+                      key={dev.id} 
+                      dev={dev} 
+                      onClick={() => handleSelectDev(dev)}
+                      isRestricted={isRestricted}
+                      onUnlock={handleUnlockClick}
+                    />
+                  ))
+                )}
               </motion.div>
-            ))}
+            )}
 
           </AnimatePresence>
         </section>

@@ -25,10 +25,10 @@ type PostType = "DOCUMENTARIES" | "REVIEWS" | "PODCASTS" | "STUDIOS";
 type PostStatus = "DRAFT" | "PUBLISHED" | "SCHEDULED";
 
 const postTypeConfig: Record<PostType, { color: string; icon: any; label: string }> = {
-  PODCASTS: { color: "#3B82F6", icon: Zap, label: "Breaking News" },
-  REVIEWS: { color: "#FFAB00", icon: Sparkles, label: "Game Review" },
-  DOCUMENTARIES: { color: "#A855F7", icon: FileText, label: "Feature Article" },
-  STUDIOS: { color: "#10B981", icon: Layout, label: "Strategy Guide" },
+  PODCASTS: { color: "#3B82F6", icon: Zap, label: "(Podcasts)" },
+  REVIEWS: { color: "#FFAB00", icon: Sparkles, label: "Game Reviews" },
+  DOCUMENTARIES: { color: "#A855F7", icon: FileText, label: "Documentaries" },
+  STUDIOS: { color: "#10B981", icon: Layout, label: "Studios" },
 };
 
 const postStatusConfig: Record<PostStatus, { color: string; icon: any; label: string }> = {
@@ -891,7 +891,7 @@ const MetadataForm = ({ metadata, onChange, validation, onThumbnailUpload }: Met
     <div className="space-y-6">
       {/* Main Metadata Card */}
       <motion.div
-        className="relative bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden"
+        className="relative bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 rounded-2xl"
         whileHover={{ borderColor: "rgba(255,171,0,0.3)" }}
         transition={{ duration: 0.3 }}
       >
@@ -1590,7 +1590,7 @@ const SocialLinksInput = ({ label, value, onChange }: SocialLinksInputProps) => 
 
       {/* Add Platform Button */}
       {availablePlatforms.length > 0 && (
-        <div className="relative z-50">
+        <div className="relative" style={{ zIndex: 100 }}>
           <motion.button
             type="button"
             onClick={() => setShowAdd(!showAdd)}
@@ -1610,17 +1610,18 @@ const SocialLinksInput = ({ label, value, onChange }: SocialLinksInputProps) => 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="fixed inset-0 z-40"
+                  className="fixed inset-0"
+                  style={{ zIndex: 99 }}
                   onClick={() => setShowAdd(false)}
                 />
                 
-                {/* Dropdown menu */}
+                {/* Dropdown menu - opens upward to avoid being hidden */}
                 <motion.div
-                  initial={{ opacity: 0, y: -10 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="absolute top-full left-0 right-0 mt-2 p-2 bg-[#0a0a0a] border border-white/10 rounded-xl shadow-2xl z-50 grid grid-cols-2 gap-1 backdrop-blur-xl"
-                  style={{ boxShadow: '0 20px 50px rgba(0,0,0,0.8)' }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="absolute bottom-full left-0 right-0 mb-2 p-2 bg-[#0a0a0a] border border-[#FFAB00]/30 rounded-xl shadow-2xl grid grid-cols-2 gap-1 backdrop-blur-xl"
+                  style={{ zIndex: 100, boxShadow: '0 -10px 50px rgba(0,0,0,0.8), 0 0 20px rgba(255,171,0,0.1)' }}
                 >
                   {availablePlatforms.map((platform) => {
                     const Icon = platform.icon;
@@ -1630,7 +1631,7 @@ const SocialLinksInput = ({ label, value, onChange }: SocialLinksInputProps) => 
                         type="button"
                         onClick={() => handleAdd(platform.key)}
                         className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-gray-400 hover:text-white hover:bg-white/10 transition-all text-left"
-                        whileHover={{ x: 4 }}
+                        whileHover={{ x: 4, backgroundColor: 'rgba(255,171,0,0.1)' }}
                       >
                         <Icon className="w-4 h-4" />
                         {platform.label}

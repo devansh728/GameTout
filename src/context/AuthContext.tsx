@@ -16,6 +16,7 @@ interface AuthUser {
   role: "USER" | "PREMIUM" | "ADMIN";
   emailVerified: boolean;
   active: boolean;
+  subscriptionType: "VIEWER" | "CREATOR" | null;
 }
 
 interface AuthContextType {

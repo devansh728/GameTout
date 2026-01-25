@@ -1,76 +1,35 @@
-import { useState, useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Clock, User, ThumbsUp } from "lucide-react";
+import { Clock, ThumbsUp, AlertCircle, Star } from "lucide-react";
+import { Link } from "react-router-dom";
 import { PageTransition, FadeInView } from "@/components/PageTransition";
 import { HexagonBadge } from "@/components/HexagonBadge";
 import { Footer } from "@/components/Footer";
-import { ComparisonSlider } from "@/components/ComparisonSlider";
 import { WeaponWheel } from "@/components/WeaponWheel";
 import { MissionBriefingMode } from "@/components/MissionBriefingMode";
-
-const reviews = [
-  {
-    id: 1,
-    title: "Raji: An Ancient Epic - A Cultural Triumph",
-    excerpt: "Nodding Heads Games delivers a stunning action-adventure that proves Indian mythology can rival any Western fantasy in video game form.",
-    image: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400",
-    score: 8.5,
-    author: "Arjun Mehta",
-    readTime: "12 min",
-    likes: 2340,
-    platform: "PC, Switch, PS4, Xbox",
-  },
-  {
-    id: 2,
-    title: "Kena: Bridge of Spirits - Visual Masterpiece",
-    excerpt: "Ember Lab's debut title sets a new standard for indie games with its Pixar-quality animation and heartfelt storytelling.",
-    image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400",
-    score: 9.0,
-    author: "Priya Sharma",
-    readTime: "10 min",
-    likes: 3120,
-    platform: "PC, PS5, PS4",
-  },
-  {
-    id: 3,
-    title: "BGMI Season 3 - Still Dominating Mobile",
-    excerpt: "Krafton's battle royale continues to evolve with new features and maps that keep millions of Indian players engaged.",
-    image: "https://images.unsplash.com/photo-1542751110-97427bbecf20?w=400",
-    score: 7.5,
-    author: "Vikram Singh",
-    readTime: "8 min",
-    likes: 1890,
-    platform: "iOS, Android",
-  },
-  {
-    id: 4,
-    title: "Sifu - The Mastery of Martial Arts Games",
-    excerpt: "Sloclap's roguelike brawler demands perfection and rewards patience with one of the most satisfying combat systems ever created.",
-    image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=400",
-    score: 8.8,
-    author: "Neha Kapoor",
-    readTime: "15 min",
-    likes: 2780,
-    platform: "PC, PS5, PS4, Switch",
-  },
-  {
-    id: 5,
-    title: "Stray - A Cat's Eye View of the Apocalypse",
-    excerpt: "BlueTwelve Studio crafts an unforgettable adventure that proves the best protagonists don't need to be human.",
-    image: "https://images.unsplash.com/photo-1493711662062-fa541f7f3d24?w=400",
-    score: 8.2,
-    author: "Rahul Dev",
-    readTime: "9 min",
-    likes: 4210,
-    platform: "PC, PS5, PS4",
-  },
-];
+import { ReviewSkeleton } from "@/components/SkeletonLoader";
+import { VideoPreviewCard } from "@/components/VideoPreviewCard";
+import { useReviews, usePrefetchPost } from "@/hooks/useBlogPosts";
+import { getPostThumbnail, formatPublishedDate, formatLikes } from "@/utils/mediaUtils";
+import { BlogPostFeed } from "@/types/api";
+import { statsService } from "@/services/statsService";
+import { AnimatedCounter } from "@/components/AnimatedCounter";
 
 const Reviews = () => {
   const storyRef = useRef<HTMLDivElement>(null);
   const gameplayRef = useRef<HTMLDivElement>(null);
   const graphicsRef = useRef<HTMLDivElement>(null);
   const verdictRef = useRef<HTMLDivElement>(null);
+  const [totalReviews, setTotalReviews] = useState(0);
+
+  // Fetch total count
+  useEffect(() => {
+    statsService.getReviewsCount().then(res => setTotalReviews(res.data.count));
+  }, []);
+
+  // Fetch reviews from API
+  const { data: reviews, isLoading, error, refetch } = useReviews(20);
+  const prefetchPost = usePrefetchPost();
 
   const handleNavigate = (sectionId: string) => {
     const refs: Record<string, React.RefObject<HTMLDivElement>> = {
@@ -80,6 +39,11 @@ const Reviews = () => {
       verdict: verdictRef,
     };
     refs[sectionId]?.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Handle hover prefetch for better UX
+  const handlePostHover = (postId: number) => {
+    prefetchPost(postId);
   };
 
   return (
@@ -92,6 +56,14 @@ const Reviews = () => {
               <h1 className="font-display text-5xl md:text-6xl mb-4">
                 Expert <span className="text-gradient-gold">Reviews</span>
               </h1>
+              <div className="flex items-center gap-3 mb-6 text-sm font-mono uppercase tracking-widest text-[#FFAB00]">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full border border-[#FFAB00]/30 bg-[#FFAB00]/10">
+                  <Star className="w-4 h-4" />
+                </div>
+                <span>
+                  <AnimatedCounter value={totalReviews} /> Articles Published
+                </span>
+              </div>
               <p className="text-muted-foreground text-lg max-w-2xl">
                 In-depth analysis and honest opinions from our team of gaming journalists. 
                 No sponsored scores, no bias—just the truth.
@@ -170,69 +142,109 @@ const Reviews = () => {
                 Latest <span className="text-gradient-gold">Reviews</span>
               </h2>
             </FadeInView>
-            <div className="space-y-8">
-              {reviews.map((review, index) => (
-                <FadeInView key={review.id} delay={index * 0.1}>
-                  <motion.article
-                    whileHover={{ x: 8 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                    className="gaming-card p-6 cursor-pointer group"
-                  >
-                    <div className="flex flex-col md:flex-row gap-6">
-                      {/* Thumbnail */}
-                      <div className="relative w-full md:w-40 h-48 md:h-56 rounded-lg overflow-hidden shrink-0">
-                        <img
-                          src={review.image}
-                          alt={review.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-                      </div>
 
-                      {/* Content */}
-                      <div className="flex-1 flex flex-col justify-between">
-                        <div>
-                          <span className="text-xs text-primary font-medium uppercase tracking-wider">
-                            {review.platform}
-                          </span>
-                          <h2 className="font-display text-2xl md:text-3xl mt-2 mb-3 group-hover:text-primary transition-colors">
-                            {review.title}
-                          </h2>
-                          <p className="text-muted-foreground line-clamp-2 mb-4">
-                            {review.excerpt}
-                          </p>
+            {/* Loading State */}
+            {isLoading && (
+              <div className="space-y-8">
+                {[...Array(5)].map((_, i) => (
+                  <ReviewSkeleton key={i} />
+                ))}
+              </div>
+            )}
+
+            {/* Error State */}
+            {error && (
+              <div className="gaming-card p-8 text-center">
+                <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                <h3 className="text-xl font-display text-white mb-2">Failed to Load Reviews</h3>
+                <p className="text-muted-foreground mb-4">
+                  There was an error fetching the reviews. Please try again.
+                </p>
+                <button 
+                  onClick={() => refetch()}
+                  className="px-6 py-2 bg-primary text-black font-bold uppercase tracking-wider rounded hover:bg-primary/80 transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
+
+            {/* Reviews List */}
+            {!isLoading && !error && reviews && (
+              <div className="space-y-8">
+                {reviews.map((review: BlogPostFeed, index: number) => (
+                  <FadeInView key={review.id} delay={index * 0.1}>
+                    <Link to={`/content/review/${review.id}`}>
+                      <motion.article
+                        whileHover={{ x: 8 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                        className="gaming-card p-6 cursor-pointer group"
+                        onMouseEnter={() => handlePostHover(review.id)}
+                      >
+                        <div className="flex flex-col md:flex-row gap-6">
+                          {/* Video Preview - Plays video on hover if available, else shows thumbnail */}
+                          <VideoPreviewCard
+                            videoUrl={review.videoEmbedUrl}
+                            thumbnailUrl={getPostThumbnail(review)}
+                            alt={review.title}
+                            className="relative w-full md:w-40 h-48 md:h-56 rounded-lg shrink-0"
+                            mediaClassName="transition-transform duration-500 group-hover:scale-110"
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+                          </VideoPreviewCard>
+
+                          {/* Content */}
+                          <div className="flex-1 flex flex-col justify-between">
+                            <div>
+                              <span className="text-xs text-primary font-medium uppercase tracking-wider">
+                                {review.postType}
+                              </span>
+                              <h2 className="font-display text-2xl md:text-3xl mt-2 mb-3 group-hover:text-primary transition-colors">
+                                {review.title}
+                              </h2>
+                              <p className="text-muted-foreground line-clamp-2 mb-4">
+                                {review.description}
+                              </p>
+                            </div>
+
+                            <div className="flex items-center gap-6 text-sm text-muted-foreground">
+                              <span className="flex items-center gap-2">
+                                <Clock className="w-4 h-4" />
+                                {formatPublishedDate(review.publishedAt)}
+                              </span>
+                              <span className="flex items-center gap-2">
+                                <ThumbsUp className="w-4 h-4" />
+                                {formatLikes(review.likes)}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Score Badge - Using rates as score */}
+                          <div className="flex md:block justify-center">
+                            <HexagonBadge score={review.rates / 10} size="lg" />
+                          </div>
                         </div>
+                      </motion.article>
+                    </Link>
+                  </FadeInView>
+                ))}
+              </div>
+            )}
 
-                        <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                          <span className="flex items-center gap-2">
-                            <User className="w-4 h-4" />
-                            {review.author}
-                          </span>
-                          <span className="flex items-center gap-2">
-                            <Clock className="w-4 h-4" />
-                            {review.readTime}
-                          </span>
-                          <span className="flex items-center gap-2">
-                            <ThumbsUp className="w-4 h-4" />
-                            {review.likes.toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Score Badge */}
-                      <div className="flex md:block justify-center">
-                        <HexagonBadge score={review.score} size="lg" />
-                      </div>
-                    </div>
-                  </motion.article>
-                </FadeInView>
-              ))}
-            </div>
+            {/* Empty State */}
+            {!isLoading && !error && reviews?.length === 0 && (
+              <div className="gaming-card p-8 text-center">
+                <h3 className="text-xl font-display text-white mb-2">No Reviews Yet</h3>
+                <p className="text-muted-foreground">
+                  Check back later for fresh reviews!
+                </p>
+              </div>
+            )}
           </section>
 
           <Footer />
 
-          {/* Feature 5: Weapon Wheel Navigation */}
+          {/* Weapon Wheel Navigation */}
           <WeaponWheel onNavigate={handleNavigate} />
         </main>
       </MissionBriefingMode>

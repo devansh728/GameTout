@@ -11,6 +11,9 @@ import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { PreviewProvider } from "@/admin/context/PreviewContext";
 import CreatePost from "@/admin/pages/CreatePost";
 import AdminArticlePreview from "@/admin/pages/AdminArticlePreview";
+import AdminStudios from "@/admin/pages/AdminStudios";
+import AdminFeatured from "@/admin/pages/AdminFeatured";
+import AdminDashboard from "@/admin/pages/AdminDashboard";
 import { AdminGuard } from "@/admin/AdminGuard";
 
 
@@ -47,10 +50,34 @@ const AnimatedRoutes = () => {
         <Route path="*" element={<NotFound />} />
         <Route path="/admin" element={<CreatePost/>} /> // Temporary admin route
         <Route 
+            path="/admin/dashboard" 
+            element={
+                <AdminGuard>
+                    <AdminDashboard />
+                </AdminGuard>
+            } 
+        />
+        <Route 
             path="/admin/create-post" 
             element={
                 <AdminGuard>
                     <CreatePost />
+                </AdminGuard>
+            } 
+        />
+        <Route 
+            path="/admin/studios" 
+            element={
+                <AdminGuard>
+                    <AdminStudios />
+                </AdminGuard>
+            } 
+        />
+        <Route 
+            path="/admin/featured" 
+            element={
+                <AdminGuard>
+                    <AdminFeatured />
                 </AdminGuard>
             } 
         />

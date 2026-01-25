@@ -1,83 +1,46 @@
-import { useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { Play, Mic, Headphones, Clock, Calendar, Youtube, Music, ArrowRight, Radio, Share2 } from "lucide-react";
+import { Play, Mic, Clock, Calendar, Youtube, Music, ArrowRight, Radio, Share2, AlertCircle } from "lucide-react";
 import { PageTransition } from "@/components/PageTransition";
 import { Footer } from "@/components/Footer";
 import { Link } from "react-router-dom";
+import { CardSkeleton } from "@/components/SkeletonLoader";
+import { VideoPreviewCard } from "@/components/VideoPreviewCard";
+import { useState, useEffect } from "react";
+import { statsService } from "@/services/statsService";
+import { AnimatedCounter } from "@/components/AnimatedCounter";
 
-// --- MOCK DATA ---
-const featuredEpisode = {
-  id: "ep-42",
-  title: "The Dark Layers of Indian Gaming",
-  guest: "Mortal & Thug",
-  description: "We dive deep into the toxicity of chat, the pressure of maintaining numbers, and the unseen mental toll of being India's biggest esports creators.",
-  image: "https://img.youtube.com/vi/FKBwFAju-0o/maxresdefault.jpg",
-  duration: "1h 12m",
-  date: "Oct 12, 2024",
-  spotifyUrl: "#",
-  youtubeUrl: "#",
-};
-
-const episodes = [
-  {
-    id: 1,
-    title: "Indie Devs vs The World",
-    guest: "Nodding Heads",
-    image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800",
-    duration: "55m",
-    date: "Oct 05, 2024",
-    tag: "DevLog"
-  },
-  {
-    id: 2,
-    title: "The PS5 Pro: Worth the Hype?",
-    guest: "Tech Roundtable",
-    image: "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=800",
-    duration: "45m",
-    date: "Sep 28, 2024",
-    tag: "Hardware"
-  },
-  {
-    id: 3,
-    title: "Voice Acting as a Career",
-    guest: "Payal & Shagufta",
-    image: "https://images.unsplash.com/photo-1478737270239-2f02b77ac6d5?w=800",
-    duration: "1h 05m",
-    date: "Sep 21, 2024",
-    tag: "Industry"
-  },
-  {
-    id: 4,
-    title: "Esports Economics Explained",
-    guest: "Global Esports CEO",
-    image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800",
-    duration: "50m",
-    date: "Sep 14, 2024",
-    tag: "Business"
-  },
-  {
-    id: 5,
-    title: "The Rise of Mobile Gaming",
-    guest: "Jonathan Gaming",
-    image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800",
-    duration: "1h 10m",
-    date: "Sep 07, 2024",
-    tag: "Mobile"
-  },
-  {
-    id: 6,
-    title: "Game Journalism in 2025",
-    guest: "Rishi Alwani",
-    image: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800",
-    duration: "40m",
-    date: "Aug 30, 2024",
-    tag: "Media"
-  }
-];
+// API Hooks and Utils
+import { usePodcasts, usePrefetchPost } from "@/hooks/useBlogPosts";
+import { 
+  getPostThumbnail, 
+  hasVideoEmbed, 
+  extractYouTubeId,
+  formatPublishedDate,
+  formatLikes 
+} from "@/utils/mediaUtils";
+import { BlogPostFeed } from "@/types/api";
 
 export default function Podcast() {
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 500], [0, 200]);
+  const [totalPodcasts, setTotalPodcasts] = useState(0);
+
+  useEffect(() => {
+    statsService.getPodcastsCount().then(res => setTotalPodcasts(res.data.count));
+  }, []);
+
+  // Fetch podcasts from API
+  const { data: podcasts, isLoading, error, refetch } = usePodcasts(20);
+  const prefetchPost = usePrefetchPost();
+
+  // Get featured episode (first one) and rest for grid
+  const featuredEpisode = podcasts?.[0];
+  const episodes = podcasts?.slice(1) || [];
+
+  // Handle hover prefetch
+  const handlePostHover = (postId: number) => {
+    prefetchPost(postId);
+  };
 
   return (
     <PageTransition>
@@ -119,45 +82,74 @@ export default function Podcast() {
                         The <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">Gossip</span> Protocol
                     </h1>
                     
-                    <p className="text-xl md:text-2xl text-gray-400 font-serif italic mb-8 max-w-2xl border-l-4 border-purple-500 pl-6">
-                        "{featuredEpisode.description}"
-                    </p>
+                    {featuredEpisode ? (
+                      <>
+                        <p className="text-xl md:text-2xl text-gray-400 font-serif italic mb-8 max-w-2xl border-l-4 border-purple-500 pl-6">
+                            "{featuredEpisode.description}"
+                        </p>
 
-                    {/* Featured Episode Card (Mini) */}
-                    <div className="bg-white/5 border border-white/10 rounded-xl p-6 mb-10 backdrop-blur-sm">
-                        <div className="flex flex-col md:flex-row gap-6 items-center">
-                            <div className="flex-1">
-                                <span className="text-[#FFAB00] text-xs font-bold uppercase tracking-widest mb-1 block">Latest Episode</span>
-                                <h3 className="text-2xl font-display text-white uppercase mb-2">{featuredEpisode.title}</h3>
-                                <div className="flex items-center gap-4 text-sm text-gray-400 font-mono">
-                                    <span className="flex items-center gap-2"><Mic className="w-4 h-4 text-purple-400" /> {featuredEpisode.guest}</span>
-                                    <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-purple-400" /> {featuredEpisode.duration}</span>
+                        {/* Featured Episode Card (Mini) */}
+                        <div className="bg-white/5 border border-white/10 rounded-xl p-6 mb-10 backdrop-blur-sm">
+                            <div className="flex flex-col md:flex-row gap-6 items-center">
+                                <div className="flex-1">
+                                    <span className="text-[#FFAB00] text-xs font-bold uppercase tracking-widest mb-1 block">Latest Episode</span>
+                                    <h3 className="text-2xl font-display text-white uppercase mb-2">{featuredEpisode.title}</h3>
+                                    <div className="flex items-center gap-4 text-sm text-gray-400 font-mono">
+                                        <span className="flex items-center gap-2">
+                                          <Mic className="w-4 h-4 text-purple-400" /> 
+                                          {formatLikes(featuredEpisode.likes)} listeners
+                                        </span>
+                                        <span className="flex items-center gap-2">
+                                          <Clock className="w-4 h-4 text-purple-400" /> 
+                                          {formatPublishedDate(featuredEpisode.publishedAt)}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                {/* Visualizer Animation */}
+                                <div className="flex items-end gap-1 h-12">
+                                    {[...Array(12)].map((_, i) => (
+                                        <motion.div 
+                                            key={i}
+                                            className="w-2 bg-purple-500 rounded-t-sm"
+                                            animate={{ height: ["20%", `${Math.random() * 80 + 20}%`, "20%"] }}
+                                            transition={{ repeat: Infinity, duration: 0.6, delay: i * 0.05 }}
+                                        />
+                                    ))}
                                 </div>
                             </div>
-                            
-                            {/* Visualizer Animation */}
-                            <div className="flex items-end gap-1 h-12">
-                                {[...Array(12)].map((_, i) => (
-                                    <motion.div 
-                                        key={i}
-                                        className="w-2 bg-purple-500 rounded-t-sm"
-                                        animate={{ height: ["20%", `${Math.random() * 80 + 20}%`, "20%"] }}
-                                        transition={{ repeat: Infinity, duration: 0.6, delay: i * 0.05 }}
-                                    />
-                                ))}
-                            </div>
                         </div>
-                    </div>
 
-                    {/* ACTIONS */}
-                    <div className="flex flex-wrap gap-4">
-                        <a href={featuredEpisode.spotifyUrl} className="flex items-center gap-3 px-8 py-4 bg-[#1DB954] text-black font-bold uppercase tracking-widest rounded-sm hover:scale-105 transition-transform shadow-[0_0_30px_rgba(29,185,84,0.3)]">
-                            <Music className="w-5 h-5" /> Listen on Spotify
-                        </a>
-                        <a href={featuredEpisode.youtubeUrl} className="flex items-center gap-3 px-8 py-4 bg-[#FF0000] text-white font-bold uppercase tracking-widest rounded-sm hover:scale-105 transition-transform shadow-[0_0_30px_rgba(255,0,0,0.3)]">
-                            <Youtube className="w-5 h-5" /> Watch on YouTube
-                        </a>
-                    </div>
+                        {/* ACTIONS - Podcasts don't have content blocks, link to video embed */}
+                        <div className="flex flex-wrap gap-4">
+                            {hasVideoEmbed(featuredEpisode) && (
+                              <>
+                                <a 
+                                  href={featuredEpisode.videoEmbedUrl || "#"} 
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-3 px-8 py-4 bg-[#1DB954] text-black font-bold uppercase tracking-widest rounded-sm hover:scale-105 transition-transform shadow-[0_0_30px_rgba(29,185,84,0.3)]"
+                                >
+                                    <Music className="w-5 h-5" /> Listen Now
+                                </a>
+                                <a 
+                                  href={featuredEpisode.videoEmbedUrl || "#"} 
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-3 px-8 py-4 bg-[#FF0000] text-white font-bold uppercase tracking-widest rounded-sm hover:scale-105 transition-transform shadow-[0_0_30px_rgba(255,0,0,0.3)]"
+                                >
+                                    <Youtube className="w-5 h-5" /> Watch on YouTube
+                                </a>
+                              </>
+                            )}
+                        </div>
+                      </>
+                    ) : isLoading ? (
+                      <div className="space-y-4">
+                        <div className="h-8 w-full max-w-xl bg-white/10 rounded animate-pulse" />
+                        <div className="h-32 w-full max-w-lg bg-white/10 rounded animate-pulse" />
+                      </div>
+                    ) : null}
                 </motion.div>
 
                 {/* HERO IMAGE (Right Side) */}
@@ -168,28 +160,34 @@ export default function Podcast() {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.8, delay: 0.2 }}
                 >
-                    <div className="relative aspect-square rounded-2xl overflow-hidden border border-white/10 shadow-2xl group">
-                        <img 
-                            src={featuredEpisode.image} 
-                            alt="Featured" 
-                            className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 scale-105"
-                        />
-                        {/* Overlay Gradient */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80" />
-                        
-                        {/* Floating Badge */}
-                        <div className="absolute top-6 right-6 bg-black/80 backdrop-blur border border-purple-500/30 p-3 rounded-lg flex flex-col items-center">
-                            <span className="text-2xl font-bold text-white">12</span>
-                            <span className="text-[10px] uppercase text-purple-400 font-bold">OCT</span>
-                        </div>
+                    {featuredEpisode && (
+                      <div className="relative aspect-square rounded-2xl overflow-hidden border border-white/10 shadow-2xl group">
+                          <img 
+                              src={getPostThumbnail(featuredEpisode)} 
+                              alt="Featured" 
+                              className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 scale-105"
+                          />
+                          {/* Overlay Gradient */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80" />
+                          
+                          {/* Floating Badge */}
+                          <div className="absolute top-6 right-6 bg-black/80 backdrop-blur border border-purple-500/30 p-3 rounded-lg flex flex-col items-center">
+                              <span className="text-2xl font-bold text-white">
+                                {new Date(featuredEpisode.publishedAt).getDate()}
+                              </span>
+                              <span className="text-[10px] uppercase text-purple-400 font-bold">
+                                {new Date(featuredEpisode.publishedAt).toLocaleString('default', { month: 'short' })}
+                              </span>
+                          </div>
 
-                        {/* Play Button Overlay */}
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-[0_0_50px_white]">
-                                <Play className="w-8 h-8 fill-black text-black ml-1" />
-                            </div>
-                        </div>
-                    </div>
+                          {/* Play Button Overlay */}
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-[0_0_50px_white]">
+                                  <Play className="w-8 h-8 fill-black text-black ml-1" />
+                              </div>
+                          </div>
+                      </div>
+                    )}
                     
                     {/* Decorative Elements */}
                     <div className="absolute -z-10 -bottom-10 -right-10 w-full h-full border-2 border-purple-500/20 rounded-2xl" />
@@ -213,7 +211,7 @@ export default function Podcast() {
                         Transmission <span className="text-purple-500">Archive</span>
                     </h2>
                     <p className="text-gray-400 font-mono text-sm uppercase tracking-wider">
-                        Accessing Database... 42 Entries Found
+                        Accessing Database... <AnimatedCounter value={totalPodcasts} /> Entries Found
                     </p>
                 </div>
                 
@@ -227,81 +225,135 @@ export default function Podcast() {
                 </div>
             </div>
 
-            {/* GRID */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {episodes.map((ep, i) => (
-                    <motion.div
-                        key={ep.id}
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: i * 0.1 }}
-                        viewport={{ once: true }}
-                    >
-                        <Link to={`/content/podcast/${ep.id}`} className="group block h-full">
-                            <div className="relative h-full bg-[#0a0a0a] border border-white/10 rounded-xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(168,85,247,0.15)] flex flex-col">
-                                
-                                {/* Image Area */}
-                                <div className="relative h-48 overflow-hidden">
-                                    <img 
-                                        src={ep.image} 
-                                        alt={ep.title} 
-                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
-                                    
-                                    {/* Tag Badge */}
-                                    <div className="absolute top-4 left-4">
-                                        <span className="px-2 py-1 bg-black/60 backdrop-blur border border-white/10 text-white text-[10px] font-bold uppercase tracking-widest rounded">
-                                            {ep.tag}
-                                        </span>
-                                    </div>
-
-                                    {/* Play Overlay */}
-                                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <div className="w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center shadow-lg">
-                                            <Play className="w-5 h-5 fill-white text-white ml-1" />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Content Area */}
-                                <div className="p-6 flex flex-col flex-1">
-                                    <div className="flex justify-between items-center mb-3 text-xs font-mono text-gray-500">
-                                        <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {ep.date}</span>
-                                        <span className="flex items-center gap-1 text-purple-400"><Clock className="w-3 h-3" /> {ep.duration}</span>
-                                    </div>
-
-                                    <h3 className="font-display text-2xl text-white uppercase leading-none mb-2 group-hover:text-purple-400 transition-colors line-clamp-2">
-                                        {ep.title}
-                                    </h3>
-                                    
-                                    <p className="text-sm text-gray-400 font-mono mb-4">
-                                        Guest: <span className="text-white">{ep.guest}</span>
-                                    </p>
-
-                                    {/* Footer Actions */}
-                                    <div className="mt-auto pt-4 border-t border-white/5 flex justify-between items-center">
-                                        <span className="text-xs font-bold uppercase text-gray-600 group-hover:text-white transition-colors flex items-center gap-2">
-                                            Listen Now <ArrowRight className="w-3 h-3" />
-                                        </span>
-                                        <button className="p-2 text-gray-500 hover:text-white transition-colors">
-                                            <Share2 className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </Link>
-                    </motion.div>
+            {/* Loading State */}
+            {isLoading && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, i) => (
+                  <CardSkeleton key={i} />
                 ))}
-            </div>
+              </div>
+            )}
+
+            {/* Error State */}
+            {error && (
+              <div className="gaming-card p-8 text-center">
+                <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                <h3 className="text-xl font-display text-white mb-2">Failed to Load Podcasts</h3>
+                <p className="text-muted-foreground mb-4">
+                  There was an error fetching the podcasts. Please try again.
+                </p>
+                <button 
+                  onClick={() => refetch()}
+                  className="px-6 py-2 bg-primary text-black font-bold uppercase tracking-wider rounded hover:bg-primary/80 transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
+
+            {/* GRID */}
+            {!isLoading && !error && episodes.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {episodes.map((ep: BlogPostFeed, i: number) => (
+                      <motion.div
+                          key={ep.id}
+                          initial={{ opacity: 0, y: 30 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.5, delay: i * 0.1 }}
+                          viewport={{ once: true }}
+                      >
+                          {/* Podcasts don't have content blocks - link directly to video embed */}
+                          <a 
+                            href={ep.videoEmbedUrl || "#"} 
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group block h-full"
+                            onMouseEnter={() => handlePostHover(ep.id)}
+                          >
+                              <div className="relative h-full bg-[#0a0a0a] border border-white/10 rounded-xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(168,85,247,0.15)] flex flex-col">
+                                  
+                                  {/* Video Preview Area - Plays on hover */}
+                                  <VideoPreviewCard
+                                    videoUrl={ep.videoEmbedUrl}
+                                    thumbnailUrl={getPostThumbnail(ep)}
+                                    alt={ep.title}
+                                    className="relative h-48"
+                                    mediaClassName="transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100"
+                                  >
+                                      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
+                                      
+                                      {/* Tag Badge */}
+                                      <div className="absolute top-4 left-4">
+                                          <span className="px-2 py-1 bg-black/60 backdrop-blur border border-white/10 text-white text-[10px] font-bold uppercase tracking-widest rounded">
+                                              Podcast
+                                          </span>
+                                      </div>
+
+                                      {/* Play Overlay */}
+                                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                          <div className="w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center shadow-lg">
+                                              <Play className="w-5 h-5 fill-white text-white ml-1" />
+                                          </div>
+                                      </div>
+                                  </VideoPreviewCard>
+
+                                  {/* Content Area */}
+                                  <div className="p-6 flex flex-col flex-1">
+                                      <div className="flex justify-between items-center mb-3 text-xs font-mono text-gray-500">
+                                          <span className="flex items-center gap-1">
+                                            <Calendar className="w-3 h-3" /> 
+                                            {formatPublishedDate(ep.publishedAt)}
+                                          </span>
+                                          <span className="flex items-center gap-1 text-purple-400">
+                                            <Clock className="w-3 h-3" /> 
+                                            {formatLikes(ep.likes)} likes
+                                          </span>
+                                      </div>
+
+                                      <h3 className="font-display text-2xl text-white uppercase leading-none mb-2 group-hover:text-purple-400 transition-colors line-clamp-2">
+                                          {ep.title}
+                                      </h3>
+                                      
+                                      <p className="text-sm text-gray-400 font-mono mb-4 line-clamp-2">
+                                          {ep.description}
+                                      </p>
+
+                                      {/* Footer Actions */}
+                                      <div className="mt-auto pt-4 border-t border-white/5 flex justify-between items-center">
+                                          <span className="text-xs font-bold uppercase text-gray-600 group-hover:text-white transition-colors flex items-center gap-2">
+                                              Listen Now <ArrowRight className="w-3 h-3" />
+                                          </span>
+                                          <button className="p-2 text-gray-500 hover:text-white transition-colors">
+                                              <Share2 className="w-4 h-4" />
+                                          </button>
+                                      </div>
+                                  </div>
+
+                              </div>
+                          </a>
+                      </motion.div>
+                  ))}
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!isLoading && !error && episodes.length === 0 && !featuredEpisode && (
+              <div className="gaming-card p-8 text-center">
+                <h3 className="text-xl font-display text-white mb-2">No Podcasts Yet</h3>
+                <p className="text-muted-foreground">
+                  Check back later for new episodes!
+                </p>
+              </div>
+            )}
 
             {/* Load More Trigger */}
-            <div className="mt-16 flex justify-center">
-                <button className="px-8 py-4 border border-white/20 text-white font-bold uppercase tracking-widest text-sm hover:bg-white hover:text-black transition-all rounded-sm flex items-center gap-2 group">
-                    <Radio className="w-4 h-4 group-hover:animate-pulse" /> Load Older Signals
-                </button>
-            </div>
+            {!isLoading && !error && episodes.length > 0 && (
+              <div className="mt-16 flex justify-center">
+                  <button className="px-8 py-4 border border-white/20 text-white font-bold uppercase tracking-widest text-sm hover:bg-white hover:text-black transition-all rounded-sm flex items-center gap-2 group">
+                      <Radio className="w-4 h-4 group-hover:animate-pulse" /> Load Older Signals
+                  </button>
+              </div>
+            )}
 
         </section>
 

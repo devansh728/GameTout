@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { 
   MapPin, ExternalLink, Users, Building, Globe, Navigation, Search, 
@@ -8,9 +8,11 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { HealthBar } from "@/components/HealthBar";
 import { PageTransition } from "@/components/PageTransition";
 import { Footer } from "@/components/Footer";
+import { useStudios } from "@/hooks/useStudios";
+import { Studio as APIStudio, formatEmployeeCount } from "@/types/studio";
 
 // --- TYPES ---
-interface Studio {
+interface MapStudio {
   id: number;
   name: string;
   logo: string;
@@ -28,8 +30,53 @@ interface Studio {
   region: "India" | "Global";
 }
 
-// --- DATA: INDIA & GLOBAL STUDIOS ---
-const studios: Studio[] = [
+// Helper to convert lat/long to map coordinates
+const latLongToMapCoords = (lat: number, long: number): { x: number; y: number } => {
+  // Normalize world coordinates (approximate)
+  // Longitude: -180 to 180 -> 0 to 100 (x)
+  // Latitude: 90 to -90 -> 0 to 100 (y)
+  const x = ((long + 180) / 360) * 100;
+  const y = ((90 - lat) / 180) * 100;
+  return { x, y };
+};
+
+// Helper to get India SVG coordinates from lat/long
+const latLongToIndiaCoords = (lat: number, long: number): { x: number; y: number } | undefined => {
+  // India bounds approximately: lat 8-37, long 68-97
+  if (lat < 6 || lat > 38 || long < 66 || long > 98) return undefined;
+  
+  // Map to India SVG coords (0-100 range for the SVG viewbox)
+  const x = ((long - 66) / (98 - 66)) * 80 + 10;
+  const y = ((38 - lat) / (38 - 6)) * 85 + 5;
+  return { x, y };
+};
+
+// Convert API Studio to MapStudio
+const apiStudioToMapStudio = (studio: APIStudio): MapStudio => {
+  const worldCoords = latLongToMapCoords(studio.latitude, studio.longitude);
+  const indiaCoords = latLongToIndiaCoords(studio.latitude, studio.longitude);
+  const isIndian = studio.country?.toLowerCase() === "india";
+  
+  return {
+    id: studio.id,
+    name: studio.studioName,
+    logo: studio.studioLogoUrl || "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=200",
+    location: `${studio.city}, ${studio.country}`,
+    state: isIndian ? studio.city : undefined,
+    geoIndia: indiaCoords,
+    geoWorld: worldCoords,
+    employees: formatEmployeeCount(studio.employeesCount),
+    rating: (studio.ratings / 5) * 100, // Convert 1-5 to percentage
+    founded: studio.createdAt ? new Date(studio.createdAt).getFullYear().toString() : "2024",
+    website: studio.studioWebsiteUrl || "#",
+    description: studio.description || studio.studioDescription || "A game development studio.",
+    games: [],
+    region: isIndian ? "India" : "Global"
+  };
+};
+
+// --- DATA: INDIA & GLOBAL STUDIOS (Mock/Fallback) ---
+const mockStudios: MapStudio[] = [
   // INDIA STUDIOS (Coordinates adjusted for accurate India SVG)
   {
     id: 1,
@@ -830,7 +877,7 @@ const StudioPin = ({
   onClick,
   onHover
 }: {
-  studio: Studio;
+  studio: MapStudio;
   viewMode: "india" | "world";
   isHovered: boolean;
   isSelected: boolean;
@@ -1149,10 +1196,34 @@ const HUDElements = ({ studioCount, viewMode }: { studioCount: number; viewMode:
 // ============================================
 export const StudioMap = () => {
   const [viewMode, setViewMode] = useState<"india" | "world">("india");
-  const [selectedStudio, setSelectedStudio] = useState<Studio | null>(null);
+  const [selectedStudio, setSelectedStudio] = useState<MapStudio | null>(null);
   const [hoveredStudio, setHoveredStudio] = useState<number | null>(null);
   const [hoveredState, setHoveredState] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Fetch studios from API
+  const { data: apiData, isLoading } = useStudios(0, 100);
+
+  // Merge API studios with mock studios (API takes priority by using higher IDs)
+  const studios = useMemo(() => {
+    if (!apiData?.content || apiData.content.length === 0) {
+      return mockStudios;
+    }
+    
+    // Convert API studios to MapStudio format
+    const apiStudios = apiData.content.map(apiStudioToMapStudio);
+    
+    // Use API studios + mock global studios (for demo variety)
+    const globalMockStudios = mockStudios.filter(s => s.region === "Global");
+    
+    // Dedupe by checking if we have an API studio in same city
+    const apiCities = new Set(apiData.content.map(s => s.city.toLowerCase()));
+    const uniqueGlobalMocks = globalMockStudios.filter(
+      s => !apiCities.has(s.location.split(",")[0].toLowerCase().trim())
+    );
+    
+    return [...apiStudios, ...uniqueGlobalMocks];
+  }, [apiData]);
 
   // Mouse tracking for 3D effect
   const mouseX = useMotionValue(0);

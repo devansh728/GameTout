@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Upload, X, Image, Video, Loader2, AlertCircle, 
-  CheckCircle, RefreshCw, Trash2 
+  CheckCircle, RefreshCw, Trash2, FileText 
 } from "lucide-react";
 import { MediaUploadResult } from "@/lib/adminApi";
 
@@ -10,7 +10,7 @@ import { MediaUploadResult } from "@/lib/adminApi";
 // TYPES
 // ============================================
 interface MediaUploaderProps {
-  accept: "image" | "video" | "both";
+  accept: "image" | "video" | "both" | "pdf";
   value?: string; // existing mediaUrl (public URL)
   localPreview?: string; // blob URL for preview before upload completes
   onUpload: (file: File) => Promise<MediaUploadResult>;
@@ -20,6 +20,8 @@ interface MediaUploaderProps {
   onCaptionChange?: (caption: string) => void;
   showCaptionInput?: boolean;
   className?: string;
+  /** Optional label to display in the drop zone */
+  label?: string;
 }
 
 interface UploadState {
@@ -34,12 +36,14 @@ interface UploadState {
 const acceptTypes = {
   image: "image/jpeg,image/png,image/gif,image/webp",
   video: "video/mp4,video/webm",
-  both: "image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm"
+  both: "image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm",
+  pdf: "application/pdf"
 };
 
 const maxSizes = {
   image: 10 * 1024 * 1024, // 10MB
   video: 50 * 1024 * 1024, // 50MB
+  pdf: 5 * 1024 * 1024, // 5MB for PDFs
 };
 
 // ============================================
@@ -55,7 +59,8 @@ export const MediaUploader = ({
   caption,
   onCaptionChange,
   showCaptionInput = false,
-  className = ""
+  className = "",
+  label
 }: MediaUploaderProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -65,7 +70,8 @@ export const MediaUploader = ({
     error: null
   });
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [mediaType, setMediaType] = useState<"image" | "video" | null>(null);
+  const [mediaType, setMediaType] = useState<"image" | "video" | "pdf" | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
 
   // Determine what to display
   const displayUrl = localPreview || value || previewUrl;
@@ -76,6 +82,7 @@ export const MediaUploader = ({
     // Validate file type
     const isImage = file.type.startsWith("image/");
     const isVideo = file.type.startsWith("video/");
+    const isPdf = file.type === "application/pdf";
     
     if (accept === "image" && !isImage) {
       setUploadState(prev => ({ ...prev, error: "Please select an image file" }));
@@ -89,9 +96,13 @@ export const MediaUploader = ({
       setUploadState(prev => ({ ...prev, error: "Please select an image or video file" }));
       return;
     }
+    if (accept === "pdf" && !isPdf) {
+      setUploadState(prev => ({ ...prev, error: "Please select a PDF file" }));
+      return;
+    }
 
     // Validate file size
-    const maxSize = isImage ? maxSizes.image : maxSizes.video;
+    const maxSize = isPdf ? maxSizes.pdf : (isImage ? maxSizes.image : maxSizes.video);
     if (file.size > maxSize) {
       setUploadState(prev => ({ 
         ...prev, 
@@ -101,7 +112,8 @@ export const MediaUploader = ({
     }
 
     // Set media type for preview
-    setMediaType(isImage ? "image" : "video");
+    setMediaType(isPdf ? "pdf" : (isImage ? "image" : "video"));
+    setFileName(file.name);
 
     // Create local preview
     const blobUrl = URL.createObjectURL(file);
@@ -168,6 +180,7 @@ export const MediaUploader = ({
     }
     setPreviewUrl(null);
     setMediaType(null);
+    setFileName(null);
     setUploadState({ isUploading: false, progress: 0, error: null });
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -204,18 +217,20 @@ export const MediaUploader = ({
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
+            label={label}
           />
         ) : (
           <MediaPreview
             key="preview"
             url={displayUrl!}
-            mediaType={mediaType || (displayUrl?.includes("video") ? "video" : "image")}
+            mediaType={mediaType || (accept === "pdf" ? "pdf" : (displayUrl?.includes("video") ? "video" : "image"))}
             isUploading={uploadState.isUploading}
             progress={uploadState.progress}
             error={uploadState.error}
             onClear={handleClear}
             onRetry={handleRetry}
             onReplace={() => fileInputRef.current?.click()}
+            fileName={fileName}
           />
         )}
       </AnimatePresence>
@@ -255,17 +270,28 @@ export const MediaUploader = ({
 // DROP ZONE
 // ============================================
 interface DropZoneProps {
-  accept: "image" | "video" | "both";
+  accept: "image" | "video" | "both" | "pdf";
   isDragging: boolean;
   onDragOver: (e: React.DragEvent) => void;
   onDragLeave: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent) => void;
   onClick: () => void;
+  label?: string;
 }
 
-const DropZone = ({ accept, isDragging, onDragOver, onDragLeave, onDrop, onClick }: DropZoneProps) => {
-  const Icon = accept === "video" ? Video : Image;
-  const label = accept === "both" ? "image or video" : accept;
+const DropZone = ({ accept, isDragging, onDragOver, onDragLeave, onDrop, onClick, label: customLabel }: DropZoneProps) => {
+  const Icon = accept === "video" ? Video : accept === "pdf" ? FileText : Image;
+  const defaultLabel = accept === "both" ? "image or video" : accept === "pdf" ? "PDF" : accept;
+  const displayLabel = customLabel || defaultLabel;
+
+  const getSizeHint = () => {
+    switch (accept) {
+      case "video": return "MP4, WebM up to 50MB";
+      case "image": return "JPG, PNG, GIF, WebP up to 10MB";
+      case "pdf": return "PDF up to 5MB";
+      default: return "Images up to 10MB, Videos up to 50MB";
+    }
+  };
 
   return (
     <motion.div
@@ -303,10 +329,10 @@ const DropZone = ({ accept, isDragging, onDragOver, onDragLeave, onDrop, onClick
         </motion.div>
 
         <p className="text-sm text-white font-medium mb-1">
-          {isDragging ? "Drop to upload" : `Click or drag to upload ${label}`}
+          {isDragging ? "Drop to upload" : `Click or drag to upload ${displayLabel}`}
         </p>
         <p className="text-xs text-gray-500">
-          {accept === "video" ? "MP4, WebM up to 50MB" : accept === "image" ? "JPG, PNG, GIF, WebP up to 10MB" : "Images up to 10MB, Videos up to 50MB"}
+          {getSizeHint()}
         </p>
 
         {/* Upload icon animation */}
@@ -327,13 +353,14 @@ const DropZone = ({ accept, isDragging, onDragOver, onDragLeave, onDrop, onClick
 // ============================================
 interface MediaPreviewProps {
   url: string;
-  mediaType: "image" | "video";
+  mediaType: "image" | "video" | "pdf";
   isUploading: boolean;
   progress: number;
   error: string | null;
   onClear: () => void;
   onRetry: () => void;
   onReplace: () => void;
+  fileName?: string | null;
 }
 
 const MediaPreview = ({ 
@@ -344,9 +371,14 @@ const MediaPreview = ({
   error, 
   onClear, 
   onRetry,
-  onReplace 
+  onReplace,
+  fileName
 }: MediaPreviewProps) => {
   const [isLoading, setIsLoading] = useState(true);
+
+  // For PDFs, we don't need to wait for load
+  const isPdf = mediaType === "pdf";
+  const showLoading = isLoading && !isPdf;
 
   return (
     <motion.div
@@ -356,7 +388,7 @@ const MediaPreview = ({
       className="relative rounded-xl overflow-hidden border border-white/10 group"
     >
       {/* Media content */}
-      <div className="relative aspect-video bg-black">
+      <div className={`relative ${isPdf ? "py-8" : "aspect-video"} bg-black`}>
         {mediaType === "image" ? (
           <img
             src={url}
@@ -364,7 +396,7 @@ const MediaPreview = ({
             className="w-full h-full object-cover"
             onLoad={() => setIsLoading(false)}
           />
-        ) : (
+        ) : mediaType === "video" ? (
           <video
             src={url}
             className="w-full h-full object-cover"
@@ -374,17 +406,30 @@ const MediaPreview = ({
             autoPlay
             playsInline
           />
+        ) : (
+          // PDF Preview
+          <div className="flex flex-col items-center justify-center py-4">
+            <div className="w-16 h-16 rounded-2xl bg-[#FFAB00]/10 flex items-center justify-center mb-3">
+              <FileText className="w-8 h-8 text-[#FFAB00]" />
+            </div>
+            <p className="text-white text-sm font-medium truncate max-w-[200px]">
+              {fileName || "Resume.pdf"}
+            </p>
+            <p className="text-gray-500 text-xs mt-1">PDF Document</p>
+          </div>
         )}
 
         {/* Loading state */}
-        {isLoading && (
+        {showLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/50">
             <Loader2 className="w-8 h-8 text-[#FFAB00] animate-spin" />
           </div>
         )}
 
         {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
+        {!isPdf && (
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
+        )}
 
         {/* Upload progress overlay */}
         <AnimatePresence>
@@ -422,6 +467,7 @@ const MediaPreview = ({
               <AlertCircle className="w-10 h-10 text-red-500 mb-3" />
               <p className="text-red-400 text-sm font-medium mb-3">{error}</p>
               <motion.button
+                type="button"
                 onClick={onRetry}
                 className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white text-sm transition-colors"
                 whileHover={{ scale: 1.05 }}
@@ -451,6 +497,7 @@ const MediaPreview = ({
         {/* Action buttons */}
         <div className="absolute top-3 right-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <motion.button
+            type="button"
             onClick={onReplace}
             className="p-2 bg-black/60 hover:bg-black/80 rounded-lg text-white transition-colors"
             whileHover={{ scale: 1.1 }}
@@ -460,6 +507,7 @@ const MediaPreview = ({
             <RefreshCw className="w-4 h-4" />
           </motion.button>
           <motion.button
+            type="button"
             onClick={onClear}
             className="p-2 bg-red-500/60 hover:bg-red-500/80 rounded-lg text-white transition-colors"
             whileHover={{ scale: 1.1 }}

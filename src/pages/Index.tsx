@@ -24,12 +24,14 @@ const Index = () => {
 
         <HeroTagline />
 
+        <PortfolioRail />
+
         {/* 4. THE COMMAND DECK (Replaces VideoHero) */}
         <HeroCommandCenter />
 
         <NexusHub />
 
-        <PortfolioRail />
+        
 
         {/* Feature 2: Mixed-Media Bento Grid */}
         <MixedMediaGrid />

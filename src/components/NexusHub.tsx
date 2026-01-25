@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star, Film, Mic, Users, Building2, Grid, ChevronDown, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
+import { statsService } from "@/services/statsService";
 
 const hubs = [
   { id: "reviews", label: "Reviews", icon: Star, path: "/reviews", color: "text-cyan-400", bg: "hover:bg-cyan-500/10" },
@@ -13,6 +14,19 @@ const hubs = [
 
 export const NexusHub = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [counts, setCounts] = useState<{ [key: string]: number }>({});
+
+  useEffect(() => {
+    statsService.getAllCounts().then(stats => {
+      setCounts({
+        reviews: stats.reviews,
+        docs: stats.documentaries,
+        podcast: stats.podcasts,
+        portfolio: stats.portfolios,
+        studios: stats.studios
+      });
+    });
+  }, []);
 
   return (
     <section className="py-20 flex justify-center relative z-30 px-4">
@@ -91,6 +105,9 @@ export const NexusHub = () => {
                                 </motion.div>
                                 <span className="text-[10px] font-bold uppercase text-gray-400 group-hover:text-white transition-colors tracking-wider">
                                     {hub.label}
+                                </span>
+                                <span className="text-[9px] font-mono text-gray-600 group-hover:text-gray-400 transition-colors">
+                                  {counts[hub.id] !== undefined ? counts[hub.id] : '—'}
                                 </span>
                             </Link>
                         ))}

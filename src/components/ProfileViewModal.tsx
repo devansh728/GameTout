@@ -1,15 +1,20 @@
+import { useEffect } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import {
     X, MapPin, Download, Github, Linkedin, Globe, Mail,
     Award, Terminal, Shield, CheckCircle, ExternalLink,
-    Gamepad2, Code2, Zap, Star, Heart
+    Gamepad2, Code2, Zap, Star, Heart, Loader2
 } from "lucide-react";
 import { SkillBar } from "@/components/HealthBar";
+import { usePortfolioDetail } from "@/hooks/usePortfolioDetail";
+import { Developer, PortfolioDetail, STATUS_DISPLAY } from "@/types/portfolio";
+import { useAuth } from "@/context/AuthContext";
 
 interface ProfileViewModalProps {
     isOpen: boolean;
     onClose: () => void;
-    developer: any;
+    developer: Developer | null;
+    portfolioId?: number | null;
 }
 
 // Animation Variants
@@ -85,8 +90,62 @@ const slideInRight: Variants = {
     }
 };
 
-export const ProfileViewModal = ({ isOpen, onClose, developer }: ProfileViewModalProps) => {
+export const ProfileViewModal = ({ isOpen, onClose, developer, portfolioId }: ProfileViewModalProps) => {
+    // Fetch full portfolio details when modal opens
+    const { 
+        portfolio, 
+        loading: detailLoading, 
+        error: detailError,
+        fetchPortfolio,
+        like,
+        liking,
+        liked,
+        clear
+    } = usePortfolioDetail();
+    
+    const { user, dbUser } = useAuth();
+    
+    // Fetch portfolio details when modal opens with an ID
+    useEffect(() => {
+        if (isOpen && portfolioId && portfolioId > 0) {
+            fetchPortfolio(portfolioId);
+        }
+        if (!isOpen) {
+            clear();
+        }
+    }, [isOpen, portfolioId, fetchPortfolio, clear]);
+
+    // Handle like button click
+    const handleLike = async () => {
+        if (!user) {
+            // Could show auth modal here
+            console.log("Please login to like");
+            return;
+        }
+        await like();
+    };
+
     if (!developer) return null;
+
+    // Use portfolio details if available, otherwise fall back to developer data
+    const displayData = {
+        name: portfolio?.name || developer.name,
+        role: portfolio?.shortDescription || developer.role,
+        location: portfolio?.location || developer.location,
+        avatar: portfolio?.profilePhotoUrl || developer.avatar,
+        status: portfolio?.jobStatus ? STATUS_DISPLAY[portfolio.jobStatus] : developer.status,
+        exp: portfolio?.experienceYears ? `${portfolio.experienceYears} Yrs` : developer.exp,
+        rate: developer.rate || "Contact for rates",
+        badges: developer.badges || [],
+        skills: portfolio?.skills?.map(s => ({ name: s.name, level: s.score })) || developer.skills || [],
+        isPremium: portfolio?.isPremium ?? developer.isPremium,
+        profileSummary: portfolio?.profileSummary || null,
+        contactEmail: portfolio?.contactEmail || null,
+        resumeUrl: portfolio?.resumeUrl || null,
+        socials: portfolio?.socials || [],
+        likesCount: portfolio?.likesCount || 0,
+        coverPhotoUrl: portfolio?.coverPhotoUrl || null,
+    };
 
     return (
         <AnimatePresence mode="wait">
@@ -126,7 +185,7 @@ export const ProfileViewModal = ({ isOpen, onClose, developer }: ProfileViewModa
                                     transition={{ duration: 0.7, ease: "easeOut" }}
                                 >
                                     <img
-                                        src="https://images.unsplash.com/photo-1558655146-d09347e0b7a8?w=1200"
+                                        src={displayData.coverPhotoUrl || "https://images.unsplash.com/photo-1558655146-d09347e0b7a8?w=1200"}
                                         className="w-full h-full object-cover opacity-50 group-hover:opacity-70 transition-all duration-700"
                                         alt="Cover"
                                     />
@@ -200,11 +259,17 @@ export const ProfileViewModal = ({ isOpen, onClose, developer }: ProfileViewModa
                                             }}
                                             transition={{ duration: 0.3 }}
                                         >
-                                            <img
-                                                src={developer.avatar}
-                                                alt={developer.name}
-                                                className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-                                            />
+                                            {detailLoading ? (
+                                                <div className="w-full h-full flex items-center justify-center bg-white/5">
+                                                    <Loader2 className="w-8 h-8 text-[#FFAB00] animate-spin" />
+                                                </div>
+                                            ) : (
+                                                <img
+                                                    src={displayData.avatar}
+                                                    alt={displayData.name}
+                                                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                                                />
+                                            )}
                                             {/* Shine Effect */}
                                             <motion.div
                                                 className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12"
@@ -228,15 +293,17 @@ export const ProfileViewModal = ({ isOpen, onClose, developer }: ProfileViewModa
                                         </motion.div>
 
                                         {/* Level Badge */}
-                                        <motion.div
-                                            className="absolute -top-2 -left-2 z-20 bg-[#FFAB00] text-black text-xs font-bold px-2 py-1 rounded shadow-lg"
-                                            initial={{ scale: 0, rotate: -20 }}
-                                            animate={{ scale: 1, rotate: 0 }}
-                                            transition={{ delay: 0.4, type: "spring" }}
-                                        >
-                                            <Star className="w-3 h-3 inline mr-1" />
-                                            PRO
-                                        </motion.div>
+                                        {displayData.isPremium && (
+                                            <motion.div
+                                                className="absolute -top-2 -left-2 z-20 bg-[#FFAB00] text-black text-xs font-bold px-2 py-1 rounded shadow-lg"
+                                                initial={{ scale: 0, rotate: -20 }}
+                                                animate={{ scale: 1, rotate: 0 }}
+                                                transition={{ delay: 0.4, type: "spring" }}
+                                            >
+                                                <Star className="w-3 h-3 inline mr-1" />
+                                                PRO
+                                            </motion.div>
+                                        )}
                                     </motion.div>
 
                                     {/* Name & Title Block */}
@@ -254,13 +321,15 @@ export const ProfileViewModal = ({ isOpen, onClose, developer }: ProfileViewModa
                                                     animate={{ opacity: 1, x: 0 }}
                                                     transition={{ delay: 0.2 }}
                                                 >
-                                                    {developer.name}
-                                                    <motion.div
-                                                        whileHover={{ rotate: 360, scale: 1.2 }}
-                                                        transition={{ duration: 0.5 }}
-                                                    >
-                                                        <Shield className="w-6 h-6 text-[#FFAB00] drop-shadow-[0_0_8px_rgba(255,171,0,0.5)]" fill="currentColor" fillOpacity={0.2} />
-                                                    </motion.div>
+                                                    {displayData.name}
+                                                    {displayData.isPremium && (
+                                                        <motion.div
+                                                            whileHover={{ rotate: 360, scale: 1.2 }}
+                                                            transition={{ duration: 0.5 }}
+                                                        >
+                                                            <Shield className="w-6 h-6 text-[#FFAB00] drop-shadow-[0_0_8px_rgba(255,171,0,0.5)]" fill="currentColor" fillOpacity={0.2} />
+                                                        </motion.div>
+                                                    )}
                                                 </motion.h2>
 
                                                 <motion.div
@@ -271,12 +340,20 @@ export const ProfileViewModal = ({ isOpen, onClose, developer }: ProfileViewModa
                                                 >
                                                     <span className="text-[#FFAB00] font-bold uppercase tracking-wider text-sm flex items-center gap-2">
                                                         <Gamepad2 className="w-4 h-4" />
-                                                        {developer.role}
+                                                        {displayData.role}
                                                     </span>
                                                     <span className="hidden md:block w-px h-4 bg-white/20"></span>
                                                     <span className="flex items-center gap-1.5 text-xs text-gray-400 font-mono bg-white/5 px-2 py-1 rounded">
-                                                        <MapPin className="w-3 h-3 text-[#FFAB00]" /> {developer.location}
+                                                        <MapPin className="w-3 h-3 text-[#FFAB00]" /> {displayData.location}
                                                     </span>
+                                                    {displayData.likesCount > 0 && (
+                                                        <>
+                                                            <span className="hidden md:block w-px h-4 bg-white/20"></span>
+                                                            <span className="flex items-center gap-1.5 text-xs text-gray-400 font-mono bg-white/5 px-2 py-1 rounded">
+                                                                <Heart className="w-3 h-3 text-red-500" fill="currentColor" /> {displayData.likesCount}
+                                                            </span>
+                                                        </>
+                                                    )}
                                                 </motion.div>
                                             </div>
 
@@ -287,36 +364,54 @@ export const ProfileViewModal = ({ isOpen, onClose, developer }: ProfileViewModa
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: 0.4 }}
                                             >
-                                                <motion.button
-                                                    className="group relative flex items-center gap-2 px-6 py-2.5 bg-[#FFAB00] text-black font-bold uppercase text-xs rounded overflow-hidden shadow-[0_0_20px_rgba(255,171,0,0.4)]"
-                                                    whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(255,171,0,0.6)" }}
-                                                    whileTap={{ scale: 0.95 }}
-                                                >
-                                                    <motion.div
-                                                        className="absolute inset-0 bg-white"
-                                                        initial={{ x: "-100%" }}
-                                                        whileHover={{ x: "100%" }}
-                                                        transition={{ duration: 0.5 }}
-                                                    />
-                                                    <Mail className="w-4 h-4 relative z-10" />
-                                                    <span className="relative z-10">Contact</span>
-                                                </motion.button>
+                                                {displayData.contactEmail && (
+                                                    <motion.a
+                                                        href={`mailto:${displayData.contactEmail}`}
+                                                        className="group relative flex items-center gap-2 px-6 py-2.5 bg-[#FFAB00] text-black font-bold uppercase text-xs rounded overflow-hidden shadow-[0_0_20px_rgba(255,171,0,0.4)]"
+                                                        whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(255,171,0,0.6)" }}
+                                                        whileTap={{ scale: 0.95 }}
+                                                    >
+                                                        <motion.div
+                                                            className="absolute inset-0 bg-white"
+                                                            initial={{ x: "-100%" }}
+                                                            whileHover={{ x: "100%" }}
+                                                            transition={{ duration: 0.5 }}
+                                                        />
+                                                        <Mail className="w-4 h-4 relative z-10" />
+                                                        <span className="relative z-10">Contact</span>
+                                                    </motion.a>
+                                                )}
+
+                                                {displayData.resumeUrl && (
+                                                    <motion.a
+                                                        href={displayData.resumeUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="group flex items-center gap-2 px-4 py-2.5 bg-white/5 border border-white/10 text-white font-bold uppercase text-xs rounded hover:bg-white/10 hover:border-[#FFAB00]/50 transition-all duration-300"
+                                                        whileHover={{ scale: 1.05 }}
+                                                        whileTap={{ scale: 0.95 }}
+                                                    >
+                                                        <Download className="w-4 h-4 group-hover:animate-bounce" />
+                                                        CV
+                                                    </motion.a>
+                                                )}
 
                                                 <motion.button
-                                                    className="group flex items-center gap-2 px-4 py-2.5 bg-white/5 border border-white/10 text-white font-bold uppercase text-xs rounded hover:bg-white/10 hover:border-[#FFAB00]/50 transition-all duration-300"
-                                                    whileHover={{ scale: 1.05 }}
-                                                    whileTap={{ scale: 0.95 }}
+                                                    onClick={handleLike}
+                                                    disabled={liking}
+                                                    className={`group flex items-center justify-center w-10 h-10 border rounded transition-all duration-300 ${
+                                                        liked 
+                                                            ? "bg-red-500/20 border-red-500/50 text-red-500" 
+                                                            : "bg-white/5 border-white/10 text-white hover:bg-red-500/20 hover:border-red-500/50 hover:text-red-500"
+                                                    } ${liking ? "opacity-50 cursor-not-allowed" : ""}`}
+                                                    whileHover={{ scale: liking ? 1 : 1.1 }}
+                                                    whileTap={{ scale: liking ? 1 : 0.9 }}
                                                 >
-                                                    <Download className="w-4 h-4 group-hover:animate-bounce" />
-                                                    CV
-                                                </motion.button>
-
-                                                <motion.button
-                                                    className="group flex items-center justify-center w-10 h-10 bg-white/5 border border-white/10 text-white rounded hover:bg-red-500/20 hover:border-red-500/50 hover:text-red-500 transition-all duration-300"
-                                                    whileHover={{ scale: 1.1 }}
-                                                    whileTap={{ scale: 0.9 }}
-                                                >
-                                                    <Heart className="w-4 h-4" />
+                                                    {liking ? (
+                                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                                    ) : (
+                                                        <Heart className="w-4 h-4" fill={liked ? "currentColor" : "none"} />
+                                                    )}
                                                 </motion.button>
                                             </motion.div>
                                         </div>
@@ -354,9 +449,9 @@ export const ProfileViewModal = ({ isOpen, onClose, developer }: ProfileViewModa
                                             <div className="absolute inset-0 bg-[#FFAB00]/0 group-hover:bg-[#FFAB00]/5 transition-colors duration-500" />
 
                                             {[
-                                                { label: "Status", value: developer.status, icon: Zap, color: "text-green-400" },
-                                                { label: "Experience", value: developer.exp, icon: Code2, color: "text-white" },
-                                                { label: "Rate", value: developer.rate, icon: Star, color: "text-[#FFAB00]" },
+                                                { label: "Status", value: displayData.status, icon: Zap, color: "text-green-400" },
+                                                { label: "Experience", value: displayData.exp, icon: Code2, color: "text-white" },
+                                                { label: "Rate", value: displayData.rate, icon: Star, color: "text-[#FFAB00]" },
                                             ].map((stat, i) => (
                                                 <motion.div
                                                     key={i}
@@ -392,9 +487,9 @@ export const ProfileViewModal = ({ isOpen, onClose, developer }: ProfileViewModa
                                             >
                                                 <div className="absolute left-0 top-0 w-0.5 h-full bg-gradient-to-b from-[#FFAB00] via-[#FFAB00]/50 to-transparent" />
                                                 <p className="text-gray-400 leading-relaxed text-sm pl-4 hover:text-gray-300 transition-colors">
-                                                    Specialized operative with over 5 years of field experience in Unity and Unreal Engine architecture.
-                                                    Proven track record of shipping AAA titles and optimizing render pipelines for mobile platforms.
-                                                    Currently seeking new alliances for next-gen RPG projects.
+                                                    {displayData.profileSummary || 
+                                                        `Skilled ${displayData.role} with ${displayData.exp} of experience. Currently ${displayData.status.toLowerCase()}. Specializing in ${displayData.skills.slice(0, 3).map(s => s.name).join(', ') || 'game development'}.`
+                                                    }
                                                 </p>
                                             </motion.div>
                                         </motion.div>
@@ -411,7 +506,7 @@ export const ProfileViewModal = ({ isOpen, onClose, developer }: ProfileViewModa
                                                 initial="hidden"
                                                 animate="visible"
                                             >
-                                                {developer.badges.map((badge: string, i: number) => (
+                                                {displayData.badges.map((badge: string, i: number) => (
                                                     <motion.div
                                                         key={i}
                                                         variants={scaleIn}
@@ -426,13 +521,15 @@ export const ProfileViewModal = ({ isOpen, onClose, developer }: ProfileViewModa
                                                         <Award className="w-4 h-4" /> {badge}
                                                     </motion.div>
                                                 ))}
-                                                <motion.div
-                                                    variants={scaleIn}
-                                                    whileHover={{ scale: 1.1 }}
-                                                    className="flex items-center gap-2 px-4 py-2.5 bg-green-500/5 border border-green-500/20 rounded-lg text-green-400 text-xs font-bold uppercase cursor-default"
-                                                >
-                                                    <CheckCircle className="w-4 h-4" /> Verified Pro
-                                                </motion.div>
+                                                {displayData.isPremium && (
+                                                    <motion.div
+                                                        variants={scaleIn}
+                                                        whileHover={{ scale: 1.1 }}
+                                                        className="flex items-center gap-2 px-4 py-2.5 bg-green-500/5 border border-green-500/20 rounded-lg text-green-400 text-xs font-bold uppercase cursor-default"
+                                                    >
+                                                        <CheckCircle className="w-4 h-4" /> Verified Pro
+                                                    </motion.div>
+                                                )}
                                             </motion.div>
                                         </motion.div>
                                     </div>
@@ -470,15 +567,24 @@ export const ProfileViewModal = ({ isOpen, onClose, developer }: ProfileViewModa
                                                 initial="hidden"
                                                 animate="visible"
                                             >
-                                                {developer.skills.map((skill: any, i: number) => (
-                                                    <motion.div
-                                                        key={i}
-                                                        variants={fadeInUp}
-                                                        custom={i}
-                                                    >
-                                                        <SkillBar skill={skill.name} level={skill.level} />
-                                                    </motion.div>
-                                                ))}
+                                                {detailLoading ? (
+                                                    // Skeleton loading for skills
+                                                    [...Array(3)].map((_, i) => (
+                                                        <div key={i} className="h-6 bg-white/5 rounded animate-pulse" />
+                                                    ))
+                                                ) : displayData.skills.length > 0 ? (
+                                                    displayData.skills.map((skill, i: number) => (
+                                                        <motion.div
+                                                            key={i}
+                                                            variants={fadeInUp}
+                                                            custom={i}
+                                                        >
+                                                            <SkillBar skill={skill.name} level={skill.level} />
+                                                        </motion.div>
+                                                    ))
+                                                ) : (
+                                                    <p className="text-gray-500 text-sm">No skills listed</p>
+                                                )}
                                             </motion.div>
                                         </motion.div>
 
@@ -491,36 +597,68 @@ export const ProfileViewModal = ({ isOpen, onClose, developer }: ProfileViewModa
                                                 initial="hidden"
                                                 animate="visible"
                                             >
-                                                {[
-                                                    { icon: Linkedin, label: "LinkedIn", color: "#0077b5", hoverBg: "hover:bg-[#0077b5]/10" },
-                                                    { icon: Github, label: "GitHub", color: "#ffffff", hoverBg: "hover:bg-white/10" },
-                                                    { icon: Globe, label: "Portfolio Site", color: "#FFAB00", hoverBg: "hover:bg-[#FFAB00]/10" },
-                                                ].map((social, i) => (
-                                                    <motion.a
-                                                        key={i}
-                                                        href="#"
-                                                        variants={fadeInUp}
-                                                        whileHover={{ x: 5, scale: 1.02 }}
-                                                        whileTap={{ scale: 0.98 }}
-                                                        className={`flex items-center justify-between px-4 py-3.5 bg-white/5 ${social.hoverBg} border border-white/10 hover:border-white/20 rounded-lg transition-all duration-300 group`}
-                                                    >
-                                                        <span className="flex items-center gap-3 text-sm font-bold text-gray-300 group-hover:text-white transition-colors">
-                                                            <motion.div
-                                                                whileHover={{ rotate: 360 }}
-                                                                transition={{ duration: 0.5 }}
+                                                {/* Render actual socials from API */}
+                                                {displayData.socials.length > 0 ? (
+                                                    displayData.socials.map((social, i) => {
+                                                        const iconMap: Record<string, { icon: typeof Globe; color: string; hoverBg: string }> = {
+                                                            linkedin: { icon: Linkedin, color: "#0077b5", hoverBg: "hover:bg-[#0077b5]/10" },
+                                                            github: { icon: Github, color: "#ffffff", hoverBg: "hover:bg-white/10" },
+                                                            portfolio: { icon: Globe, color: "#FFAB00", hoverBg: "hover:bg-[#FFAB00]/10" },
+                                                            website: { icon: Globe, color: "#FFAB00", hoverBg: "hover:bg-[#FFAB00]/10" },
+                                                            twitter: { icon: Globe, color: "#1DA1F2", hoverBg: "hover:bg-[#1DA1F2]/10" },
+                                                        };
+                                                        const config = iconMap[social.platform.toLowerCase()] || { icon: Globe, color: "#FFAB00", hoverBg: "hover:bg-[#FFAB00]/10" };
+                                                        const SocialIcon = config.icon;
+                                                        
+                                                        return (
+                                                            <motion.a
+                                                                key={i}
+                                                                href={social.url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                variants={fadeInUp}
+                                                                whileHover={{ x: 5, scale: 1.02 }}
+                                                                whileTap={{ scale: 0.98 }}
+                                                                className={`flex items-center justify-between px-4 py-3.5 bg-white/5 ${config.hoverBg} border border-white/10 hover:border-white/20 rounded-lg transition-all duration-300 group`}
                                                             >
-                                                                <social.icon className="w-5 h-5" style={{ color: social.color }} />
-                                                            </motion.div>
-                                                            {social.label}
-                                                        </span>
+                                                                <span className="flex items-center gap-3 text-sm font-bold text-gray-300 group-hover:text-white transition-colors">
+                                                                    <motion.div
+                                                                        whileHover={{ rotate: 360 }}
+                                                                        transition={{ duration: 0.5 }}
+                                                                    >
+                                                                        <SocialIcon className="w-5 h-5" style={{ color: config.color }} />
+                                                                    </motion.div>
+                                                                    {social.platform}
+                                                                </span>
+                                                                <motion.div
+                                                                    initial={{ x: 0, opacity: 0.5 }}
+                                                                    whileHover={{ x: 3, opacity: 1 }}
+                                                                >
+                                                                    <ExternalLink className="w-4 h-4 text-gray-600 group-hover:text-white transition-colors" />
+                                                                </motion.div>
+                                                            </motion.a>
+                                                        );
+                                                    })
+                                                ) : (
+                                                    // Fallback placeholder links
+                                                    [
+                                                        { icon: Linkedin, label: "LinkedIn", color: "#0077b5", hoverBg: "hover:bg-[#0077b5]/10" },
+                                                        { icon: Github, label: "GitHub", color: "#ffffff", hoverBg: "hover:bg-white/10" },
+                                                        { icon: Globe, label: "Portfolio Site", color: "#FFAB00", hoverBg: "hover:bg-[#FFAB00]/10" },
+                                                    ].map((social, i) => (
                                                         <motion.div
-                                                            initial={{ x: 0, opacity: 0.5 }}
-                                                            whileHover={{ x: 3, opacity: 1 }}
+                                                            key={i}
+                                                            variants={fadeInUp}
+                                                            className={`flex items-center justify-between px-4 py-3.5 bg-white/5 border border-white/10 rounded-lg text-gray-500 cursor-not-allowed`}
                                                         >
-                                                            <ExternalLink className="w-4 h-4 text-gray-600 group-hover:text-white transition-colors" />
+                                                            <span className="flex items-center gap-3 text-sm font-bold">
+                                                                <social.icon className="w-5 h-5 opacity-50" style={{ color: social.color }} />
+                                                                {social.label}
+                                                            </span>
+                                                            <span className="text-xs opacity-50">Not linked</span>
                                                         </motion.div>
-                                                    </motion.a>
-                                                ))}
+                                                    ))
+                                                )}
                                             </motion.div>
                                         </div>
                                     </motion.div>
