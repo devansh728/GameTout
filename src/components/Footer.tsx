@@ -10,7 +10,7 @@ const socialLinks = [
 ];
 
 const footerLinks = {
-  platform: ["Featured", "Documentary", "Reviews", "Portfolios", "Studios"],
+  platform: [/*"Featured", "Documentary", "Reviews",*/ "Portfolios", "Studios"],
   company: ["About Us", "Careers", "Press Kit", "Privacy Policy", "Terms"],
   community: ["Discord", "Forums", "Events", "Newsletter", "Partners"],
 };

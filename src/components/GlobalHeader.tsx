@@ -7,8 +7,8 @@ import { useAuth } from "@/context/AuthContext";
 
 // --- NAVIGATION LINKS ---
 const mainNavItems = [
-  { path: "/", label: "Featured" },
-  { path: "/portfolios", label: "Portfolio" },
+  // { path: "/", label: "Featured" }, // Hidden as per request
+  { path: "/", label: "Portfolio" }, // Portfolio is now the landing page
   { path: "/studios", label: "Studios" },
   { path: "/about", label: "About" },
 ];
@@ -42,7 +42,7 @@ export function ThemeToggle() {
 
 // --- CALENDLY BUTTON COMPONENT ---
 const CalendlyButton = () => {
-  const calendlyUrl = "https://calendly.com/your-username"; // Replace with your Calendly URL
+  const calendlyUrl = "https://calendly.com/thegametout/connect"; // Replace with your Calendly URL
 
   return (
     <motion.a
@@ -192,7 +192,8 @@ export const GlobalHeader = ({ onLoginClick, isAuthenticated }: GlobalHeaderProp
           {/* Navigation Pills */}
           <nav className="bg-black/90 backdrop-blur-xl border border-white/10 px-6 py-4 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex gap-6 items-center">
             {/* Featured Link */}
-            <Link to="/" className="relative group/link">
+            {/* Featured Link - Hidden */
+            /* <Link to="/" className="relative group/link">
               <span className={`text-xs font-bold font-mono uppercase tracking-[0.2em] transition-colors ${
                 location.pathname === "/" ? "text-[#FFAB00]" : "text-gray-400 group-hover/link:text-white"
               }`}>
@@ -204,12 +205,13 @@ export const GlobalHeader = ({ onLoginClick, isAuthenticated }: GlobalHeaderProp
                   className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#FFAB00] rounded-full" 
                 />
               )}
-            </Link>
+            </Link> */
+            }
 
             
 
             {/* Other Nav Items */}
-            {mainNavItems.slice(1).map((item) => {
+            {mainNavItems.map((item) => {
               const isActive = location.pathname === item.path;
               return (
                 <Link key={item.path} to={item.path} className="relative group/link">
@@ -229,6 +231,8 @@ export const GlobalHeader = ({ onLoginClick, isAuthenticated }: GlobalHeaderProp
             })}
 
             {/* Videos Dropdown */}
+            {/* Videos Dropdown - Hidden */
+            false && (
             <div 
               ref={videosDropdownRef}
               className="relative"
@@ -300,6 +304,8 @@ export const GlobalHeader = ({ onLoginClick, isAuthenticated }: GlobalHeaderProp
                 )}
               </AnimatePresence>
             </div>
+            )
+            }
           </nav>
 
           {/* Admin Dashboard Button - Only visible to admins */}
@@ -544,7 +550,8 @@ export const GlobalHeader = ({ onLoginClick, isAuthenticated }: GlobalHeaderProp
             {/* Drawer Links */}
             <div className="flex flex-col gap-4 overflow-y-auto flex-1">
               {/* Featured Link */}
-              <Link
+              {/* Featured Link - Hidden Mobile */
+              /* <Link
                 to="/"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="group flex items-center justify-between py-2"
@@ -557,74 +564,78 @@ export const GlobalHeader = ({ onLoginClick, isAuthenticated }: GlobalHeaderProp
                   Featured
                 </span>
                 <ChevronDown className="w-6 h-6 -rotate-90 text-gray-700 group-hover:text-[#FFAB00] transition-colors" />
-              </Link>
+              </Link> */
+              }
 
               {/* Videos Section - Expandable */}
-              <div className="border-y border-white/10 py-4">
-                <button
-                  onClick={() => setIsMobileVideosExpanded(!isMobileVideosExpanded)}
-                  className="w-full group flex items-center justify-between py-2"
-                >
-                  <div className="flex items-center gap-3">
-                    <Video className={`w-8 h-8 ${isMobileVideosExpanded || isVideoPath ? "text-[#FFAB00]" : "text-gray-600"}`} />
-                    <span className={`font-display text-4xl uppercase transition-colors ${
-                      isVideoPath 
-                        ? "text-[#FFAB00]" 
-                        : "text-gray-500 group-hover:text-white"
-                    }`}>
-                      Videos
-                    </span>
-                  </div>
-                  <ChevronDown className={`w-6 h-6 text-gray-700 group-hover:text-[#FFAB00] transition-all duration-300 ${
-                    isMobileVideosExpanded ? "rotate-180" : ""
-                  }`} />
-                </button>
+              {/* Videos Section - Hidden Mobile */
+                false && (
+                <div className="border-y border-white/10 py-4">
+                  <button
+                    onClick={() => setIsMobileVideosExpanded(!isMobileVideosExpanded)}
+                    className="w-full group flex items-center justify-between py-2"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Video className={`w-8 h-8 ${isMobileVideosExpanded || isVideoPath ? "text-[#FFAB00]" : "text-gray-600"}`} />
+                      <span className={`font-display text-4xl uppercase transition-colors ${
+                        isVideoPath 
+                          ? "text-[#FFAB00]" 
+                          : "text-gray-500 group-hover:text-white"
+                      }`}>
+                        Videos
+                      </span>
+                    </div>
+                    <ChevronDown className={`w-6 h-6 text-gray-700 group-hover:text-[#FFAB00] transition-all duration-300 ${
+                      isMobileVideosExpanded ? "rotate-180" : ""
+                    }`} />
+                  </button>
 
-                {/* Expandable Sub-items */}
-                <AnimatePresence>
-                  {isMobileVideosExpanded && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="pl-11 pt-4 space-y-3">
-                        {videoSubItems.map((item) => {
-                          const Icon = item.icon;
-                          const isActive = location.pathname === item.path;
-                          return (
-                            <Link
-                              key={item.path}
-                              to={item.path}
-                              onClick={() => setIsMobileMenuOpen(false)}
-                              className={`flex items-center gap-3 py-3 px-4 rounded-lg transition-colors ${
-                                isActive 
-                                  ? "bg-[#FFAB00]/10 border border-[#FFAB00]/30" 
-                                  : "bg-white/5 hover:bg-white/10"
-                              }`}
-                            >
-                              <div className={`p-2 rounded-lg ${isActive ? "bg-[#FFAB00]/20" : "bg-white/10"}`}>
-                                <Icon className={`w-5 h-5 ${isActive ? "text-[#FFAB00]" : "text-gray-400"}`} />
-                              </div>
-                              <div>
-                                <p className={`font-display text-xl uppercase ${isActive ? "text-[#FFAB00]" : "text-white"}`}>
-                                  {item.label}
-                                </p>
-                                <p className="text-xs text-gray-500">{item.description}</p>
-                              </div>
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                  <AnimatePresence>
+                    {isMobileVideosExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="pl-11 pt-4 space-y-3">
+                          {videoSubItems.map((item) => {
+                            const Icon = item.icon;
+                            const isActive = location.pathname === item.path;
+                            return (
+                              <Link
+                                key={item.path}
+                                to={item.path}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className={`flex items-center gap-3 py-3 px-4 rounded-lg transition-colors ${
+                                  isActive 
+                                    ? "bg-[#FFAB00]/10 border border-[#FFAB00]/30" 
+                                    : "bg-white/5 hover:bg-white/10"
+                                }`}
+                              >
+                                <div className={`p-2 rounded-lg ${isActive ? "bg-[#FFAB00]/20" : "bg-white/10"}`}>
+                                  <Icon className={`w-5 h-5 ${isActive ? "text-[#FFAB00]" : "text-gray-400"}`} />
+                                </div>
+                                <div>
+                                  <p className={`font-display text-xl uppercase ${isActive ? "text-[#FFAB00]" : "text-white"}`}>
+                                    {item.label}
+                                  </p>
+                                  <p className="text-xs text-gray-500">{item.description}</p>
+                                </div>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+                )
+              }
 
               {/* Other Nav Items */}
-              {mainNavItems.slice(1).map((item) => (
+              {mainNavItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}

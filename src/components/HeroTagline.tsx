@@ -2,11 +2,10 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 
 const phrases = [
-  "RESPAWN RETHINK REPLAY",
-  "GRAPHICS FADE LEGENDS REMAIN",
-  "HIGH PING HIGH HOPES",
-  "TOUCH GRASS? WAIT FOR DLC",
-  "REALITY IS JUST A POOR ENGINE"
+  "Are you making video games?",
+  "Register Your Studio for Free",
+  "Are you looking for work?",
+  "Create your personalized portfolio"
 ];
 
 // Animation variant options

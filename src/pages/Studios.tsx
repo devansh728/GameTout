@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { statsService } from "@/services/statsService";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
+import { HeroTagline } from "@/components/HeroTagline";
 
 // ============================================
 // STUDIO RATING SECTION COMPONENT
@@ -170,6 +171,7 @@ const Studios = () => {
   return (
     <PageTransition>
       <main className="min-h-screen bg-background pt-20">
+        <HeroTagline />
         {/* Header */}
         <section className="px-4 md:px-8 max-w-7xl mx-auto mb-12">
           <FadeInView>

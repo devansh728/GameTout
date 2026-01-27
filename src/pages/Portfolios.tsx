@@ -24,6 +24,7 @@ import { demoPortfolios, getDemoByCategory } from "@/data/demoPortfolios";
 
 // Portfolio Service for API calls
 import { portfolioService } from "@/services/portfolioService";
+import { HeroTagline } from "@/components/HeroTagline";
 
 // --- FILTER OPTIONS ---
 const roles = ["All", "Programmer", "Artist", "Designer", "Audio", "Producer"];
@@ -551,6 +552,8 @@ const Portfolios = () => {
   return (
     <PageTransition>
       <main className="min-h-screen bg-background pt-20 selection:bg-[#FFAB00] selection:text-black relative overflow-hidden">
+
+        <HeroTagline />
 
         {/* --- GLOBAL BG EFFECTS (Cyber Grid) --- */}
         <div className="fixed inset-0 pointer-events-none z-0 opacity-20" 

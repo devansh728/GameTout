@@ -38,11 +38,15 @@ const AnimatedRoutes = () => {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/content/:type/:id" element={<ArticlePage />} />
-        <Route path="/" element={<Index />} />
+        {/* Swapped Landing Page: Default is now Portfolios */}
+        <Route path="/" element={<Portfolios />} />
+        {/* Hidden Featured Page - moved from root */}
+        {/* <Route path="/featured" element={<Index />} />  */}
+        
         <Route path="/about" element={<About />} />
-        <Route path="/documentary" element={<Documentary />} />
-        <Route path="/reviews" element={<Reviews />} />
-        <Route path="/podcast" element={<Podcast />} />
+        {/* <Route path="/documentary" element={<Documentary />} /> */}
+        {/* <Route path="/reviews" element={<Reviews />} /> */}
+        {/* <Route path="/podcast" element={<Podcast />} /> */}
         <Route path="/opinion" element={<Opinion />} />
         <Route path="/portfolios" element={<Portfolios />} />
         <Route path="/studios" element={<Studios />} />
