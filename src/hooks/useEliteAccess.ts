@@ -60,7 +60,7 @@ const DEMO_ELITE_KEY = "elite_access_demo";
  */
 export function useEliteAccess(options: UseEliteAccessOptions = {}): UseEliteAccessReturn {
   const { demoMode = false } = options;
-  const { user, dbUser } = useAuth();
+  const { user, dbUser, isAuthenticated } = useAuth();
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -85,12 +85,9 @@ export function useEliteAccess(options: UseEliteAccessOptions = {}): UseEliteAcc
     return { isViewer: false, isCreator: false };
   });
 
-  // Determine authentication status
-  const isAuthenticated = !!user;
-
   // Fetch elite status from backend when user is authenticated
   const fetchEliteStatus = useCallback(async () => {
-    if (!user) {
+    if (!isAuthenticated) {
       setEliteStatus(null);
       return;
     }

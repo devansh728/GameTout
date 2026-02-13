@@ -119,8 +119,7 @@ const StudioRatingSection = ({
 
 const Studios = () => {
   const { toast } = useToast();
-  const { user } = useAuth();
-  const isAuthenticated = !!user;
+  const { isAuthenticated } = useAuth();
   
   const [selectedStudio, setSelectedStudio] = useState<Studio | null>(null);
   const [page, setPage] = useState(0);

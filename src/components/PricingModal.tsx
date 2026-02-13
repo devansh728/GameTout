@@ -68,7 +68,7 @@ export const PricingModal = ({
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "creating" | "pending" | "success" | "failed">("idle");
   
   const { isLoaded: razorpayLoaded, error: razorpayError } = useRazorpay();
-  const { user } = useAuth();
+  const { isAuthenticated, dbUser } = useAuth();
 
   // Reset state when modal opens
   useEffect(() => {
@@ -107,7 +107,7 @@ export const PricingModal = ({
       return;
     }
 
-    if (!user) {
+    if (!isAuthenticated) {
       setError("Please sign in to continue with payment.");
       return;
     }
@@ -160,8 +160,8 @@ export const PricingModal = ({
           }
         },
         prefill: {
-          name: orderResponse.userName || user.displayName || "",
-          email: orderResponse.userEmail || user.email || "",
+          name: orderResponse.userName || dbUser?.email?.split("@")[0] || "",
+          email: orderResponse.userEmail || dbUser?.email || "",
         },
         notes: {
           subscription_type: plan.backendType,

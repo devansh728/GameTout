@@ -3,7 +3,7 @@ import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from
 import { 
   Twitter, Youtube, Linkedin, Instagram, Facebook,
   Zap, Users, Play, Camera, MessageCircle, TrendingUp,
-  Gamepad2, Trophy, Star, Sparkles
+  Gamepad2, Trophy, Star, Sparkles, X
 } from "lucide-react";
 
 // Enhanced Social Data with descriptions and stats
@@ -472,6 +472,9 @@ const SocialCard = ({
 // ============================================
 // EXPANDED PANEL COMPONENT
 // ============================================
+// ============================================
+// EXPANDED PANEL COMPONENT - FIXED
+// ============================================
 const ExpandedPanel = ({ social, onClose }: { social: typeof socials[0]; onClose: () => void }) => {
   const Icon = social.icon;
   
@@ -511,18 +514,31 @@ const ExpandedPanel = ({ social, onClose }: { social: typeof socials[0]; onClose
           transition={{ duration: 3, repeat: Infinity }}
         />
 
-        {/* Close button */}
+        {/* Close button - FIXED */}
         <motion.button
-          onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center border transition-colors"
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent event bubbling
+            e.preventDefault();
+            onClose();
+          }}
+          className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center border transition-colors z-50 cursor-pointer"
           style={{ 
             borderColor: `${social.color}30`,
-            color: social.color
+            color: social.color,
+            background: 'rgba(0,0,0,0.5)',
+            backdropFilter: 'blur(4px)'
           }}
-          whileHover={{ scale: 1.1, borderColor: social.color }}
+          whileHover={{ 
+            scale: 1.1, 
+            borderColor: social.color,
+            background: `linear-gradient(135deg, ${social.color}20, ${social.color}10)`
+          }}
           whileTap={{ scale: 0.9 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
         >
-          ✕
+          <X className="w-4 h-4" />
         </motion.button>
 
         <div className="relative z-10 flex flex-col md:flex-row gap-6 items-start">

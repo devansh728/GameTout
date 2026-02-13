@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  X, Building2, MapPin, Globe, Users, Star, 
+import {
+  X, Building2, MapPin, Globe, Users, Star,
   Send, Loader2, AlertCircle, CheckCircle, Clock
 } from "lucide-react";
 import { StudioRequest } from "@/types/studio";
@@ -70,7 +70,7 @@ export const UserStudioFormModal = ({
   };
 
   const updateField = <K extends keyof StudioRequest>(
-    field: K, 
+    field: K,
     value: StudioRequest[K]
   ) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -97,10 +97,10 @@ export const UserStudioFormModal = ({
             className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none p-4"
           >
             <div className="bg-[#0a0a0a] border border-primary/30 w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-lg shadow-[0_0_50px_rgba(0,0,0,0.8)] pointer-events-auto relative">
-              
+
               {/* Animated border glow */}
               <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary/20 via-yellow-500/20 to-primary/20 opacity-50 blur-xl -z-10 animate-pulse" />
-              
+
               {/* Scanline effect */}
               <div className="absolute inset-0 pointer-events-none opacity-5 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]" />
 
@@ -124,8 +124,8 @@ export const UserStudioFormModal = ({
                     </p>
                   </div>
                 </div>
-                <button 
-                  onClick={onClose} 
+                <button
+                  onClick={onClose}
                   className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg"
                 >
                   <X className="w-6 h-6" />
@@ -138,7 +138,7 @@ export const UserStudioFormModal = ({
                 <div>
                   <p className="text-sm text-yellow-400 font-medium">Submission Review Required</p>
                   <p className="text-xs text-gray-400 mt-1">
-                    Your studio will be reviewed by our team before being published. 
+                    Your studio will be reviewed by our team before being published.
                     This usually takes 1-2 business days.
                   </p>
                 </div>
@@ -146,7 +146,7 @@ export const UserStudioFormModal = ({
 
               {/* Form Content */}
               <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                
+
                 {/* Status Messages */}
                 <AnimatePresence>
                   {success && (
@@ -193,7 +193,7 @@ export const UserStudioFormModal = ({
                     <span>//</span>
                     Studio Identity
                   </h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Studio Name */}
                     <div className="space-y-2 md:col-span-2">
@@ -279,7 +279,7 @@ export const UserStudioFormModal = ({
                     <span>//</span>
                     Location Data
                   </h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-sm font-bold text-gray-300 uppercase flex items-center gap-2">
@@ -317,8 +317,23 @@ export const UserStudioFormModal = ({
                       <input
                         type="number"
                         step="0.000001"
-                        value={formData.latitude}
-                        onChange={(e) => updateField("latitude", parseFloat(e.target.value) || 0)}
+                        value={formData.latitude === 0 ? "" : formData.latitude}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === "") {
+                            updateField("latitude", 0);
+                          } else {
+                            const numValue = parseFloat(value);
+                            if (!isNaN(numValue)) {
+                              updateField("latitude", numValue);
+                            }
+                          }
+                        }}
+                        onBlur={(e) => {
+                          if (e.target.value === "") {
+                            updateField("latitude", 0);
+                          }
+                        }}
                         className="w-full bg-black/50 border border-white/20 p-3 rounded-lg text-white focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
                         placeholder="12.9716"
                       />
@@ -331,8 +346,23 @@ export const UserStudioFormModal = ({
                       <input
                         type="number"
                         step="0.000001"
-                        value={formData.longitude}
-                        onChange={(e) => updateField("longitude", parseFloat(e.target.value) || 0)}
+                        value={formData.longitude === 0 ? "" : formData.longitude}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === "") {
+                            updateField("longitude", 0);
+                          } else {
+                            const numValue = parseFloat(value);
+                            if (!isNaN(numValue)) {
+                              updateField("longitude", numValue);
+                            }
+                          }
+                        }}
+                        onBlur={(e) => {
+                          if (e.target.value === "") {
+                            updateField("longitude", 0);
+                          }
+                        }}
                         className="w-full bg-black/50 border border-white/20 p-3 rounded-lg text-white focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
                         placeholder="77.5946"
                       />
@@ -347,22 +377,60 @@ export const UserStudioFormModal = ({
                     <span>//</span>
                     Studio Stats
                   </h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-sm font-bold text-gray-300 uppercase flex items-center gap-2">
                         <Users className="w-4 h-4 text-primary" />
                         Employee Count *
                       </label>
-                      <input
-                        type="number"
-                        min="1"
-                        required
-                        value={formData.employeesCount}
-                        onChange={(e) => updateField("employeesCount", parseInt(e.target.value) || 1)}
-                        className="w-full bg-black/50 border border-white/20 p-3 rounded-lg text-white focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
-                        placeholder="50"
-                      />
+                      <div className="relative">
+                        <input
+                          type="number"
+                          min="1"
+                          required
+                          value={formData.employeesCount === 1 ? "" : formData.employeesCount}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value === "") {
+                              updateField("employeesCount", 1);
+                            } else {
+                              const numValue = parseInt(value);
+                              if (!isNaN(numValue) && numValue >= 1) {
+                                updateField("employeesCount", numValue);
+                              }
+                            }
+                          }}
+                          onBlur={(e) => {
+                            if (e.target.value === "") {
+                              updateField("employeesCount", 1);
+                            }
+                          }}
+                          className="w-full bg-black/50 border border-white/20 p-3 rounded-lg text-white focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          placeholder="50"
+                        />
+                        {/* Optional: Add increment/decrement buttons */}
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex flex-col">
+                          <button
+                            type="button"
+                            onClick={() => updateField("employeesCount", Math.min(1000, formData.employeesCount + 1))}
+                            className="text-primary hover:text-white w-4 h-4 flex items-center justify-center"
+                          >
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => updateField("employeesCount", Math.max(1, formData.employeesCount - 1))}
+                            className="text-primary hover:text-white w-4 h-4 flex items-center justify-center"
+                          >
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
                     </div>
 
                     <div className="space-y-2">
@@ -416,7 +484,7 @@ export const UserStudioFormModal = ({
                   >
                     {/* Shimmer effect */}
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-                    
+
                     {isSubmitting ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />

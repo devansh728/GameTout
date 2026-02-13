@@ -103,7 +103,7 @@ export const ProfileViewModal = ({ isOpen, onClose, developer, portfolioId }: Pr
         clear
     } = usePortfolioDetail();
     
-    const { user, dbUser } = useAuth();
+    const { isAuthenticated, dbUser } = useAuth();
     
     // Fetch portfolio details when modal opens with an ID
     useEffect(() => {
@@ -117,7 +117,7 @@ export const ProfileViewModal = ({ isOpen, onClose, developer, portfolioId }: Pr
 
     // Handle like button click
     const handleLike = async () => {
-        if (!user) {
+        if (!isAuthenticated) {
             // Could show auth modal here
             console.log("Please login to like");
             return;

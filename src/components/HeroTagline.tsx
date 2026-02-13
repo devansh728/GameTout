@@ -141,6 +141,9 @@ export const HeroTagline = () => {
 // ============================================
 // DECODE TEXT ANIMATION
 // ============================================
+// ============================================
+// DECODE TEXT ANIMATION - FIXED FOR MOBILE
+// ============================================
 const DecodeText = ({ 
   text, 
   isAnimating, 
@@ -154,21 +157,26 @@ const DecodeText = ({
   mouseX: any;
   mouseY: any;
 }) => {
-  const characters = useMemo(() => text.split(""), [text]);
+  // Split text into words instead of characters
+  const words = useMemo(() => text.split(" "), [text]);
   
   return (
     <h2 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black uppercase tracking-wider text-center select-none relative leading-tight">
-      {characters.map((char, i) => (
-        <DecodeCharacter
-          key={`${text}-${i}`}
-          char={char}
-          index={i}
-          total={characters.length}
-          isAnimating={isAnimating}
-          isHovered={isHovered}
-          mouseX={mouseX}
-          mouseY={mouseY}
-        />
+      {words.map((word, wordIndex) => (
+        <span key={`${text}-${wordIndex}`} className="inline-block whitespace-nowrap mx-1 sm:mx-2">
+          {word.split("").map((char, charIndex) => (
+            <DecodeCharacter
+              key={`${word}-${charIndex}`}
+              char={char}
+              index={wordIndex * 10 + charIndex} // Keep unique index
+              total={words.reduce((acc, w) => acc + w.length, 0)}
+              isAnimating={isAnimating}
+              isHovered={isHovered}
+              mouseX={mouseX}
+              mouseY={mouseY}
+            />
+          ))}
+        </span>
       ))}
     </h2>
   );
@@ -529,9 +537,13 @@ const FloatingParticles = ({ isActive }: { isActive: boolean }) => {
 // ============================================
 // ALTERNATIVE: FLIP BOARD ANIMATION
 // ============================================
+// ============================================
+// ALTERNATIVE: FLIP BOARD ANIMATION - FIXED FOR MOBILE
+// ============================================
 export const FlipBoardTagline = () => {
   const [index, setIndex] = useState(0);
   const currentPhrase = phrases[index];
+  const words = useMemo(() => currentPhrase.split(" "), [currentPhrase]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -542,9 +554,13 @@ export const FlipBoardTagline = () => {
 
   return (
     <div className="w-full flex flex-col justify-center items-center py-16 bg-[#0a0a0a] overflow-hidden relative">
-      <div className="flex flex-wrap justify-center gap-1 md:gap-2 px-4">
-        {currentPhrase.split("").map((char, i) => (
-          <FlipCard key={i} char={char} delay={i * 0.03} />
+      <div className="flex flex-wrap justify-center gap-x-2 gap-y-4 px-4">
+        {words.map((word, wordIndex) => (
+          <div key={wordIndex} className="flex gap-1 md:gap-2">
+            {word.split("").map((char, charIndex) => (
+              <FlipCard key={`${wordIndex}-${charIndex}`} char={char} delay={(wordIndex * 5 + charIndex) * 0.03} />
+            ))}
+          </div>
         ))}
       </div>
     </div>
@@ -587,10 +603,14 @@ const FlipCard = ({ char, delay }: { char: string; delay: number }) => {
 // ============================================
 // ALTERNATIVE: WAVE TEXT ANIMATION
 // ============================================
+// ============================================
+// ALTERNATIVE: WAVE TEXT ANIMATION - FIXED FOR MOBILE
+// ============================================
 export const WaveTagline = () => {
   const [index, setIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const currentPhrase = phrases[index];
+  const words = useMemo(() => currentPhrase.split(" "), [currentPhrase]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -614,34 +634,38 @@ export const WaveTagline = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {currentPhrase.split("").map((char, i) => (
-              <motion.span
-                key={i}
-                className="inline-block text-white"
-                style={{ 
-                  textShadow: isHovered ? "0 0 20px rgba(255,171,0,0.5)" : "none" 
-                }}
-                initial={{ y: 50, opacity: 0, rotateZ: -10 }}
-                animate={{ 
-                  y: isHovered ? [0, -10, 0] : 0, 
-                  opacity: 1, 
-                  rotateZ: 0,
-                  color: isHovered ? "#FFAB00" : "#ffffff"
-                }}
-                transition={{
-                  y: {
-                    duration: 0.6,
-                    delay: isHovered ? i * 0.02 : 0,
-                    repeat: isHovered ? Infinity : 0,
-                    repeatType: "reverse"
-                  },
-                  opacity: { duration: 0.3, delay: i * 0.02 },
-                  rotateZ: { duration: 0.4, delay: i * 0.02 },
-                  color: { duration: 0.3 }
-                }}
-              >
-                {char === " " ? "\u00A0" : char}
-              </motion.span>
+            {words.map((word, wordIndex) => (
+              <span key={wordIndex} className="inline-block whitespace-nowrap mx-1 sm:mx-2">
+                {word.split("").map((char, charIndex) => (
+                  <motion.span
+                    key={charIndex}
+                    className="inline-block text-white"
+                    style={{ 
+                      textShadow: isHovered ? "0 0 20px rgba(255,171,0,0.5)" : "none" 
+                    }}
+                    initial={{ y: 50, opacity: 0, rotateZ: -10 }}
+                    animate={{ 
+                      y: isHovered ? [0, -10, 0] : 0, 
+                      opacity: 1, 
+                      rotateZ: 0,
+                      color: isHovered ? "#FFAB00" : "#ffffff"
+                    }}
+                    transition={{
+                      y: {
+                        duration: 0.6,
+                        delay: isHovered ? (wordIndex * 5 + charIndex) * 0.02 : 0,
+                        repeat: isHovered ? Infinity : 0,
+                        repeatType: "reverse"
+                      },
+                      opacity: { duration: 0.3, delay: (wordIndex * 5 + charIndex) * 0.02 },
+                      rotateZ: { duration: 0.4, delay: (wordIndex * 5 + charIndex) * 0.02 },
+                      color: { duration: 0.3 }
+                    }}
+                  >
+                    {char}
+                  </motion.span>
+                ))}
+              </span>
             ))}
           </motion.span>
         </AnimatePresence>
@@ -652,6 +676,9 @@ export const WaveTagline = () => {
 
 // ============================================
 // ALTERNATIVE: TYPEWRITER EFFECT
+// ============================================
+// ============================================
+// ALTERNATIVE: TYPEWRITER EFFECT - FIXED FOR MOBILE
 // ============================================
 export const TypewriterTagline = () => {
   const [index, setIndex] = useState(0);
@@ -681,8 +708,8 @@ export const TypewriterTagline = () => {
   }, [displayText, isDeleting, currentPhrase]);
 
   return (
-    <div className="w-full flex flex-col justify-center items-center py-16 bg-[#0a0a0a] overflow-hidden relative">
-      <h2 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black uppercase tracking-wider text-center text-white min-h-[1.2em]">
+    <div className="w-full flex flex-col justify-center items-center py-16 bg-[#0a0a0a] overflow-hidden relative px-4">
+      <h2 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black uppercase tracking-wider text-center text-white min-h-[1.2em] break-words">
         {displayText}
         <motion.span
           className="inline-block w-[4px] h-[1em] bg-[#FFAB00] ml-2 align-middle"

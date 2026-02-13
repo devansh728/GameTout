@@ -1,11 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Plus, Trash2, Save, Upload, Terminal, AlertCircle, CheckCircle, Loader2, LogIn } from "lucide-react";
+import {
+  X, Plus, Trash2, Save, Terminal, AlertCircle, CheckCircle,
+  Loader2, LogIn, ChevronDown, Globe, Lock, Linkedin,
+  Github, Twitter, Youtube, Link2, ExternalLink
+} from "lucide-react";
 import { usePortfolioMutation } from "@/hooks/usePortfolioDetail";
 import { useAuth } from "@/context/AuthContext";
 import { JobCategory, JobProfileStatus, PortfolioRequest, CATEGORY_TO_BACKEND, DISPLAY_TO_STATUS } from "@/types/portfolio";
 import { MediaUploader } from "@/components/MediaUploader";
 import { mediaUploadService } from "@/services/mediaUploadService";
+import React from "react"; 
 
 interface CreatePortfolioModalProps {
   isOpen: boolean;
@@ -16,10 +21,282 @@ interface CreatePortfolioModalProps {
 const roles = ["Programmer", "Artist", "Designer", "Producer", "Audio"];
 const statusOptions = ["Open for Work", "Freelance", "Deployed"];
 
+// Platform options with icons
+const PLATFORM_OPTIONS = [
+  { value: "LinkedIn", label: "LinkedIn", icon: Linkedin, color: "#0077B5" },
+  { value: "GitHub", label: "GitHub", icon: Github, color: "#333" },
+  { value: "Twitter", label: "Twitter / X", icon: Twitter, color: "#1DA1F2" },
+  { value: "Discord", label: "Discord", icon: Link2, color: "#5865F2" },
+  { value: "Portfolio", label: "Portfolio", icon: ExternalLink, color: "#FFAB00" },
+  { value: "ArtStation", label: "ArtStation", icon: ExternalLink, color: "#13AFF0" },
+  { value: "Behance", label: "Behance", icon: ExternalLink, color: "#0057FF" },
+  { value: "YouTube", label: "YouTube", icon: Youtube, color: "#FF0000" },
+  { value: "Itch.io", label: "Itch.io", icon: ExternalLink, color: "#FA5C5C" },
+];
+
+// Custom Platform Dropdown Component (similar to createpost)
+const PlatformDropdown = ({
+  value,
+  onChange,
+  index
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  index: number;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const selectedPlatform = PLATFORM_OPTIONS.find(p => p.value === value);
+
+  return (
+    <div className="relative w-1/4" style={{ zIndex: 1000 - index }}>
+      <motion.button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full text-left bg-black/50 border-b border-white/20 text-white text-sm font-mono py-2 px-2 hover:border-[#FFAB00] transition-colors flex items-center justify-between ${isOpen ? 'border-[#FFAB00]' : ''}`}
+        whileTap={{ scale: 0.98 }}
+      >
+        <div className="flex items-center gap-2">
+          {selectedPlatform ? (
+            <>
+              <selectedPlatform.icon className="w-3 h-3" style={{ color: selectedPlatform.color }} />
+              <span>{selectedPlatform.label}</span>
+            </>
+          ) : (
+            <span className="text-gray-400">Platform</span>
+          )}
+        </div>
+        <motion.div
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <ChevronDown className="w-3 h-3 text-gray-400" />
+        </motion.div>
+      </motion.button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40"
+              onClick={() => setIsOpen(false)}
+            />
+
+            {/* Dropdown - opens upward */}
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              className="absolute bottom-full left-0 right-0 mb-2 bg-[#0a0a0a] border border-[#FFAB00]/30 rounded-lg shadow-2xl max-h-60 overflow-y-auto"
+              style={{
+                boxShadow: '0 -10px 50px rgba(0,0,0,0.8), 0 0 20px rgba(255,171,0,0.1)',
+                zIndex: 50
+              }}
+            >
+              {PLATFORM_OPTIONS.map((platform) => {
+                const PlatformIcon = platform.icon;
+                return (
+                  <motion.button
+                    key={platform.value}
+                    type="button"
+                    onClick={() => {
+                      onChange(platform.value);
+                      setIsOpen(false);
+                    }}
+                    className={`w-full px-3 py-2 text-left text-sm hover:bg-white/10 transition-colors flex items-center gap-2 ${value === platform.value
+                      ? 'bg-[#FFAB00]/20 text-[#FFAB00]'
+                      : 'text-gray-300'
+                      }`}
+                    whileHover={{ x: 4 }}
+                  >
+                    <PlatformIcon className="w-4 h-4" style={{ color: platform.color }} />
+                    <span>{platform.label}</span>
+                  </motion.button>
+                );
+              })}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// Custom Dropdown Components (add these inside CreatePortfolioModal component)
+
+// Role Dropdown Component
+const RoleDropdown = ({ value, onChange }: { value: string; onChange: (value: string) => void }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const selectedRole = roles.find(r => r === value);
+
+  return (
+    <div className="relative w-full">
+      <motion.button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full bg-[#0a0a0a] border border-white/20 p-3 rounded-sm text-white focus:border-[#FFAB00] transition-colors font-mono flex items-center justify-between ${isOpen ? 'border-[#FFAB00]' : ''
+          }`}
+        whileTap={{ scale: 0.98 }}
+      >
+        <span className="uppercase">{selectedRole || "Select Role"}</span>
+        <motion.div
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <ChevronDown className="w-4 h-4 text-gray-400" />
+        </motion.div>
+      </motion.button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40"
+              onClick={() => setIsOpen(false)}
+            />
+
+            {/* Dropdown - opens below */}
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              className="absolute top-full left-0 right-0 mt-2 bg-[#0a0a0a] border border-[#FFAB00]/30 rounded-lg shadow-2xl max-h-60 overflow-y-auto"
+              style={{
+                boxShadow: '0 10px 50px rgba(0,0,0,0.8), 0 0 20px rgba(255,171,0,0.1)',
+                zIndex: 50
+              }}
+            >
+              {roles.map((role) => (
+                <motion.button
+                  key={role}
+                  type="button"
+                  onClick={() => {
+                    onChange(role);
+                    setIsOpen(false);
+                  }}
+                  className={`w-full px-4 py-3 text-left text-sm hover:bg-white/10 transition-colors flex items-center gap-2 ${value === role
+                    ? 'bg-[#FFAB00]/20 text-[#FFAB00] font-bold'
+                    : 'text-gray-300'
+                    }`}
+                  whileHover={{ x: 4 }}
+                >
+                  <span className="uppercase">{role}</span>
+                  {value === role && (
+                    <CheckCircle className="w-4 h-4 ml-auto" />
+                  )}
+                </motion.button>
+              ))}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// Status Dropdown Component
+const StatusDropdown = ({ value, onChange }: { value: string; onChange: (value: string) => void }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const selectedStatus = statusOptions.find(s => s === value);
+
+  // Status icons mapping
+  const statusIcons: Record<string, any> = {
+    "Open for Work": Globe,
+    "Freelance": ExternalLink,
+    "Deployed": CheckCircle
+  };
+
+  return (
+    <div className="relative w-full">
+      <motion.button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full bg-[#0a0a0a] border border-white/20 p-3 rounded-sm text-white focus:border-[#FFAB00] transition-colors font-mono flex items-center justify-between ${isOpen ? 'border-[#FFAB00]' : ''
+          }`}
+        whileTap={{ scale: 0.98 }}
+      >
+        <div className="flex items-center gap-2">
+          {selectedStatus && statusIcons[selectedStatus] ?
+            React.createElement(statusIcons[selectedStatus], { className: "w-4 h-4 text-[#FFAB00]" }) : null}
+          <span className="uppercase">{selectedStatus || "Select Status"}</span>
+        </div>
+        <motion.div
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <ChevronDown className="w-4 h-4 text-gray-400" />
+        </motion.div>
+      </motion.button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40"
+              onClick={() => setIsOpen(false)}
+            />
+
+            {/* Dropdown - opens upward */}
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              className="absolute bottom-full left-0 right-0 mb-2 bg-[#0a0a0a] border border-[#FFAB00]/30 rounded-lg shadow-2xl max-h-60 overflow-y-auto"
+              style={{
+                boxShadow: '0 -10px 50px rgba(0,0,0,0.8), 0 0 20px rgba(255,171,0,0.1)',
+                zIndex: 50
+              }}
+            >
+              {statusOptions.map((status) => {
+                const StatusIcon = statusIcons[status] || Globe;
+                return (
+                  <motion.button
+                    key={status}
+                    type="button"
+                    onClick={() => {
+                      onChange(status);
+                      setIsOpen(false);
+                    }}
+                    className={`w-full px-4 py-3 text-left text-sm hover:bg-white/10 transition-colors flex items-center gap-2 ${value === status
+                      ? 'bg-[#FFAB00]/20 text-[#FFAB00] font-bold'
+                      : 'text-gray-300'
+                      }`}
+                    whileHover={{ x: 4 }}
+                  >
+                    <StatusIcon className="w-4 h-4" />
+                    <span className="uppercase">{status}</span>
+                    {value === status && (
+                      <CheckCircle className="w-4 h-4 ml-auto" />
+                    )}
+                  </motion.button>
+                );
+              })}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
 export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess }: CreatePortfolioModalProps) => {
-  const { user, dbUser, loginWithGoogle } = useAuth();
+  const { isAuthenticated, dbUser, loginWithGoogle } = useAuth();
   const { createOrUpdate, loading: isSubmitting, error: submitError, success, reset } = usePortfolioMutation();
-  
+
   // Form State
   const [formData, setFormData] = useState({
     name: "",
@@ -56,10 +333,10 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess }: CreatePortf
         skills: [{ name: "", score: 50 }],
         socials: [{ platform: "", url: "" }]
       });
-      
+
       // Call success callback
       onSuccess?.();
-      
+
       // Close after a short delay to show success message
       setTimeout(() => {
         onClose();
@@ -70,10 +347,10 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess }: CreatePortf
 
   // Pre-fill email from auth if available
   useEffect(() => {
-    if (user?.email && !formData.contactEmail) {
-      setFormData(prev => ({ ...prev, contactEmail: user.email || "" }));
+    if (dbUser?.email && !formData.contactEmail) {
+      setFormData(prev => ({ ...prev, contactEmail: dbUser.email || "" }));
     }
-  }, [user?.email, formData.contactEmail]);
+  }, [dbUser?.email, formData.contactEmail]);
 
   const handleAddSkill = () => {
     if (formData.skills.length < 10) {
@@ -123,14 +400,13 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess }: CreatePortf
   }, []);
 
   const handleResumeUpload = useCallback(async (file: File) => {
-    // Resume uploads use a different endpoint that requires email verification
     return await mediaUploadService.uploadFile(file, true);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!user) {
+
+    if (!isAuthenticated) {
       return;
     }
 
@@ -196,7 +472,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess }: CreatePortf
             className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none p-4"
           >
             <div className="bg-[#0a0a0a] border border-[#FFAB00]/30 w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg shadow-[0_0_50px_rgba(0,0,0,0.8)] pointer-events-auto relative">
-              
+
               {/* Decorative Scanline */}
               <div className="absolute inset-0 pointer-events-none opacity-5 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]" />
 
@@ -212,327 +488,362 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess }: CreatePortf
               </div>
 
               {/* Form Content */}
-              {!user ? (
+              {!isAuthenticated ? (
                 renderAuthPrompt()
               ) : (
-              <form onSubmit={handleSubmit} className="p-6 space-y-8">
-                
-                {/* Success Message */}
-                {success && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-3 p-4 bg-green-500/10 border border-green-500/30 rounded text-green-400"
-                  >
-                    <CheckCircle className="w-5 h-5" />
-                    <span className="font-mono text-sm">Portfolio created successfully!</span>
-                  </motion.div>
-                )}
+                <form onSubmit={handleSubmit} className="p-6 space-y-8">
 
-                {/* Error Message */}
-                {submitError && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded text-red-400"
-                  >
-                    <AlertCircle className="w-5 h-5" />
-                    <span className="font-mono text-sm">{submitError}</span>
-                  </motion.div>
-                )}
-
-                {/* Email Verification Warning */}
-                {dbUser && !dbUser.emailVerified && (
-                  <div className="flex items-center gap-3 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded text-yellow-400">
-                    <AlertCircle className="w-5 h-5" />
-                    <span className="font-mono text-sm">Please verify your email to create a portfolio.</span>
-                  </div>
-                )}
-
-                {/* 1. Identity Section */}
-                <div className="space-y-4">
-                  <h3 className="text-xs font-mono text-gray-500 uppercase tracking-widest border-b border-white/10 pb-2">
-                    01 // Identity Matrix
-                  </h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-gray-300 uppercase">Operative Name *</label>
-                      <input 
-                        type="text" 
-                        required
-                        className="w-full bg-black/50 border border-white/20 p-3 rounded-sm text-white focus:border-[#FFAB00] focus:outline-none transition-colors font-mono"
-                        placeholder="ENTER_NAME"
-                        value={formData.name}
-                        onChange={(e) => setFormData({...formData, name: e.target.value})}
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-gray-300 uppercase">Class (Role) *</label>
-                      <select 
-                        className="w-full bg-black/50 border border-white/20 p-3 rounded-sm text-white focus:border-[#FFAB00] focus:outline-none transition-colors font-mono appearance-none"
-                        value={formData.role}
-                        onChange={(e) => setFormData({...formData, role: e.target.value})}
-                      >
-                        {roles.map(r => <option key={r} value={r}>{r.toUpperCase()}</option>)}
-                      </select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-gray-300 uppercase">Base Location *</label>
-                      <input 
-                        type="text" 
-                        required
-                        className="w-full bg-black/50 border border-white/20 p-3 rounded-sm text-white focus:border-[#FFAB00] focus:outline-none transition-colors font-mono"
-                        placeholder="CITY, REGION"
-                        value={formData.location}
-                        onChange={(e) => setFormData({...formData, location: e.target.value})}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-gray-300 uppercase">Experience (Years)</label>
-                      <input 
-                        type="number" 
-                        min="0"
-                        max="50"
-                        className="w-full bg-black/50 border border-white/20 p-3 rounded-sm text-white focus:border-[#FFAB00] focus:outline-none transition-colors font-mono"
-                        placeholder="5"
-                        value={formData.experienceYears}
-                        onChange={(e) => setFormData({...formData, experienceYears: parseInt(e.target.value) || 0})}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-gray-300 uppercase">Status</label>
-                      <select 
-                        className="w-full bg-black/50 border border-white/20 p-3 rounded-sm text-white focus:border-[#FFAB00] focus:outline-none transition-colors font-mono appearance-none"
-                        value={formData.jobStatus}
-                        onChange={(e) => setFormData({...formData, jobStatus: e.target.value})}
-                      >
-                        {statusOptions.map(s => <option key={s} value={s}>{s.toUpperCase()}</option>)}
-                      </select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-gray-300 uppercase">Contact Email *</label>
-                      <input 
-                        type="email" 
-                        required
-                        className="w-full bg-black/50 border border-white/20 p-3 rounded-sm text-white focus:border-[#FFAB00] focus:outline-none transition-colors font-mono"
-                        placeholder="operative@email.com"
-                        value={formData.contactEmail}
-                        onChange={(e) => setFormData({...formData, contactEmail: e.target.value})}
-                      />
-                    </div>
-
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="text-sm font-bold text-gray-300 uppercase">Short Description</label>
-                      <input 
-                        type="text" 
-                        maxLength={300}
-                        className="w-full bg-black/50 border border-white/20 p-3 rounded-sm text-white focus:border-[#FFAB00] focus:outline-none transition-colors font-mono"
-                        placeholder="Senior Game Programmer | Unity & Unreal Expert"
-                        value={formData.shortDescription}
-                        onChange={(e) => setFormData({...formData, shortDescription: e.target.value})}
-                      />
-                    </div>
-
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="text-sm font-bold text-gray-300 uppercase">Profile Summary</label>
-                      <textarea 
-                        rows={3}
-                        className="w-full bg-black/50 border border-white/20 p-3 rounded-sm text-white focus:border-[#FFAB00] focus:outline-none transition-colors font-mono resize-none"
-                        placeholder="Tell us about your experience, skills, and what you're looking for..."
-                        value={formData.profileSummary}
-                        onChange={(e) => setFormData({...formData, profileSummary: e.target.value})}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* 2. Upload Section */}
-                <div className="space-y-4">
-                  <h3 className="text-xs font-mono text-gray-500 uppercase tracking-widest border-b border-white/10 pb-2">
-                    02 // Visual Data Upload
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-gray-300 uppercase">Profile Photo</label>
-                      <MediaUploader
-                        accept="image"
-                        value={formData.profilePhotoUrl}
-                        onUpload={handleProfilePhotoUpload}
-                        onComplete={(url) => setFormData({ ...formData, profilePhotoUrl: url })}
-                        onClear={() => setFormData({ ...formData, profilePhotoUrl: "" })}
-                        label="profile photo"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-gray-300 uppercase">Cover Photo</label>
-                      <MediaUploader
-                        accept="image"
-                        value={formData.coverPhotoUrl}
-                        onUpload={handleCoverPhotoUpload}
-                        onComplete={(url) => setFormData({ ...formData, coverPhotoUrl: url })}
-                        onClear={() => setFormData({ ...formData, coverPhotoUrl: "" })}
-                        label="cover photo"
-                      />
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="text-sm font-bold text-gray-300 uppercase">Resume/CV</label>
-                      <MediaUploader
-                        accept="pdf"
-                        value={formData.resumeUrl}
-                        onUpload={handleResumeUpload}
-                        onComplete={(url) => setFormData({ ...formData, resumeUrl: url })}
-                        onClear={() => setFormData({ ...formData, resumeUrl: "" })}
-                        label="resume (PDF)"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3. Skills Matrix (Dynamic) */}
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center border-b border-white/10 pb-2">
-                    <h3 className="text-xs font-mono text-gray-500 uppercase tracking-widest">
-                      03 // Skill Calibration
-                    </h3>
-                    <button 
-                      type="button" 
-                      onClick={handleAddSkill}
-                      disabled={formData.skills.length >= 10}
-                      className="text-[#FFAB00] text-xs font-bold uppercase hover:underline flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                  {/* Success Message */}
+                  {success && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex items-center gap-3 p-4 bg-green-500/10 border border-green-500/30 rounded text-green-400"
                     >
-                      <Plus className="w-3 h-3" /> Add Vector
-                    </button>
-                  </div>
+                      <CheckCircle className="w-5 h-5" />
+                      <span className="font-mono text-sm">Portfolio created successfully!</span>
+                    </motion.div>
+                  )}
 
+                  {/* Error Message */}
+                  {submitError && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded text-red-400"
+                    >
+                      <AlertCircle className="w-5 h-5" />
+                      <span className="font-mono text-sm">{submitError}</span>
+                    </motion.div>
+                  )}
+
+                  {/* Email Verification Warning */}
+                  {dbUser && !dbUser.emailVerified && (
+                    <div className="flex items-center gap-3 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded text-yellow-400">
+                      <AlertCircle className="w-5 h-5" />
+                      <span className="font-mono text-sm">Please verify your email to create a portfolio.</span>
+                    </div>
+                  )}
+
+                  {/* 1. Identity Section */}
                   <div className="space-y-4">
-                    {formData.skills.map((skill, index) => (
-                      <motion.div 
-                        key={index}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="flex gap-4 items-center bg-white/5 p-3 rounded border border-white/5"
-                      >
-                        <input 
+                    <h3 className="text-xs font-mono text-gray-500 uppercase tracking-widest border-b border-white/10 pb-2">
+                      01 // Identity Matrix
+                    </h3>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-300 uppercase">Operative Name *</label>
+                        <input
                           type="text"
-                          placeholder="SKILL_NAME (e.g. UNITY)"
-                          className="bg-transparent border-b border-white/20 text-white text-sm w-1/3 focus:border-[#FFAB00] focus:outline-none font-mono py-1"
-                          value={skill.name}
-                          onChange={(e) => handleSkillChange(index, "name", e.target.value)}
+                          required
+                          className="w-full bg-black/50 border border-white/20 p-3 rounded-sm text-white focus:border-[#FFAB00] focus:outline-none transition-colors font-mono"
+                          placeholder="ENTER_NAME"
+                          value={formData.name}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         />
-                        <div className="flex-1 flex items-center gap-3">
-                           <input 
-                             type="range" 
-                             min="0" 
-                             max="100" 
-                             className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#FFAB00]"
-                             value={skill.score}
-                             onChange={(e) => handleSkillChange(index, "score", parseInt(e.target.value))}
-                           />
-                           <span className="text-xs font-mono text-[#FFAB00] w-8">{skill.score}%</span>
-                        </div>
-                        {index > 0 && (
-                          <button type="button" onClick={() => handleRemoveSkill(index)} className="text-red-500 hover:text-red-400">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
+                      </div>
 
-                {/* 4. Social Links */}
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center border-b border-white/10 pb-2">
-                    <h3 className="text-xs font-mono text-gray-500 uppercase tracking-widest">
-                      04 // Comms Channels
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-300 uppercase">Class (Role) *</label>
+                        <RoleDropdown
+                          value={formData.role}
+                          onChange={(value) => setFormData({ ...formData, role: value })}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-300 uppercase">Base Location *</label>
+                        <input
+                          type="text"
+                          required
+                          className="w-full bg-black/50 border border-white/20 p-3 rounded-sm text-white focus:border-[#FFAB00] focus:outline-none transition-colors font-mono"
+                          placeholder="CITY, REGION"
+                          value={formData.location}
+                          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-300 uppercase">Experience (Years)</label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            min="0"
+                            max="50"
+                            className="w-full bg-black/50 border border-white/20 p-3 rounded-sm text-white focus:border-[#FFAB00] focus:outline-none transition-colors font-mono [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            placeholder="e.g., 5"
+                            value={formData.experienceYears === 0 ? "" : formData.experienceYears}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (value === "") {
+                                setFormData({ ...formData, experienceYears: 0 });
+                              } else {
+                                const numValue = parseInt(value);
+                                if (!isNaN(numValue) && numValue >= 0) {
+                                  setFormData({ ...formData, experienceYears: numValue });
+                                }
+                              }
+                            }}
+                            onBlur={(e) => {
+                              if (e.target.value === "") {
+                                setFormData({ ...formData, experienceYears: 1 });
+                              }
+                            }}
+                          />
+                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex flex-col">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setFormData({ ...formData, experienceYears: Math.min(50, formData.experienceYears + 1) })
+                              }
+                              className="text-[#FFAB00] hover:text-white w-4 h-4 flex items-center justify-center"
+                            >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setFormData({ ...formData, experienceYears: Math.max(0, formData.experienceYears - 1) })
+                              }
+                              className="text-[#FFAB00] hover:text-white w-4 h-4 flex items-center justify-center"
+                            >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500 font-mono">Enter 0 for less than 1 year</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-300 uppercase">Status</label>
+                        <StatusDropdown
+                          value={formData.jobStatus}
+                          onChange={(value) => setFormData({ ...formData, jobStatus: value })}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-300 uppercase">Contact Email *</label>
+                        <input
+                          type="email"
+                          required
+                          className="w-full bg-black/50 border border-white/20 p-3 rounded-sm text-white focus:border-[#FFAB00] focus:outline-none transition-colors font-mono"
+                          placeholder="operative@email.com"
+                          value={formData.contactEmail}
+                          onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="space-y-2 md:col-span-2">
+                        <label className="text-sm font-bold text-gray-300 uppercase">Short Description</label>
+                        <input
+                          type="text"
+                          maxLength={300}
+                          className="w-full bg-black/50 border border-white/20 p-3 rounded-sm text-white focus:border-[#FFAB00] focus:outline-none transition-colors font-mono"
+                          placeholder="Senior Game Programmer | Unity & Unreal Expert"
+                          value={formData.shortDescription}
+                          onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="space-y-2 md:col-span-2">
+                        <label className="text-sm font-bold text-gray-300 uppercase">Profile Summary</label>
+                        <textarea
+                          rows={3}
+                          className="w-full bg-black/50 border border-white/20 p-3 rounded-sm text-white focus:border-[#FFAB00] focus:outline-none transition-colors font-mono resize-none"
+                          placeholder="Tell us about your experience, skills, and what you're looking for..."
+                          value={formData.profileSummary}
+                          onChange={(e) => setFormData({ ...formData, profileSummary: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 2. Upload Section */}
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-mono text-gray-500 uppercase tracking-widest border-b border-white/10 pb-2">
+                      02 // Visual Data Upload
                     </h3>
-                    <button 
-                      type="button" 
-                      onClick={handleAddSocial}
-                      disabled={formData.socials.length >= 5}
-                      className="text-[#FFAB00] text-xs font-bold uppercase hover:underline flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-300 uppercase">Profile Photo</label>
+                        <MediaUploader
+                          accept="image"
+                          value={formData.profilePhotoUrl}
+                          onUpload={handleProfilePhotoUpload}
+                          onComplete={(url) => setFormData({ ...formData, profilePhotoUrl: url })}
+                          onClear={() => setFormData({ ...formData, profilePhotoUrl: "" })}
+                          label="profile photo"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-300 uppercase">Cover Photo</label>
+                        <MediaUploader
+                          accept="image"
+                          value={formData.coverPhotoUrl}
+                          onUpload={handleCoverPhotoUpload}
+                          onComplete={(url) => setFormData({ ...formData, coverPhotoUrl: url })}
+                          onClear={() => setFormData({ ...formData, coverPhotoUrl: "" })}
+                          label="cover photo"
+                        />
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <label className="text-sm font-bold text-gray-300 uppercase">Resume/CV</label>
+                        <MediaUploader
+                          accept="pdf"
+                          value={formData.resumeUrl}
+                          onUpload={handleResumeUpload}
+                          onComplete={(url) => setFormData({ ...formData, resumeUrl: url })}
+                          onClear={() => setFormData({ ...formData, resumeUrl: "" })}
+                          label="resume (PDF)"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 3. Skills Matrix (Dynamic) */}
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center border-b border-white/10 pb-2">
+                      <h3 className="text-xs font-mono text-gray-500 uppercase tracking-widest">
+                        03 // Skill Calibration
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={handleAddSkill}
+                        disabled={formData.skills.length >= 10}
+                        className="text-[#FFAB00] text-xs font-bold uppercase hover:underline flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Plus className="w-3 h-3" /> Add Vector
+                      </button>
+                    </div>
+
+                    <div className="space-y-4">
+                      {formData.skills.map((skill, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className="flex gap-4 items-center bg-white/5 p-3 rounded border border-white/5"
+                        >
+                          <input
+                            type="text"
+                            placeholder="SKILL_NAME (e.g. UNITY)"
+                            className="bg-transparent border-b border-white/20 text-white text-sm w-1/3 focus:border-[#FFAB00] focus:outline-none font-mono py-1"
+                            value={skill.name}
+                            onChange={(e) => handleSkillChange(index, "name", e.target.value)}
+                          />
+                          <div className="flex-1 flex items-center gap-3">
+                            <input
+                              type="range"
+                              min="0"
+                              max="100"
+                              className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#FFAB00]"
+                              value={skill.score}
+                              onChange={(e) => handleSkillChange(index, "score", parseInt(e.target.value))}
+                            />
+                            <span className="text-xs font-mono text-[#FFAB00] w-8">{skill.score}%</span>
+                          </div>
+                          {index > 0 && (
+                            <button type="button" onClick={() => handleRemoveSkill(index)} className="text-red-500 hover:text-red-400">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 4. Social Links */}
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center border-b border-white/10 pb-2">
+                      <h3 className="text-xs font-mono text-gray-500 uppercase tracking-widest">
+                        04 // Comms Channels
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={handleAddSocial}
+                        disabled={formData.socials.length >= 5}
+                        className="text-[#FFAB00] text-xs font-bold uppercase hover:underline flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Plus className="w-3 h-3" /> Add Link
+                      </button>
+                    </div>
+
+                    <div className="space-y-4">
+                      {formData.socials.map((social, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className="flex gap-4 items-center bg-white/5 p-3 rounded border border-white/5"
+                        >
+                          {/* Custom Platform Dropdown */}
+                          <PlatformDropdown
+                            value={social.platform}
+                            onChange={(value) => handleSocialChange(index, "platform", value)}
+                            index={index}
+                          />
+
+                          <input
+                            type="url"
+                            placeholder="https://..."
+                            className="flex-1 bg-transparent border-b border-white/20 text-white text-sm focus:border-[#FFAB00] focus:outline-none font-mono py-1"
+                            value={social.url}
+                            onChange={(e) => handleSocialChange(index, "url", e.target.value)}
+                          />
+                          {index > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveSocial(index)}
+                              className="text-red-500 hover:text-red-400"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Footer Actions */}
+                  <div className="flex justify-between items-center pt-4 border-t border-white/10">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      disabled={isSubmitting}
+                      className="px-6 py-3 border border-white/20 text-gray-400 font-bold uppercase tracking-widest hover:bg-white/10 hover:text-white transition-colors disabled:opacity-50"
                     >
-                      <Plus className="w-3 h-3" /> Add Link
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting || !formData.name || !formData.location || !formData.contactEmail}
+                      className="relative group px-8 py-3 bg-[#FFAB00] text-black font-bold uppercase tracking-widest overflow-hidden hover:bg-white transition-colors duration-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span className="relative z-10 flex items-center gap-2">
+                        {isSubmitting ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                            UPLOADING...
+                          </>
+                        ) : (
+                          <>
+                            SUBMIT DOSSIER <Save className="w-4 h-4" />
+                          </>
+                        )}
+                      </span>
+                      {/* Glitch Overlay */}
+                      {!isSubmitting && (
+                        <div className="absolute inset-0 bg-white translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-300 ease-out opacity-50" />
+                      )}
                     </button>
                   </div>
-
-                  <div className="space-y-4">
-                    {formData.socials.map((social, index) => (
-                      <motion.div 
-                        key={index}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="flex gap-4 items-center bg-white/5 p-3 rounded border border-white/5"
-                      >
-                        <select
-                          className="bg-transparent border-b border-white/20 text-white text-sm w-1/4 focus:border-[#FFAB00] focus:outline-none font-mono py-1"
-                          value={social.platform}
-                          onChange={(e) => handleSocialChange(index, "platform", e.target.value)}
-                        >
-                          <option value="">Platform</option>
-                          <option value="LinkedIn">LinkedIn</option>
-                          <option value="GitHub">GitHub</option>
-                          <option value="Twitter">Twitter</option>
-                          <option value="Portfolio">Portfolio</option>
-                          <option value="ArtStation">ArtStation</option>
-                          <option value="Behance">Behance</option>
-                        </select>
-                        <input 
-                          type="url"
-                          placeholder="https://..."
-                          className="flex-1 bg-transparent border-b border-white/20 text-white text-sm focus:border-[#FFAB00] focus:outline-none font-mono py-1"
-                          value={social.url}
-                          onChange={(e) => handleSocialChange(index, "url", e.target.value)}
-                        />
-                        <button type="button" onClick={() => handleRemoveSocial(index)} className="text-red-500 hover:text-red-400">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Footer Actions */}
-                <div className="flex justify-between items-center pt-4 border-t border-white/10">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    disabled={isSubmitting}
-                    className="px-6 py-3 border border-white/20 text-gray-400 font-bold uppercase tracking-widest hover:bg-white/10 hover:text-white transition-colors disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting || !formData.name || !formData.location || !formData.contactEmail}
-                    className="relative group px-8 py-3 bg-[#FFAB00] text-black font-bold uppercase tracking-widest overflow-hidden hover:bg-white transition-colors duration-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <span className="relative z-10 flex items-center gap-2">
-                      {isSubmitting ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                          UPLOADING...
-                        </>
-                      ) : (
-                        <>
-                          SUBMIT DOSSIER <Save className="w-4 h-4" />
-                        </>
-                      )}
-                    </span>
-                    {/* Glitch Overlay */}
-                    {!isSubmitting && (
-                      <div className="absolute inset-0 bg-white translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-300 ease-out opacity-50" />
-                    )}
-                  </button>
-                </div>
-
-              </form>
+                </form>
               )}
             </div>
           </motion.div>

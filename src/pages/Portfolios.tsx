@@ -342,80 +342,80 @@ const EmptyState = ({ category }: { category: string }) => (
 );
 
 // Elite Access Banner (Compact version)
-const EliteAccessBanner = ({ 
-  isElite, 
-  onUpgrade,
-  daysRemaining = 0,
-  isExpiringSoon = false,
-}: { 
-  isElite: boolean; 
-  onUpgrade: () => void;
-  daysRemaining?: number;
-  isExpiringSoon?: boolean;
-}) => {
-  if (isElite) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={`flex items-center justify-between gap-3 px-4 py-2 mb-4 rounded-sm ${
-          isExpiringSoon 
-            ? "bg-gradient-to-r from-orange-500/10 to-transparent border-l-2 border-orange-500" 
-            : "bg-gradient-to-r from-[#FFAB00]/10 to-transparent border-l-2 border-[#FFAB00]"
-        }`}
-      >
-        <div className="flex items-center gap-2">
-          <Crown className={`w-4 h-4 ${isExpiringSoon ? "text-orange-500" : "text-[#FFAB00]"}`} />
-          <span className={`font-bold uppercase text-xs tracking-wide ${isExpiringSoon ? "text-orange-500" : "text-[#FFAB00]"}`}>
-            Elite Active
-          </span>
-        </div>
-        {daysRemaining > 0 && (
-          <div className="flex items-center gap-2 text-xs">
-            <span className={isExpiringSoon ? "text-orange-400" : "text-gray-400"}>
-              {daysRemaining}d left
-            </span>
-            {isExpiringSoon && (
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={onUpgrade}
-                className="px-2 py-0.5 bg-orange-500 text-black text-[10px] font-bold uppercase rounded"
-              >
-                Renew
-              </motion.button>
-            )}
-          </div>
-        )}
-      </motion.div>
-    );
-  }
+// const EliteAccessBanner = ({ 
+//   isElite, 
+//   onUpgrade,
+//   daysRemaining = 0,
+//   isExpiringSoon = false,
+// }: { 
+//   isElite: boolean; 
+//   onUpgrade: () => void;
+//   daysRemaining?: number;
+//   isExpiringSoon?: boolean;
+// }) => {
+//   if (isElite) {
+//     return (
+//       <motion.div
+//         initial={{ opacity: 0, y: -10 }}
+//         animate={{ opacity: 1, y: 0 }}
+//         className={`flex items-center justify-between gap-3 px-4 py-2 mb-4 rounded-sm ${
+//           isExpiringSoon 
+//             ? "bg-gradient-to-r from-orange-500/10 to-transparent border-l-2 border-orange-500" 
+//             : "bg-gradient-to-r from-[#FFAB00]/10 to-transparent border-l-2 border-[#FFAB00]"
+//         }`}
+//       >
+//         <div className="flex items-center gap-2">
+//           <Crown className={`w-4 h-4 ${isExpiringSoon ? "text-orange-500" : "text-[#FFAB00]"}`} />
+//           <span className={`font-bold uppercase text-xs tracking-wide ${isExpiringSoon ? "text-orange-500" : "text-[#FFAB00]"}`}>
+//             Elite Active
+//           </span>
+//         </div>
+//         {daysRemaining > 0 && (
+//           <div className="flex items-center gap-2 text-xs">
+//             <span className={isExpiringSoon ? "text-orange-400" : "text-gray-400"}>
+//               {daysRemaining}d left
+//             </span>
+//             {isExpiringSoon && (
+//               <motion.button
+//                 whileHover={{ scale: 1.05 }}
+//                 whileTap={{ scale: 0.95 }}
+//                 onClick={onUpgrade}
+//                 className="px-2 py-0.5 bg-orange-500 text-black text-[10px] font-bold uppercase rounded"
+//               >
+//                 Renew
+//               </motion.button>
+//             )}
+//           </div>
+//         )}
+//       </motion.div>
+//     );
+//   }
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="flex items-center justify-between gap-4 px-4 py-3 bg-gradient-to-r from-[#FFAB00]/5 via-[#FFAB00]/10 to-transparent border border-[#FFAB00]/20 rounded-sm mb-4"
-    >
-      <div className="flex items-center gap-3">
-        <Shield className="w-5 h-5 text-[#FFAB00]" />
-        <div>
-          <span className="text-white font-bold text-sm">Unlock Full Access</span>
-          <span className="text-gray-500 text-xs ml-2 hidden md:inline">• Complete profiles & contact info</span>
-        </div>
-      </div>
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={onUpgrade}
-        className="px-4 py-1.5 bg-gradient-to-r from-[#FFAB00] to-[#FFD700] text-black font-bold uppercase text-xs rounded-sm shadow-[0_0_15px_rgba(255,171,0,0.3)]"
-      >
-        <Crown className="w-3 h-3 inline mr-1" />
-        Get Elite
-      </motion.button>
-    </motion.div>
-  );
-};
+//   return (
+//     <motion.div
+//       initial={{ opacity: 0, y: -10 }}
+//       animate={{ opacity: 1, y: 0 }}
+//       className="flex items-center justify-between gap-4 px-4 py-3 bg-gradient-to-r from-[#FFAB00]/5 via-[#FFAB00]/10 to-transparent border border-[#FFAB00]/20 rounded-sm mb-4"
+//     >
+//       <div className="flex items-center gap-3">
+//         <Shield className="w-5 h-5 text-[#FFAB00]" />
+//         <div>
+//           <span className="text-white font-bold text-sm">Unlock Full Access</span>
+//           <span className="text-gray-500 text-xs ml-2 hidden md:inline">• Complete profiles & contact info</span>
+//         </div>
+//       </div>
+//       <motion.button
+//         whileHover={{ scale: 1.05 }}
+//         whileTap={{ scale: 0.95 }}
+//         onClick={onUpgrade}
+//         className="px-4 py-1.5 bg-gradient-to-r from-[#FFAB00] to-[#FFD700] text-black font-bold uppercase text-xs rounded-sm shadow-[0_0_15px_rgba(255,171,0,0.3)]"
+//       >
+//         <Crown className="w-3 h-3 inline mr-1" />
+//         Get Elite
+//       </motion.button>
+//     </motion.div>
+//   );
+// };
 
 const Portfolios = () => {
   const [activeRole, setActiveRole] = useState("All");
@@ -563,12 +563,12 @@ const Portfolios = () => {
 
         {/* MODALS */}
         <CreatePortfolioModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-        <PricingModal 
+        {/*<PricingModal 
           isOpen={isPricingOpen} 
           onClose={() => setIsPricingOpen(false)}
           onSelectPlan={handlePlanSelect}
           demoMode={isDemoMode}
-        />
+        />*/}
         
         <ProfileViewModal 
           isOpen={!!selectedDev && !showClassified} 
@@ -695,12 +695,12 @@ const Portfolios = () => {
         <section className="px-4 md:px-8 max-w-[1600px] mx-auto pb-20 min-h-[500px] relative z-10">
           
           {/* Elite Access Banner */}
-          <EliteAccessBanner 
+          {/* <EliteAccessBanner 
             isElite={isElite} 
             onUpgrade={handleUnlockClick} 
             daysRemaining={daysRemaining}
             isExpiringSoon={isExpiringSoon}
-          />
+          /> */}
 
           <AnimatePresence mode="wait">
 

@@ -41,3 +41,10 @@
   color: #888;
 }
 
+/* Custom select dropdown styling for dark theme */
+select option {
+  background-color: #0a0a0a;
+  color: white;
+  padding: 8px;
+}
+

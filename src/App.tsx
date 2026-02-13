@@ -27,6 +27,7 @@ import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import ArticlePage from "./pages/ArticlePage";
 import Podcast from "./pages/Podcast";
+import AuthCallback from "./pages/AuthCallback";
 
 const Opinion = () => <div className="pt-32 text-white text-center">Opinion Page Coming Soon</div>;
 
@@ -38,6 +39,8 @@ const AnimatedRoutes = () => {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/content/:type/:id" element={<ArticlePage />} />
+        {/* OAuth2 callback route */}
+        <Route path="/auth/callback" element={<AuthCallback />} />
         {/* Swapped Landing Page: Default is now Portfolios */}
         <Route path="/" element={<Portfolios />} />
         {/* Hidden Featured Page - moved from root */}
@@ -92,7 +95,7 @@ const AnimatedRoutes = () => {
 };
 const AppLayout = () => {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const { user } = useAuth(); 
+  const { isAuthenticated } = useAuth(); 
 
   return (
     <TooltipProvider>
@@ -101,7 +104,7 @@ const AppLayout = () => {
       <BrowserRouter>
         <GlobalHeader 
           onLoginClick={() => setIsAuthOpen(true)}
-          isAuthenticated={!!user}
+          isAuthenticated={isAuthenticated}
         />
         <SecurityAuthModal 
           isOpen={isAuthOpen}

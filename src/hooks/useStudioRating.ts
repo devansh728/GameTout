@@ -45,7 +45,7 @@ interface UseStudioRatingReturn {
  */
 export function useStudioRating(options: UseStudioRatingOptions): UseStudioRatingReturn {
   const { studioId, autoFetch = true } = options;
-  const { user } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   const [myRatingData, setMyRatingData] = useState<StudioRatingDTO | null>(null);
   const [stats, setStats] = useState<RatingStatsDTO | null>(null);
@@ -65,7 +65,7 @@ export function useStudioRating(options: UseStudioRatingOptions): UseStudioRatin
     try {
       // Fetch both in parallel
       const [ratingData, statsData] = await Promise.all([
-        user ? studioService.getMyRating(studioId) : Promise.resolve(null),
+        isAuthenticated ? studioService.getMyRating(studioId) : Promise.resolve(null),
         studioService.getRatingStats(studioId),
       ]);
 
@@ -78,13 +78,13 @@ export function useStudioRating(options: UseStudioRatingOptions): UseStudioRatin
     } finally {
       setIsLoading(false);
     }
-  }, [studioId, user]);
+  }, [studioId, isAuthenticated]);
 
   /**
    * Submit or update a rating
    */
   const submitRating = useCallback(async (rating: number): Promise<void> => {
-    if (!user) {
+    if (!isAuthenticated) {
       setError("Please sign in to rate studios");
       throw new Error("Not authenticated");
     }
@@ -120,7 +120,7 @@ export function useStudioRating(options: UseStudioRatingOptions): UseStudioRatin
     } finally {
       setIsSubmitting(false);
     }
-  }, [studioId, user]);
+  }, [studioId, isAuthenticated]);
 
   // Auto-fetch on mount
   useEffect(() => {

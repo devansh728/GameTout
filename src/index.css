@@ -281,3 +281,26 @@
 ::-webkit-scrollbar-thumb:hover {
   background-color: #FFAB00; /* Rockstar Yellow on hover */
 }
+
+/* Add to your index.css for better scrollbar in dropdown */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #333 #0a0a0a;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: #333;
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: #FFAB00;
+}
