@@ -443,7 +443,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess }: CreatePortf
         <LogIn className="w-8 h-8 text-[#FFAB00]" />
       </div>
       <div>
-        <h3 className="font-display text-2xl text-white uppercase mb-2">Authentication Required</h3>
+        <h3 className="font-display text-2xl text-white uppercase mb-2">SIGN UP NOW FOR FREE</h3>
         <p className="text-gray-400 font-mono text-sm">
           You must be logged in to create a portfolio profile.
         </p>

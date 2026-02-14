@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
-import { MapPin, UserPlus, List, Grid, CheckCircle, Clock, XCircle, Zap, Search, Terminal, Filter, Loader2, AlertCircle, RefreshCw, Crown, Sparkles, Shield, Lock, Calendar, Radio, Wifi, Cpu, Signal, Activity, Hexagon, Triangle, Circle} from "lucide-react";
+import { MapPin, UserPlus, List, Grid, CheckCircle, Clock, XCircle, Zap, Search, Terminal, Filter, Loader2, AlertCircle, RefreshCw, Crown, Sparkles, Shield, Lock, Calendar, Radio, Wifi, Cpu, Signal, Activity, Hexagon, Triangle, Circle } from "lucide-react";
 import { PageTransition, FadeInView } from "@/components/PageTransition";
 import { Footer } from "@/components/Footer";
 import { CreatePortfolioModal } from "@/components/CreatePortfolioModal";
@@ -66,15 +66,15 @@ const AnimatedTagline = () => {
           <motion.span
             key={currentIndex}
             initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
-            animate={{ 
-              opacity: 1, 
-              y: 0, 
+            animate={{
+              opacity: 1,
+              y: 0,
               filter: "blur(0px)",
             }}
             exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
             transition={{ duration: 0.3, ease: "easeOut" }}
             className={`font-bold uppercase tracking-wide ${isGlitching ? "animate-pulse" : ""}`}
-            style={{ 
+            style={{
               color: currentCategory.color,
               textShadow: `0 0 10px ${currentCategory.color}50, 0 0 20px ${currentCategory.color}30`,
             }}
@@ -82,7 +82,7 @@ const AnimatedTagline = () => {
             {currentCategory.text}
           </motion.span>
         </AnimatePresence>
-        
+
         {/* Glitch overlay effect */}
         {isGlitching && (
           <motion.div
@@ -91,9 +91,9 @@ const AnimatedTagline = () => {
             transition={{ duration: 0.15 }}
             className="absolute inset-0 flex items-center"
           >
-            <span 
+            <span
               className="font-bold uppercase tracking-wide opacity-50"
-              style={{ 
+              style={{
                 color: currentCategory.color,
                 transform: "translateX(2px)",
                 filter: "blur(1px)"
@@ -104,7 +104,7 @@ const AnimatedTagline = () => {
           </motion.div>
         )}
       </div>
-      
+
       {/* Blinking cursor */}
       <motion.span
         animate={{ opacity: [1, 1, 0, 0] }}
@@ -118,11 +118,11 @@ const AnimatedTagline = () => {
 };
 
 // --- COMPACT HEADER COMPONENT ---
-const DCompactHeader = ({ 
-  onCreateProfile, 
-  isDemoMode, 
-  onToggleDemo 
-}: { 
+const DCompactHeader = ({
+  onCreateProfile,
+  isDemoMode,
+  onToggleDemo
+}: {
   onCreateProfile: () => void;
   isDemoMode: boolean;
   onToggleDemo: () => void;
@@ -141,7 +141,7 @@ const DCompactHeader = ({
             />
             <span className="text-[10px] font-mono text-green-400 uppercase tracking-wider">Live</span>
           </div>
-          
+
           {/* Connection status */}
           <div className="hidden md:flex items-center gap-2 text-[10px] font-mono text-gray-600">
             <Wifi className="w-3 h-3 text-[#FFAB00]" />
@@ -156,11 +156,10 @@ const DCompactHeader = ({
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={onToggleDemo}
-          className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide transition-all ${
-            isDemoMode 
-              ? "bg-purple-500/20 text-purple-400 border border-purple-500/30" 
-              : "bg-white/5 text-gray-600 border border-white/10 hover:text-white"
-          }`}
+          className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide transition-all ${isDemoMode
+            ? "bg-purple-500/20 text-purple-400 border border-purple-500/30"
+            : "bg-white/5 text-gray-600 border border-white/10 hover:text-white"
+            }`}
         >
           <Radio className="w-3 h-3" />
           {isDemoMode ? "Demo" : "Live"}
@@ -169,7 +168,7 @@ const DCompactHeader = ({
 
       {/* Main Header Row */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        
+
         {/* Left: Title & Tagline */}
         <div className="flex-1">
           {/* Compact Title */}
@@ -180,7 +179,7 @@ const DCompactHeader = ({
                 Network
               </span>
             </h1>
-            
+
             {/* Stats Badge */}
             <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
               <Zap className="w-3 h-3 text-[#FFAB00]" />
@@ -189,7 +188,7 @@ const DCompactHeader = ({
               </span>
             </div>
           </div>
-          
+
           {/* Animated Tagline */}
           <AnimatedTagline />
         </div>
@@ -203,7 +202,7 @@ const DCompactHeader = ({
         >
           <UserPlus className="w-4 h-4" />
           <span>Create Profile</span>
-          
+
           {/* Shine effect */}
           <motion.div
             className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full"
@@ -238,8 +237,8 @@ const StatusBadge = ({ status }: { status: string }) => {
 };
 
 // Tactical Row for list view
-const TacticalRow = ({ dev, onClick, isRestricted, onUnlock }: { 
-  dev: Developer; 
+const TacticalRow = ({ dev, onClick, isRestricted, onUnlock }: {
+  dev: Developer;
   onClick: () => void;
   isRestricted?: boolean;
   onUnlock?: () => void;
@@ -425,19 +424,19 @@ const Portfolios = () => {
   const [selectedDev, setSelectedDev] = useState<Developer | null>(null);
   const [selectedDevId, setSelectedDevId] = useState<number | null>(null);
   const [showClassified, setShowClassified] = useState(false);
-  
+
   // Environment-controlled demo mode
   const showDemoFeature = import.meta.env.VITE_SHOW_DEMO === 'true';
   const [isDemoMode, setIsDemoMode] = useState(showDemoFeature);
-  
+
   // Portfolio count state
   const [totalProfiles, setTotalProfiles] = useState(0);
 
   // Elite Access Hook
-  const { 
-    isElite, 
-    isAuthenticated, 
-    canViewFullProfile, 
+  const {
+    isElite,
+    isAuthenticated,
+    canViewFullProfile,
     upgradeToElite,
     refreshStatus,
     daysRemaining,
@@ -445,20 +444,20 @@ const Portfolios = () => {
   } = useEliteAccess({ demoMode: isDemoMode });
 
   // API Hooks
-  const { 
-    developers: apiDevelopers, 
-    loading: listLoading, 
-    error: listError, 
+  const {
+    developers: apiDevelopers,
+    loading: listLoading,
+    error: listError,
     getByCategory,
     fetchPortfolios,
     refresh: refreshList
   } = usePortfolios({ category: activeRole, autoFetch: !isDemoMode });
 
-  const { 
-    rails, 
-    loading: railsLoading, 
+  const {
+    rails,
+    loading: railsLoading,
     error: railsError,
-    refresh: refreshRails 
+    refresh: refreshRails
   } = usePortfolioRails();
 
   const {
@@ -505,7 +504,7 @@ const Portfolios = () => {
     if (isSearchActive) {
       if (isDemoMode) {
         const query = searchQuery.toLowerCase();
-        return demoPortfolios.filter(d => 
+        return demoPortfolios.filter(d =>
           d.name.toLowerCase().includes(query) ||
           d.role.toLowerCase().includes(query) ||
           d.badges.some(b => b.toLowerCase().includes(query))
@@ -553,11 +552,15 @@ const Portfolios = () => {
     <PageTransition>
       <main className="min-h-screen bg-background pt-20 selection:bg-[#FFAB00] selection:text-black relative overflow-hidden">
 
-        <HeroTagline />
+        <HeroTagline
+          phrase="Create your free portfolio"
+          size="sm"
+          className="mb-4"
+        />
 
         {/* --- GLOBAL BG EFFECTS (Cyber Grid) --- */}
-        <div className="fixed inset-0 pointer-events-none z-0 opacity-20" 
-             style={{ backgroundImage: 'linear-gradient(rgba(255, 171, 0, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 171, 0, 0.05) 1px, transparent 1px)', backgroundSize: '50px 50px' }}>
+        <div className="fixed inset-0 pointer-events-none z-0 opacity-20"
+          style={{ backgroundImage: 'linear-gradient(rgba(255, 171, 0, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 171, 0, 0.05) 1px, transparent 1px)', backgroundSize: '50px 50px' }}>
         </div>
         <div className="fixed inset-0 pointer-events-none z-0 bg-gradient-to-b from-background via-transparent to-background"></div>
 
@@ -569,13 +572,13 @@ const Portfolios = () => {
           onSelectPlan={handlePlanSelect}
           demoMode={isDemoMode}
         />*/}
-        
-        <ProfileViewModal 
-          isOpen={!!selectedDev && !showClassified} 
+
+        <ProfileViewModal
+          isOpen={!!selectedDev && !showClassified}
           onClose={() => {
             setSelectedDev(null);
             setSelectedDevId(null);
-          }} 
+          }}
           developer={selectedDev}
           portfolioId={selectedDevId}
         />
@@ -589,7 +592,7 @@ const Portfolios = () => {
               exit={{ opacity: 0 }}
               className="fixed inset-0 z-[100] flex items-center justify-center p-4"
             >
-              <div 
+              <div
                 className="absolute inset-0 bg-black/80 backdrop-blur-sm"
                 onClick={() => {
                   setShowClassified(false);
@@ -602,7 +605,7 @@ const Portfolios = () => {
                 exit={{ scale: 0.9, opacity: 0 }}
                 className="relative w-full max-w-md"
               >
-                <ClassifiedOverlay 
+                <ClassifiedOverlay
                   developer={selectedDev}
                   onUnlock={handleUnlockClick}
                 />
@@ -612,7 +615,7 @@ const Portfolios = () => {
         </AnimatePresence>
 
         {/* NEW COMPACT HEADER */}
-        <CompactHeader 
+        <CompactHeader
           onCreateProfile={() => setIsModalOpen(true)}
           isDemoMode={isDemoMode}
           onToggleDemo={() => setIsDemoMode(!isDemoMode)}
@@ -623,33 +626,33 @@ const Portfolios = () => {
         {/* CONTROL DECK */}
         <section className="sticky top-20 z-40 bg-[#0a0a0a]/90 backdrop-blur-xl border-y border-white/10 py-3 mb-6 shadow-2xl">
           <div className="px-4 md:px-8 max-w-7xl mx-auto flex flex-col lg:flex-row gap-4 items-center">
-            
+
             {/* Search Module */}
             <div className="relative w-full lg:w-1/3 group">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-[#FFAB00] transition-colors" />
-                <input 
-                    type="text" 
-                    placeholder="Search talents..." 
-                    className="w-full bg-black/50 border border-white/10 rounded-sm px-10 py-2 text-sm text-white focus:outline-none focus:border-[#FFAB00] focus:bg-black/80 transition-all font-mono placeholder:text-gray-600"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                    {isSearching && <Loader2 className="w-4 h-4 text-[#FFAB00] animate-spin" />}
-                    {searchQuery && !isSearching && (
-                        <button 
-                            onClick={clearSearch}
-                            className="text-gray-500 hover:text-white transition-colors"
-                        >
-                            <XCircle className="w-4 h-4" />
-                        </button>
-                    )}
-                </div>
-                {isSearchActive && (
-                    <div className="absolute -bottom-5 left-0 text-[10px] font-mono text-gray-500">
-                        <span className="text-[#FFAB00]">{isDemoMode ? displayDevelopers.length : totalResults}</span> results
-                    </div>
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-[#FFAB00] transition-colors" />
+              <input
+                type="text"
+                placeholder="Search talents..."
+                className="w-full bg-black/50 border border-white/10 rounded-sm px-10 py-2 text-sm text-white focus:outline-none focus:border-[#FFAB00] focus:bg-black/80 transition-all font-mono placeholder:text-gray-600"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                {isSearching && <Loader2 className="w-4 h-4 text-[#FFAB00] animate-spin" />}
+                {searchQuery && !isSearching && (
+                  <button
+                    onClick={clearSearch}
+                    className="text-gray-500 hover:text-white transition-colors"
+                  >
+                    <XCircle className="w-4 h-4" />
+                  </button>
                 )}
+              </div>
+              {isSearchActive && (
+                <div className="absolute -bottom-5 left-0 text-[10px] font-mono text-gray-500">
+                  <span className="text-[#FFAB00]">{isDemoMode ? displayDevelopers.length : totalResults}</span> results
+                </div>
+              )}
             </div>
 
             {/* Filter Tabs */}
@@ -661,8 +664,8 @@ const Portfolios = () => {
                     key={role}
                     onClick={() => handleCategoryChange(role)}
                     className={`whitespace-nowrap px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition-all rounded-sm ${activeRole === role
-                        ? "bg-[#FFAB00] text-black shadow-[0_0_10px_rgba(255,171,0,0.4)]"
-                        : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                      ? "bg-[#FFAB00] text-black shadow-[0_0_10px_rgba(255,171,0,0.4)]"
+                      : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
                       }`}
                   >
                     {role}
@@ -693,7 +696,7 @@ const Portfolios = () => {
 
         {/* DATABASE CONTENT */}
         <section className="px-4 md:px-8 max-w-[1600px] mx-auto pb-20 min-h-[500px] relative z-10">
-          
+
           {/* Elite Access Banner */}
           {/* <EliteAccessBanner 
             isElite={isElite} 
@@ -710,9 +713,9 @@ const Portfolios = () => {
                 key="error"
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               >
-                <ErrorState 
-                  message={error} 
-                  onRetry={() => activeRole === "All" ? refreshRails() : refreshList()} 
+                <ErrorState
+                  message={error}
+                  onRetry={() => activeRole === "All" ? refreshRails() : refreshList()}
                 />
               </motion.div>
             )}
@@ -790,9 +793,9 @@ const Portfolios = () => {
                   <EmptyState category={isSearchActive ? `"${searchQuery}"` : activeRole} />
                 ) : (
                   displayDevelopers.map((dev) => (
-                    <TacticalRow 
-                      key={dev.id} 
-                      dev={dev} 
+                    <TacticalRow
+                      key={dev.id}
+                      dev={dev}
                       onClick={() => handleSelectDev(dev)}
                       isRestricted={isRestricted}
                       onUnlock={handleUnlockClick}

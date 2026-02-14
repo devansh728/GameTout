@@ -79,7 +79,7 @@ const StudioRatingSection = ({
             {averageRating.toFixed(1)}/5
           </span>
         </div>
-        
+
         {/* Interactive Rating for Authenticated Users */}
         {isAuthenticated ? (
           <div className="pt-3 border-t border-border/50">
@@ -120,7 +120,7 @@ const StudioRatingSection = ({
 const Studios = () => {
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
-  
+
   const [selectedStudio, setSelectedStudio] = useState<Studio | null>(null);
   const [page, setPage] = useState(0);
   const [filters, setFilters] = useState<StudioFilters>({});
@@ -130,12 +130,12 @@ const Studios = () => {
   useEffect(() => {
     statsService.getStudiosCount().then(res => setTotalStudios(res.data.count));
   }, []);
-  
+
   // Fetch studios from API
   const { data, isLoading, isError, refetch } = useStudios(page, 12, filters);
   const { countries, cities } = useStudioFilters();
   const { createRequest, loading: submitting, error: submitError, success: submitSuccess, reset } = useStudioMutation();
-  
+
   const studios = data?.content || [];
 
   const handleFilterChange = (key: keyof StudioFilters, value: string) => {
@@ -170,7 +170,11 @@ const Studios = () => {
   return (
     <PageTransition>
       <main className="min-h-screen bg-background pt-20">
-        <HeroTagline />
+        <HeroTagline
+          phrase="Register Your Studio for Free"
+          size="sm"
+          className="mb-4"
+        />
         {/* Header */}
         <section className="px-4 md:px-8 max-w-7xl mx-auto mb-12">
           <FadeInView>
@@ -188,11 +192,11 @@ const Studios = () => {
                   </span>
                 </div>
                 <p className="text-muted-foreground text-lg max-w-2xl">
-                  Discover India's thriving game development ecosystem. From indie darlings 
+                  Discover India's thriving game development ecosystem. From indie darlings
                   to AAA support studios, these are the companies shaping the industry.
                 </p>
               </div>
-              
+
               {/* Submit Studio CTA */}
               <motion.button
                 whileHover={{ scale: 1.02, y: -2 }}
@@ -206,7 +210,7 @@ const Studios = () => {
                   transition={{ repeat: Infinity, duration: 3, ease: "linear" }}
                   className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent"
                 />
-                
+
                 <div className="relative flex items-center gap-3">
                   <div className="p-2 bg-primary/20 rounded-lg group-hover:bg-primary/30 transition-colors">
                     <Plus className="w-5 h-5 text-primary" />
@@ -246,7 +250,7 @@ const Studios = () => {
                 <Filter className="w-4 h-4" />
                 <span className="text-sm font-medium">Filter by:</span>
               </div>
-              
+
               {/* Country Filter */}
               <select
                 value={filters.country || ""}
@@ -468,7 +472,7 @@ const Studios = () => {
 
                 <div className="space-y-6 mt-6">
                   {/* Rating Section */}
-                  <StudioRatingSection 
+                  <StudioRatingSection
                     studioId={selectedStudio.id}
                     initialRating={selectedStudio.ratings}
                     initialRatingCount={selectedStudio.ratingCount}
