@@ -92,7 +92,6 @@ export function usePortfolios(options: UsePortfoliosOptions = {}): UsePortfolios
       } catch (err) {
         const message = err instanceof Error ? err.message : "Failed to fetch portfolios";
         setError(message);
-        console.error("usePortfolios error:", err);
       } finally {
         setLoading(false);
       }
@@ -169,13 +168,22 @@ export function usePortfolioRails() {
     setError(null);
 
     try {
-      // Fetch featured/elite and each main category in parallel
-      const [featured, developers, designers, producers] = await Promise.all([
-        portfolioService.getFeatured(6),
+      // Fetch each main category in parallel (3 requests instead of 8+)
+      const [developers, designers, producers] = await Promise.all([
         portfolioService.getByCategory(JobCategory.DEVELOPMENT, 0, 10),
         portfolioService.getByCategory(JobCategory.DESIGN, 0, 10),
         portfolioService.getByCategory(JobCategory.PRODUCT_MANAGEMENT, 0, 10),
       ]);
+
+      // Build featured rail from combined results (no extra API calls)
+      const allContent = [
+        ...developers.content,
+        ...designers.content,
+        ...producers.content,
+      ];
+      const premium = allContent.filter((p) => p.isPremium);
+      const nonPremium = allContent.filter((p) => !p.isPremium);
+      const featured = [...premium, ...nonPremium].slice(0, 6);
 
       setRails({
         "Elite Operatives": featured.map(detailToDeveloper),
@@ -186,7 +194,6 @@ export function usePortfolioRails() {
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to fetch portfolio rails";
       setError(message);
-      console.error("usePortfolioRails error:", err);
     } finally {
       setLoading(false);
     }

@@ -88,7 +88,6 @@ export const portfolioService = {
         empty: uniqueContent.length === 0,
       };
     } catch (error) {
-      console.error("Error fetching all portfolios:", error);
       throw error;
     }
   },
@@ -188,16 +187,20 @@ export const portfolioService = {
 
   /**
    * Get featured/elite portfolios (premium users first)
+   * Fetches directly from a single endpoint instead of cascading through listAll
    */
   getFeatured: async (size: number = 6): Promise<PortfolioDetail[]> => {
     try {
-      const response = await portfolioService.listAll(0, size * 2);
+      const response = await portfolioService.getByCategory(
+        JobCategory.DEVELOPMENT,
+        0,
+        size * 2,
+      );
       // Filter to premium first, then fill with non-premium
       const premium = response.content.filter((p) => p.isPremium);
       const nonPremium = response.content.filter((p) => !p.isPremium);
       return [...premium, ...nonPremium].slice(0, size);
     } catch (error) {
-      console.error("Error fetching featured portfolios:", error);
       return [];
     }
   },
