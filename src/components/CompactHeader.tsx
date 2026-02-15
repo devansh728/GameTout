@@ -337,7 +337,7 @@ export const CompactHeader = ({
         </div>
 
         {/* Right: CTA Button - OPTIMIZED */}
-        <motion.button
+        {/* <motion.button
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
           onClick={onMyProfileClick}
@@ -349,17 +349,17 @@ export const CompactHeader = ({
           ) : (
             <UserPlus className="w-4 h-4" />
           )}
-          <span>My Profile</span>
+          <span>My Profile</span> */}
           
           {/* Shine effect */}
-          {!isLoadingMyProfile && (
+          {/* {!isLoadingMyProfile && (
             <motion.div
               className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full"
               animate={{ translateX: ["-100%", "200%"] }}
               transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
             />
           )}
-        </motion.button>
+        </motion.button> */}
 
         {/* Bottom Accent Line */}
         <motion.div
