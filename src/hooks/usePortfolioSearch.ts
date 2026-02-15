@@ -124,7 +124,6 @@ export function usePortfolioSearch(
         const message =
           err instanceof Error ? err.message : "Search failed";
         setError(message);
-        console.error("usePortfolioSearch error:", err);
       } finally {
         setLoading(false);
         setIsSearching(false);

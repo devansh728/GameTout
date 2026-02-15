@@ -54,7 +54,6 @@ export function usePortfolioDetail(
       const message =
         err instanceof Error ? err.message : "Failed to fetch portfolio";
       setError(message);
-      console.error("usePortfolioDetail error:", err);
     } finally {
       setLoading(false);
     }
@@ -103,8 +102,6 @@ export function usePortfolioDetail(
         if (!prev) return prev;
         return { ...prev, likesCount: previousLikes };
       });
-
-      console.error("Like error:", err);
     } finally {
       setLiking(false);
     }
@@ -153,26 +150,6 @@ export function usePortfolioMutation() {
         setSuccess(true);
         return result;
       } catch (err) {
-        // Handle specific error cases
-        if (err && typeof err === "object" && "response" in err) {
-          const response = (err as { response?: { status?: number; data?: { message?: string } } }).response;
-          
-          if (response?.status === 401) {
-            setError("Please login to create a portfolio");
-            return null;
-          }
-          
-          if (response?.status === 403) {
-            setError("Please verify your email to create a portfolio");
-            return null;
-          }
-
-          if (response?.data?.message) {
-            setError(response.data.message);
-            return null;
-          }
-        }
-
         const message =
           err instanceof Error ? err.message : "Failed to save portfolio";
         setError(message);

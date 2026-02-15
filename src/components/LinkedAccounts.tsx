@@ -78,7 +78,6 @@ export default function LinkedAccounts({ className = "" }: LinkedAccountsProps) 
         const { data } = await api.get<LinkedAccount[]>("/oauth2/linked-accounts");
         setLinkedAccounts(data);
       } catch (err) {
-        console.error("Failed to fetch linked accounts:", err);
         setError("Failed to load linked accounts");
       } finally {
         setLoading(false);
@@ -110,7 +109,6 @@ export default function LinkedAccounts({ className = "" }: LinkedAccountsProps) 
         setLinkedAccounts(accounts);
       }
     } catch (err) {
-      console.error(`Failed to link ${provider}:`, err);
       setError(err instanceof Error ? err.message : `Failed to link ${provider}`);
     } finally {
       setActionLoading(null);
@@ -132,7 +130,6 @@ export default function LinkedAccounts({ className = "" }: LinkedAccountsProps) 
       setLinkedAccounts((prev) => prev.filter((acc) => acc.provider !== provider));
       await refreshUser();
     } catch (err) {
-      console.error(`Failed to unlink ${provider}:`, err);
       setError(err instanceof Error ? err.message : `Failed to unlink ${provider}`);
     } finally {
       setActionLoading(null);

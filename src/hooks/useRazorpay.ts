@@ -41,12 +41,10 @@ export function useRazorpay() {
 
     script.onload = () => {
       setIsLoaded(true);
-      console.log("[Razorpay] SDK loaded successfully");
     };
 
     script.onerror = () => {
       setError("Failed to load Razorpay SDK");
-      console.error("[Razorpay] Failed to load SDK");
     };
 
     document.body.appendChild(script);

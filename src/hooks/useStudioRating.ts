@@ -74,7 +74,6 @@ export function useStudioRating(options: UseStudioRatingOptions): UseStudioRatin
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to fetch rating data";
       setError(message);
-      console.error("[useStudioRating] Fetch error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -110,12 +109,9 @@ export function useStudioRating(options: UseStudioRatingOptions): UseStudioRatin
         averageRating: response.newAverageRating,
         ratingCount: response.newRatingCount,
       }));
-
-      console.log("[useStudioRating] Rating submitted:", rating, "New avg:", response.newAverageRating);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to submit rating";
       setError(message);
-      console.error("[useStudioRating] Submit error:", err);
       throw err;
     } finally {
       setIsSubmitting(false);

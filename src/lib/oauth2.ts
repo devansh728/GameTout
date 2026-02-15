@@ -55,16 +55,12 @@ export function openOAuth2Popup(provider: OAuth2Provider): Promise<OAuth2Callbac
 
     // Listen for postMessage from popup (works cross-origin)
     const messageHandler = (event: MessageEvent) => {
-      console.log("[OAuth2] Received message:", event.data, "from origin:", event.origin);
-      
       // Verify origin
       if (event.origin !== window.location.origin) {
-        console.log("[OAuth2] Ignoring message from different origin");
         return;
       }
       
       if (event.data?.type === "OAUTH2_CALLBACK") {
-        console.log("[OAuth2] Processing OAUTH2_CALLBACK message");
         resolved = true;
         window.removeEventListener("message", messageHandler);
         clearInterval(checkInterval);
@@ -76,8 +72,6 @@ export function openOAuth2Popup(provider: OAuth2Provider): Promise<OAuth2Callbac
           newUser: event.data.newUser ? "true" : "false",
           error: event.data.error,
         };
-        
-        console.log("[OAuth2] Parsed params:", { ...params, token: params.token ? "***" : undefined });
         
         if (params.error) {
           reject(new Error(params.error));
@@ -94,7 +88,6 @@ export function openOAuth2Popup(provider: OAuth2Provider): Promise<OAuth2Callbac
     // Poll for popup close or callback (fallback)
     const checkInterval = setInterval(() => {
       if (resolved) {
-        console.log("[OAuth2] Already resolved, stopping poll");
         clearInterval(checkInterval);
         return;
       }
@@ -102,7 +95,6 @@ export function openOAuth2Popup(provider: OAuth2Provider): Promise<OAuth2Callbac
       try {
         // Check if popup was closed
         if (popup.closed) {
-          console.log("[OAuth2] Popup closed, resolved:", resolved);
           clearInterval(checkInterval);
           window.removeEventListener("message", messageHandler);
           if (!resolved) {

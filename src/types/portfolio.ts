@@ -129,7 +129,7 @@ export interface PortfolioDetail {
   socials: SocialLinkDTO[];
   user?: {
     id: number;
-    email: string;
+    displayName: string;
   };
 }
 

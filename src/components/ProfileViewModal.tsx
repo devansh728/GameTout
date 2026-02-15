@@ -118,8 +118,6 @@ export const ProfileViewModal = ({ isOpen, onClose, developer, portfolioId }: Pr
     // Handle like button click
     const handleLike = async () => {
         if (!isAuthenticated) {
-            // Could show auth modal here
-            console.log("Please login to like");
             return;
         }
         await like();

@@ -146,7 +146,6 @@ export const PricingModal = ({
 
             if (verifyResponse.success) {
               setPaymentStatus("success");
-              console.log("[Payment] Subscription activated:", verifyResponse);
               onSelectPlan?.(planId);
               setTimeout(() => onClose(), 1000);
             } else {
@@ -154,7 +153,6 @@ export const PricingModal = ({
               setError(verifyResponse.message || "Payment verification failed");
             }
           } catch (verifyError) {
-            console.error("[Payment] Verification error:", verifyError);
             setPaymentStatus("failed");
             setError("Payment verification failed. Please contact support.");
           }
@@ -174,7 +172,6 @@ export const PricingModal = ({
           ondismiss: () => {
             setIsProcessing(false);
             setPaymentStatus("idle");
-            console.log("[Payment] Checkout closed by user");
           },
           escape: true,
           confirm_close: true,
@@ -185,7 +182,6 @@ export const PricingModal = ({
       const razorpay = new window.Razorpay(razorpayOptions);
       
       razorpay.on("payment.failed", (response: any) => {
-        console.error("[Payment] Failed:", response.error);
         setPaymentStatus("failed");
         setError(response.error?.description || "Payment failed. Please try again.");
         setIsProcessing(false);
@@ -193,7 +189,6 @@ export const PricingModal = ({
 
       razorpay.open();
     } catch (err) {
-      console.error("[Payment] Order creation error:", err);
       setPaymentStatus("failed");
       setError(err instanceof Error ? err.message : "Failed to create payment order");
       setIsProcessing(false);

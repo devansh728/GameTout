@@ -1,16 +1,16 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
-import { UserPlus, Radio, Cpu, Signal, Activity, Hexagon, Triangle, Circle, Zap, Users } from "lucide-react";
+import { UserPlus, Radio, Cpu, Signal, Activity, Hexagon, Triangle, Circle, Zap, Users, Loader2 } from "lucide-react";
 
 // Rotating categories for the animated tagline
 const rotatingCategories = [
-  { text: "Developers", color: "#FFAB00", accent: "#FFD700" },
-  { text: "Programmers", color: "#00FF88", accent: "#00FFAA" },
+  { text: "Game Developers", color: "#FFAB00", accent: "#FFD700" },
+  { text: "Game Programmers", color: "#00FF88", accent: "#00FFAA" },
   { text: "3D Artists", color: "#FF6B6B", accent: "#FF8E8E" },
-  { text: "Designers", color: "#00D4FF", accent: "#00E5FF" },
-  { text: "Engineers", color: "#A855F7", accent: "#C084FC" },
+  { text: "Game Designers", color: "#00D4FF", accent: "#00E5FF" },
+  { text: "Game Engineers", color: "#A855F7", accent: "#C084FC" },
   { text: "2D Artists", color: "#F97316", accent: "#FB923C" },
-  { text: "Producers", color: "#F97316", accent: "#FB923C" },
+  { text: "Gaming Producers", color: "#F97316", accent: "#FB923C" },
 ];
 
 // Optimized Particle System
@@ -258,17 +258,19 @@ const ScanLine = () => (
 
 // Main Header Component - Fixed for Mobile
 export const CompactHeader = ({
-  onCreateProfile,
+  onMyProfileClick,
   isDemoMode,
   onToggleDemo,
   totalProfiles = 0,
   showDemoToggle = true,
+  isLoadingMyProfile
 }: {
-  onCreateProfile: () => void;
+  onMyProfileClick: () => void;
   isDemoMode: boolean;
   onToggleDemo: () => void;
   totalProfiles?: number;
   showDemoToggle?: boolean;
+  isLoadingMyProfile?: boolean;
 }) => {
   return (
     <section className="relative px-2 sm:px-3 md:px-6 max-w-7xl mx-auto mb-2 sm:mb-3 z-10">
@@ -325,7 +327,7 @@ export const CompactHeader = ({
             <StatsCounter count={totalProfiles} label="Active Talents" />
             
             {/* CTA Button */}
-            <CTAButton3D onClick={onCreateProfile} />
+            <CTAButton3D onClick={onMyProfileClick} />
 
             {/* Demo Toggle */}
             {showDemoToggle && (
@@ -333,6 +335,31 @@ export const CompactHeader = ({
             )}
           </div>
         </div>
+
+        {/* Right: CTA Button - OPTIMIZED */}
+        <motion.button
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={onMyProfileClick}
+          disabled={isLoadingMyProfile}
+          className="group relative flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#FFAB00] to-[#FF8C00] text-black font-bold uppercase text-sm tracking-wide overflow-hidden rounded-sm shadow-[0_0_20px_rgba(255,171,0,0.3)] hover:shadow-[0_0_30px_rgba(255,171,0,0.5)] transition-shadow disabled:opacity-70 disabled:cursor-wait"
+        >
+          {isLoadingMyProfile ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <UserPlus className="w-4 h-4" />
+          )}
+          <span>My Profile</span>
+          
+          {/* Shine effect */}
+          {!isLoadingMyProfile && (
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full"
+              animate={{ translateX: ["-100%", "200%"] }}
+              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+            />
+          )}
+        </motion.button>
 
         {/* Bottom Accent Line */}
         <motion.div

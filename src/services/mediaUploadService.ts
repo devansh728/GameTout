@@ -77,6 +77,31 @@ export const mediaUploadService = {
     });
   },
 
+  deleteFile: async (publicUrl: string): Promise<void> => {
+    if (!publicUrl) return;
+    const objectKey = mediaUploadService.extractObjectKey(publicUrl);
+
+    if (!objectKey) {
+      console.error("Could not extract object key from URL:", publicUrl);
+      return;
+    }
+    await api.post(`/media/presign/delete-direct?objectKey=${encodeURIComponent(objectKey)}`);
+  },
+
+  extractObjectKey: (url: string): string | null => {
+    try {
+      const marker = "/uploads/";
+      const index = url.indexOf(marker);
+      
+      if (index !== -1) {
+        return url.substring(index + 1);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  },
+
   /**
    * Complete upload flow: get presigned URL and upload file
    * @param file - The file to upload

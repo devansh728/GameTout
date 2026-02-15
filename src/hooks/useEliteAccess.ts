@@ -98,10 +98,8 @@ export function useEliteAccess(options: UseEliteAccessOptions = {}): UseEliteAcc
     try {
       const status = await subscriptionService.getEliteStatus();
       setEliteStatus(status);
-      console.log("[Elite Access] Status fetched from backend:", status);
     } catch (err) {
       // If backend fails, fall back to demo mode silently
-      console.warn("[Elite Access] Backend unavailable, using demo mode:", err);
       setEliteStatus(null);
     } finally {
       setIsLoading(false);
@@ -204,14 +202,11 @@ export function useEliteAccess(options: UseEliteAccessOptions = {}): UseEliteAcc
       setLocalEliteStatus(newStatus);
       localStorage.setItem(DEMO_ELITE_KEY, JSON.stringify(newStatus));
       
-      console.log(`[Elite Access] Demo upgrade to ${plan} plan`);
-      
       // Also refresh from backend in case payment was processed there
       await fetchEliteStatus();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Upgrade failed";
       setError(message);
-      console.error("[Elite Access] Upgrade failed:", err);
       throw err;
     } finally {
       setIsUpgrading(false);

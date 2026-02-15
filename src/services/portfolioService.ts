@@ -185,6 +185,18 @@ export const portfolioService = {
     return data;
   },
 
+  getMyPortfolio: async (): Promise<PortfolioDetail | null> => {
+    try {
+      const { data } = await api.get<PortfolioDetail>("/portfolio/my");
+      return data;
+    } catch (error: any) {
+      if (error.response && error.response.status === 404) {
+        return null;
+      }
+      throw error;
+    }
+  },
+
   /**
    * Get featured/elite portfolios (premium users first)
    * Fetches directly from a single endpoint instead of cascading through listAll

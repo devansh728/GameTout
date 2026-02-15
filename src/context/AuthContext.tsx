@@ -61,14 +61,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const syncWithBackend = useCallback(async () => {
     try {
-      console.log("[Auth] Syncing with backend...");
-      console.log("[Auth] OAuth2 Token:", getOAuth2Token() ? "present" : "missing");
       const { data } = await api.get<AuthUser>("/auth/me");
-      console.log("[Auth] Backend sync success:", data);
       setDbUser(data);
       setAuthProvider(data.authProvider);
     } catch (error) {
-      console.error("[Auth] Backend Sync Failed:", error);
       // Clear OAuth2 token if backend rejects
       clearOAuth2Token();
       setDbUser(null);
@@ -81,7 +77,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Check for OAuth2 callback (redirect flow)
     const callbackParams = handleOAuth2Callback();
     if (callbackParams?.token) {
-      console.log("[Auth] OAuth2 callback detected, syncing...");
       // OAuth2 login successful, sync with backend
       syncWithBackend().then(() => setLoading(false));
       return; // Don't set up Firebase listener
@@ -90,7 +85,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Check for existing OAuth2 token
     const oauth2Token = getOAuth2Token();
     if (oauth2Token) {
-      console.log("[Auth] Existing OAuth2 token found, syncing...");
       const provider = getOAuth2Provider();
       if (provider) {
         setAuthProvider(provider.toUpperCase() as AuthProviderType);
@@ -99,13 +93,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return; // Don't set up Firebase listener - we're using OAuth2
     }
 
-    console.log("[Auth] No OAuth2 token, setting up Firebase listener...");
-    
     // Firebase auth state listener (only if not using OAuth2)
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       // Double-check OAuth2 token isn't present (might have been added by popup)
       if (getOAuth2Token()) {
-        console.log("[Auth] OAuth2 token detected in Firebase listener, skipping Firebase auth");
         return;
       }
       
@@ -149,23 +140,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginWithOAuth2 = useCallback(async (provider: OAuth2Provider) => {
     try {
       setLoading(true);
-      console.log(`[Auth] Starting ${provider} login...`);
       const params = await openOAuth2Popup(provider);
-      console.log(`[Auth] Popup returned params:`, params);
       
       if (params.token && params.provider) {
-        console.log(`[Auth] Storing token for ${params.provider}...`);
         storeOAuth2Token(params.token, params.provider);
-        
-        // Verify token was stored
-        const storedToken = getOAuth2Token();
-        console.log(`[Auth] Token stored: ${storedToken ? 'yes' : 'no'}`);
-        
         setAuthProvider(params.provider.toUpperCase() as AuthProviderType);
         await syncWithBackend();
       }
     } catch (error) {
-      console.error(`[Auth] ${provider} login failed:`, error);
       throw error;
     } finally {
       setLoading(false);
@@ -185,17 +167,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [loginWithOAuth2]);
 
   const logout = async () => {
-    // Clear OAuth2 token
-    clearOAuth2Token();
-    
-    // Sign out from Firebase if logged in via Firebase
-    if (user) {
-      await signOut(auth);
+    try {
+      // Step 1: Call backend logout API to revoke all tokens
+      try {
+        await api.post("/auth/logout");
+      } catch (error) {
+        // Log the error but continue with frontend cleanup
+        console.error("Backend logout failed:", error);
+      }
+    } finally {
+      // Step 2: Clear OAuth2 token from localStorage
+      clearOAuth2Token();
+      
+      // Step 3: Sign out from Firebase if logged in via Firebase
+      if (user) {
+        try {
+          await signOut(auth);
+        } catch (error) {
+          console.error("Firebase signOut failed:", error);
+        }
+      }
+      
+      // Step 4: Clear all auth state
+      setDbUser(null);
+      setUser(null);
+      setAuthProvider(null);
     }
-    
-    setDbUser(null);
-    setUser(null);
-    setAuthProvider(null);
   };
 
   // User is authenticated if either Firebase user exists OR OAuth2 dbUser exists

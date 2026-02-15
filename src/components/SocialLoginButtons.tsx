@@ -26,7 +26,6 @@ export default function SocialLoginButtons({ onError, className = "" }: SocialLo
     try {
       await loginFn();
     } catch (error) {
-      console.error(`${provider} login failed:`, error);
       onError?.(error instanceof Error ? error.message : `${provider} login failed`);
     } finally {
       setLoading(null);

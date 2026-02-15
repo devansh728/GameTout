@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation, Link } from "react-router-dom";
-import { Menu, X, ChevronDown, User, ShieldCheck, Moon, Sun, Calendar, Sparkles, Shield, Play, Film, Mic, Video, Crown, Eye, Palette } from "lucide-react";
+import { Menu, X, ChevronDown, User, ShieldCheck, Moon, Sun, Calendar, Sparkles, Shield, Play, Film, Mic, Video, Crown, Eye, Palette, LogOut } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import { useAuth } from "@/context/AuthContext";
+import { UserMenu } from "./UserMenu";
 
 // --- NAVIGATION LINKS ---
 const mainNavItems = [
@@ -138,7 +139,7 @@ export const GlobalHeader = ({ onLoginClick, isAuthenticated }: GlobalHeaderProp
   const [isVideosDropdownOpen, setIsVideosDropdownOpen] = useState(false);
   const [isMobileVideosExpanded, setIsMobileVideosExpanded] = useState(false);
   const videosDropdownRef = useRef<HTMLDivElement>(null);
-  const { dbUser } = useAuth();
+  const { dbUser, logout } = useAuth();
   
   // Check if user is an admin
   const isAdmin = dbUser?.role === "ADMIN";
@@ -167,10 +168,10 @@ export const GlobalHeader = ({ onLoginClick, isAuthenticated }: GlobalHeaderProp
   return (
     <>
       {/* --- MAIN HEADER BAR (Fixed Top) --- */}
-      <header className="fixed top-0 left-0 right-0 h-24 z-50 px-6 md:px-12 flex items-center justify-between pointer-events-none">
+      <header className="fixed top-0 left-0 right-0 h-24 z-50 px-6 md:px-12 flex items-center justify-between gap-4 pointer-events-none">
         
         {/* 1. LEFT: LOGO (Pointer Auto) */}
-        <div className="pointer-events-auto flex items-center gap-6">
+        <div className="pointer-events-auto flex items-center gap-6 flex-shrink-0">
           {/* Mobile Menu Toggle */}
           <button 
             onClick={() => setIsMobileMenuOpen(true)}
@@ -180,7 +181,7 @@ export const GlobalHeader = ({ onLoginClick, isAuthenticated }: GlobalHeaderProp
           </button>
 
           {/* Brand Logo - NOW LARGER */}
-          <Link to="/" className="flex flex-col group relative z-50">
+          <Link to="/" className="flex flex-col group relative z-50 flex-shrink-0">
             <h1 className="font-display text-3xl md:text-5xl font-bold uppercase text-white leading-none tracking-normal group-hover:text-[#FFAB00] transition-colors drop-shadow-xl">
               Game<span className="text-[#FFAB00] group-hover:text-white transition-colors">Tout</span>
             </h1>
@@ -188,9 +189,9 @@ export const GlobalHeader = ({ onLoginClick, isAuthenticated }: GlobalHeaderProp
         </div>
 
         {/* 2. CENTER: DESKTOP NAVIGATION + CALENDLY BUTTON */}
-        <div className="hidden lg:flex items-center gap-4 pointer-events-auto">
+        <div className="hidden lg:flex items-center justify-center gap-4 pointer-events-auto flex-1 min-w-0">
           {/* Navigation Pills */}
-          <nav className="bg-black/90 backdrop-blur-xl border border-white/10 px-6 py-4 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex gap-6 items-center">
+          <nav className="bg-black/90 backdrop-blur-xl border border-white/10 px-6 py-4 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex gap-6 items-center flex-shrink-0">
             {/* Featured Link */}
             {/* Featured Link - Hidden */
             /* <Link to="/" className="relative group/link">
@@ -501,28 +502,25 @@ export const GlobalHeader = ({ onLoginClick, isAuthenticated }: GlobalHeaderProp
         </div>
 
         {/* 3. RIGHT: AUTH BUTTON (Pointer Auto) */}
-        <div className="pointer-events-auto">
-          <button
-            onClick={onLoginClick}
-            className="group relative flex items-center gap-3 bg-black/90 backdrop-blur-md border border-white/20 pl-1.5 pr-6 py-1.5 rounded-full hover:border-[#FFAB00] hover:shadow-[0_0_20px_rgba(255,171,0,0.3)] transition-all duration-300"
-          >
-            {/* Larger Icon Circle */}
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center border transition-colors ${
-              isAuthenticated 
-                ? "bg-[#FFAB00] border-transparent" 
-                : "bg-white/10 border-white/20 group-hover:border-[#FFAB00]"
-            }`}>
-              {isAuthenticated 
-                ? <ShieldCheck className="w-5 h-5 text-black" /> 
-                : <User className="w-5 h-5 text-white group-hover:text-[#FFAB00]" />
-              }
-            </div>
-            
-            {/* Larger Text */}
-            <span className="hidden md:block font-display text-sm font-bold text-white uppercase leading-none tracking-wider group-hover:text-[#FFAB00] transition-colors">
-              {isAuthenticated ? "OP_ONLINE" : "SIGN IN"}
-            </span>
-          </button>
+        <div className="pointer-events-auto flex-shrink-0">
+          {isAuthenticated ? (
+            <UserMenu isAuthenticated={isAuthenticated} />
+          ) : (
+            <button
+              onClick={onLoginClick}
+              className="group relative flex items-center gap-3 bg-black/90 backdrop-blur-md border border-white/20 pl-1.5 pr-6 py-1.5 rounded-full hover:border-[#FFAB00] hover:shadow-[0_0_20px_rgba(255,171,0,0.3)] transition-all duration-300 whitespace-nowrap"
+            >
+              {/* Icon Circle */}
+              <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white/10 border-white/20 group-hover:border-[#FFAB00]">
+                <User className="w-5 h-5 text-white group-hover:text-[#FFAB00]" />
+              </div>
+
+              {/* Text */}
+              <span className="hidden md:block font-display text-sm font-bold text-white uppercase leading-none tracking-wider group-hover:text-[#FFAB00] transition-colors">
+                SIGN IN
+              </span>
+            </button>
+          )}
         </div>
       </header>
 
@@ -744,14 +742,40 @@ export const GlobalHeader = ({ onLoginClick, isAuthenticated }: GlobalHeaderProp
             </motion.a>
 
             {/* Drawer Footer */}
-            <div className="pt-6 border-t border-white/10">
-              <button 
-                onClick={() => { onLoginClick(); setIsMobileMenuOpen(false); }}
-                className="w-full py-5 bg-[#FFAB00] text-black font-display text-xl font-bold uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-white transition-colors"
-              >
-                {isAuthenticated ? <ShieldCheck className="w-6 h-6" /> : <User className="w-6 h-6" />}
-                {isAuthenticated ? "Access Dossier" : "Operative Login"}
-              </button>
+            <div className="pt-6 border-t border-white/10 space-y-3">
+              {isAuthenticated ? (
+                <>
+                  {/* User Email Display */}
+                  <div className="px-4 py-2 rounded-lg bg-white/5 border border-white/10">
+                    <p className="text-xs text-gray-400">Logged in as</p>
+                    <p className="text-sm font-display text-white truncate">{dbUser?.email}</p>
+                  </div>
+                  
+                  {/* Logout Button */}
+                  <button 
+                    onClick={async () => {
+                      try {
+                        await logout();
+                        setIsMobileMenuOpen(false);
+                      } catch (error) {
+                        console.error("Logout failed:", error);
+                      }
+                    }}
+                    className="w-full py-4 bg-red-600 text-white font-display text-lg font-bold uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-red-700 transition-colors rounded-lg"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <button 
+                  onClick={() => { onLoginClick(); setIsMobileMenuOpen(false); }}
+                  className="w-full py-5 bg-[#FFAB00] text-black font-display text-xl font-bold uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-white transition-colors"
+                >
+                  <User className="w-6 h-6" />
+                  Operative Login
+                </button>
+              )}
             </div>
           </motion.div>
         )}

@@ -30,9 +30,6 @@ export default function AuthCallback() {
     }
 
     if (token && provider) {
-      console.log("[AuthCallback] Token received for provider:", provider);
-      console.log("[AuthCallback] Has window.opener:", !!window.opener);
-      
       // Store the token
       storeOAuth2Token(token, provider);
       
@@ -41,7 +38,6 @@ export default function AuthCallback() {
 
       // If this is a popup, notify parent and close
       if (window.opener) {
-        console.log("[AuthCallback] Sending postMessage to parent...");
         // Send message to parent window with auth result
         try {
           window.opener.postMessage({
@@ -51,14 +47,12 @@ export default function AuthCallback() {
             userId: searchParams.get("userId"),
             newUser,
           }, window.location.origin);
-          console.log("[AuthCallback] postMessage sent successfully");
         } catch (e) {
-          console.error("[AuthCallback] postMessage failed:", e);
+          // postMessage failed - parent may have closed
         }
         
         // Close popup after a short delay
         setTimeout(() => {
-          console.log("[AuthCallback] Closing popup...");
           window.close();
         }, 500);
         return;

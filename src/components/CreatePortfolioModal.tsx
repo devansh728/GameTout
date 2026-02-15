@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { usePortfolioMutation } from "@/hooks/usePortfolioDetail";
 import { useAuth } from "@/context/AuthContext";
-import { JobCategory, JobProfileStatus, PortfolioRequest, CATEGORY_TO_BACKEND, DISPLAY_TO_STATUS } from "@/types/portfolio";
+import { JobCategory, JobProfileStatus, PortfolioRequest, CATEGORY_TO_BACKEND, DISPLAY_TO_STATUS, PortfolioDetail } from "@/types/portfolio";
 import { MediaUploader } from "@/components/MediaUploader";
 import { mediaUploadService } from "@/services/mediaUploadService";
 import React from "react";
@@ -16,6 +16,7 @@ interface CreatePortfolioModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  initialData?: PortfolioDetail | null;
 }
 
 const roles = ["Programmer", "Artist", "Designer", "Producer", "Audio"];
@@ -293,7 +294,7 @@ const StatusDropdown = ({ value, onChange }: { value: string; onChange: (value: 
   );
 };
 
-export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess }: CreatePortfolioModalProps) => {
+export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess , initialData}: CreatePortfolioModalProps) => {
   const { isAuthenticated, dbUser, loginWithGoogle, loginWithGithub,
     loginWithDiscord,
     loginWithLinkedIn,
@@ -301,7 +302,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess }: CreatePortf
     loginWithEmail  
   } = useAuth();
   const { createOrUpdate, loading: isSubmitting, error: submitError, success, reset } = usePortfolioMutation();
-
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
   // Form State
   const [formData, setFormData] = useState({
     name: "",
@@ -318,6 +319,56 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess }: CreatePortf
     skills: [{ name: "", score: 50 }],
     socials: [{ platform: "", url: "" }]
   });
+
+  useEffect(() => {
+    if (isOpen && initialData) {
+      // Map API response back to Form State
+      setFormData({
+        name: initialData.name || "",
+        shortDescription: initialData.shortDescription || "",
+        // Map backend Enum back to Frontend String if needed, or ensure types match
+        role: initialData.jobCategory === JobCategory.DEVELOPMENT ? "Programmer" 
+              : initialData.jobCategory === JobCategory.DESIGN ? "Artist"
+              : initialData.jobCategory === JobCategory.OTHER ? "Audio"
+              : initialData.jobCategory === JobCategory.PRODUCT_MANAGEMENT ? "Producer"
+              : "Programmer", // Fallback
+        location: initialData.location || "",
+        experienceYears: initialData.experienceYears || 0,
+        jobStatus: initialData.jobStatus === "OPEN" ? "Open for Work" 
+                   : initialData.jobStatus === "FREELANCE" ? "Freelance" 
+                   : "Deployed",
+        profileSummary: initialData.profileSummary || "",
+        contactEmail: initialData.contactEmail || "",
+        profilePhotoUrl: initialData.profilePhotoUrl || "",
+        coverPhotoUrl: initialData.coverPhotoUrl || "",
+        resumeUrl: initialData.resumeUrl || "",
+        // Ensure arrays have at least one empty item if empty
+        skills: initialData.skills && initialData.skills.length > 0 
+          ? initialData.skills.map(s => ({ name: s.name, score: s.score || 50 })) 
+          : [{ name: "", score: 50 }],
+        socials: initialData.socials && initialData.socials.length > 0
+          ? initialData.socials.map(s => ({ platform: s.platform, url: s.url }))
+          : [{ platform: "", url: "" }]
+      });
+    } else if (isOpen && !initialData) {
+      // Reset to defaults if creating new
+      setFormData({
+        name: "",
+        shortDescription: "",
+        role: "Programmer",
+        location: "",
+        experienceYears: 1,
+        jobStatus: "Open for Work",
+        profileSummary: "",
+        contactEmail: dbUser?.email || "",
+        profilePhotoUrl: "",
+        coverPhotoUrl: "",
+        resumeUrl: "",
+        skills: [{ name: "", score: 50 }],
+        socials: [{ platform: "", url: "" }]
+      });
+    }
+  }, [isOpen, initialData, dbUser]);
 
   // Reset form and close on success
   useEffect(() => {
@@ -408,6 +459,49 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess }: CreatePortf
     return await mediaUploadService.uploadFile(file, true);
   }, []);
 
+  const handleProfilePhotoDelete = async () => {
+    if (!formData.profilePhotoUrl) return;
+    
+    try {
+      setIsDeleting("profile");
+      await mediaUploadService.deleteFile(formData.profilePhotoUrl);
+      setFormData(prev => ({ ...prev, profilePhotoUrl: "" }));
+    } catch (error) {
+      console.error("Failed to delete profile photo:", error);
+      // Optional: Show toast error
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+
+  const handleCoverPhotoDelete = async () => {
+    if (!formData.coverPhotoUrl) return;
+
+    try {
+      setIsDeleting("cover");
+      await mediaUploadService.deleteFile(formData.coverPhotoUrl);
+      setFormData(prev => ({ ...prev, coverPhotoUrl: "" }));
+    } catch (error) {
+      console.error("Failed to delete cover photo:", error);
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+
+  const handleResumeDelete = async () => {
+    if (!formData.resumeUrl) return;
+
+    try {
+      setIsDeleting("resume");
+      await mediaUploadService.deleteFile(formData.resumeUrl);
+      setFormData(prev => ({ ...prev, resumeUrl: "" }));
+    } catch (error) {
+      console.error("Failed to delete resume:", error);
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -415,21 +509,44 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess }: CreatePortf
       return;
     }
 
-    // Build request payload
+    // Validate required fields
+    if (!formData.name || !formData.name.trim()) {
+      alert("Name is required");
+      return;
+    }
+    if (!formData.location || !formData.location.trim()) {
+      alert("Location is required");
+      return;
+    }
+    if (!formData.contactEmail || !formData.contactEmail.trim()) {
+      alert("Contact email is required");
+      return;
+    }
+
+    // Helper to convert empty strings to undefined
+    const clean = (value: string | undefined): string | undefined => {
+      return value && value.trim() !== "" ? value.trim() : undefined;
+    };
+
+    // Build request payload with proper null handling
     const request: PortfolioRequest = {
-      name: formData.name,
-      shortDescription: formData.shortDescription || formData.role,
-      location: formData.location,
+      name: formData.name.trim(),
+      shortDescription: formData.shortDescription?.trim() || formData.role,
+      location: formData.location.trim(),
       experienceYears: formData.experienceYears,
       jobCategory: CATEGORY_TO_BACKEND[formData.role] || JobCategory.OTHER,
       jobStatus: DISPLAY_TO_STATUS[formData.jobStatus] || JobProfileStatus.OPEN,
-      profileSummary: formData.profileSummary,
-      contactEmail: formData.contactEmail,
-      profilePhotoUrl: formData.profilePhotoUrl || undefined,
-      coverPhotoUrl: formData.coverPhotoUrl || undefined,
-      resumeUrl: formData.resumeUrl || undefined,
-      skills: formData.skills.filter(s => s.name.trim() !== "").map(s => ({ name: s.name, score: s.score })),
-      socials: formData.socials.filter(s => s.platform.trim() !== "" && s.url.trim() !== ""),
+      profileSummary: formData.profileSummary?.trim() || "",
+      contactEmail: formData.contactEmail.trim(),
+      profilePhotoUrl: clean(formData.profilePhotoUrl),
+      coverPhotoUrl: clean(formData.coverPhotoUrl),
+      resumeUrl: clean(formData.resumeUrl),
+      skills: formData.skills
+        .filter(s => s.name && s.name.trim() !== "")
+        .map(s => ({ name: s.name.trim(), score: s.score })),
+      socials: formData.socials
+        .filter(s => s.platform && s.platform.trim() !== "" && s.url && s.url.trim() !== "")
+        .map(s => ({ platform: s.platform.trim(), url: s.url.trim() })),
     };
 
     await createOrUpdate(request);
@@ -775,7 +892,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess }: CreatePortf
                           value={formData.profilePhotoUrl}
                           onUpload={handleProfilePhotoUpload}
                           onComplete={(url) => setFormData({ ...formData, profilePhotoUrl: url })}
-                          onClear={() => setFormData({ ...formData, profilePhotoUrl: "" })}
+                          onClear={handleProfilePhotoDelete}
                           label="profile photo"
                         />
                       </div>
@@ -786,7 +903,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess }: CreatePortf
                           value={formData.coverPhotoUrl}
                           onUpload={handleCoverPhotoUpload}
                           onComplete={(url) => setFormData({ ...formData, coverPhotoUrl: url })}
-                          onClear={() => setFormData({ ...formData, coverPhotoUrl: "" })}
+                          onClear={handleCoverPhotoDelete}
                           label="cover photo"
                         />
                       </div>
@@ -797,7 +914,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess }: CreatePortf
                           value={formData.resumeUrl}
                           onUpload={handleResumeUpload}
                           onComplete={(url) => setFormData({ ...formData, resumeUrl: url })}
-                          onClear={() => setFormData({ ...formData, resumeUrl: "" })}
+                          onClear={handleResumeDelete}
                           label="resume (PDF)"
                         />
                       </div>

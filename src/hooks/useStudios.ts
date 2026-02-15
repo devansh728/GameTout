@@ -191,8 +191,6 @@ export const useStudioMutation = () => {
       invalidateQueries();
       setSuccess(true);
       setLoading(false);
-      // Return the new average rating for UI updates
-      console.log("[Rating] Updated - New avg:", data.newAverageRating, "Count:", data.newRatingCount);
     },
     onError: (err: Error) => {
       setError(err.message || "Failed to submit rating");

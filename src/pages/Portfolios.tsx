@@ -21,10 +21,11 @@ import { Developer } from "@/types/portfolio";
 
 // Demo Data for showcasing new design
 import { demoPortfolios, getDemoByCategory } from "@/data/demoPortfolios";
-
+import { toast } from "sonner";
 // Portfolio Service for API calls
 import { portfolioService } from "@/services/portfolioService";
 import { HeroTagline } from "@/components/HeroTagline";
+import { useAuth } from "@/context/AuthContext";
 
 // --- FILTER OPTIONS ---
 const roles = ["All", "Programmer", "Artist", "Designer", "Audio", "Producer"];
@@ -425,13 +426,16 @@ const Portfolios = () => {
   const [selectedDevId, setSelectedDevId] = useState<number | null>(null);
   const [showClassified, setShowClassified] = useState(false);
 
+  const [myProfileData, setMyProfileData] = useState<any>(null); 
+  const [isFetchingMyProfile, setIsFetchingMyProfile] = useState(false);
+
   // Environment-controlled demo mode
   const showDemoFeature = import.meta.env.VITE_SHOW_DEMO === 'true';
   const [isDemoMode, setIsDemoMode] = useState(showDemoFeature);
-
   // Portfolio count state
   const [totalProfiles, setTotalProfiles] = useState(0);
 
+  const { dbUser } = useAuth();
   // Elite Access Hook
   const {
     isElite,
@@ -471,6 +475,14 @@ const Portfolios = () => {
     clear: clearSearch
   } = usePortfolioSearch({ debounceMs: 300, minChars: 2 });
 
+  useEffect(() => {
+    // Wipe local state clean
+    setMyProfileData(null);
+    setSelectedDev(null);
+    setSelectedDevId(null);
+    setShowClassified(false);
+  }, [dbUser?.id, isAuthenticated]);
+
   // Fetch total portfolio count on mount
   useEffect(() => {
     const fetchCount = async () => {
@@ -482,7 +494,6 @@ const Portfolios = () => {
           setTotalProfiles(count);
         }
       } catch (error) {
-        console.error("Failed to fetch portfolio count:", error);
         // Fallback to demo count on error
         setTotalProfiles(demoPortfolios.length);
       }
@@ -545,6 +556,28 @@ const Portfolios = () => {
     }
   };
 
+  const handleMyProfileClick = async () => {
+    setIsFetchingMyProfile(true);
+
+    try {
+      const data = await portfolioService.getMyPortfolio();
+      
+      if (data === null) {
+        // No existing portfolio - open CreatePortfolioModal in CREATE mode
+        setMyProfileData(null);
+      } else {
+        // Portfolio exists - open in EDIT mode with existing data
+        setMyProfileData(data);
+      }
+      
+      setIsModalOpen(true);
+    } catch (error) {
+      toast.error("Failed to fetch your profile");
+    } finally {
+      setIsFetchingMyProfile(false);
+    }
+  };
+
   const isLoading = isDemoMode ? false : (activeRole === "All" && !isSearchActive) ? railsLoading : listLoading;
   const error = isDemoMode ? null : (activeRole === "All" && !isSearchActive) ? railsError : listError;
 
@@ -565,7 +598,16 @@ const Portfolios = () => {
         <div className="fixed inset-0 pointer-events-none z-0 bg-gradient-to-b from-background via-transparent to-background"></div>
 
         {/* MODALS */}
-        <CreatePortfolioModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+        <CreatePortfolioModal isOpen={isModalOpen} onClose={() => {
+          setIsModalOpen(false);
+          setMyProfileData(null);
+        }}
+        initialData={myProfileData}
+        onSuccess={() => {
+             if (activeRole === "All") refreshRails();
+             else refreshList();
+          }} 
+          />
         {/*<PricingModal 
           isOpen={isPricingOpen} 
           onClose={() => setIsPricingOpen(false)}
@@ -616,7 +658,8 @@ const Portfolios = () => {
 
         {/* NEW COMPACT HEADER */}
         <CompactHeader
-          onCreateProfile={() => setIsModalOpen(true)}
+          onMyProfileClick={handleMyProfileClick}
+          isLoadingMyProfile={isFetchingMyProfile}
           isDemoMode={isDemoMode}
           onToggleDemo={() => setIsDemoMode(!isDemoMode)}
           totalProfiles={totalProfiles}
