@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from "react";
 import { 
   onAuthStateChanged, 
   signInWithPopup, 
@@ -17,6 +17,7 @@ import {
   clearOAuth2Token,
   handleOAuth2Callback,
   getOAuth2Provider,
+  isOAuth2Authenticated,
 } from "@/lib/oauth2";
 
 type AuthProviderType = "FIREBASE" | "DISCORD" | "LINKEDIN" | "STEAM";
@@ -36,17 +37,14 @@ interface AuthContextType {
   dbUser: AuthUser | null; 
   loading: boolean;
   authProvider: AuthProviderType | null;
-  isAuthenticated: boolean; // true if logged in via Firebase OR OAuth2
-  // Firebase login methods
+  isAuthenticated: boolean;
   loginWithGoogle: () => Promise<void>;
   loginWithGithub: () => Promise<void>;
   loginWithEmail: (e: string, p: string) => Promise<void>;
   registerWithEmail: (e: string, p: string) => Promise<void>;
-  // OAuth2 login methods (Discord, LinkedIn, Steam)
   loginWithDiscord: () => Promise<void>;
   loginWithLinkedIn: () => Promise<void>;
   loginWithSteam: () => Promise<void>;
-  // General
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -58,88 +56,137 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [dbUser, setDbUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [authProvider, setAuthProvider] = useState<AuthProviderType | null>(null);
+  
+  // Use ref to track if we've already initialized
+  const initialized = useRef(false);
 
   const syncWithBackend = useCallback(async () => {
     try {
       const { data } = await api.get<AuthUser>("/auth/me");
       setDbUser(data);
       setAuthProvider(data.authProvider);
+      return true;
     } catch (error) {
+      console.error("Backend sync failed:", error);
       // Clear OAuth2 token if backend rejects
       clearOAuth2Token();
       setDbUser(null);
       setAuthProvider(null);
+      return false;
     }
   }, []);
 
-  // Handle OAuth2 callback on mount
+  // Initialize auth state
   useEffect(() => {
-    // Check for OAuth2 callback (redirect flow)
-    const callbackParams = handleOAuth2Callback();
-    if (callbackParams?.token) {
-      // OAuth2 login successful, sync with backend
-      syncWithBackend().then(() => setLoading(false));
-      return; // Don't set up Firebase listener
-    }
+    if (initialized.current) return;
+    initialized.current = true;
 
-    // Check for existing OAuth2 token
-    const oauth2Token = getOAuth2Token();
-    if (oauth2Token) {
-      const provider = getOAuth2Provider();
-      if (provider) {
-        setAuthProvider(provider.toUpperCase() as AuthProviderType);
-      }
-      syncWithBackend().then(() => setLoading(false));
-      return; // Don't set up Firebase listener - we're using OAuth2
-    }
+    const initializeAuth = async () => {
+      setLoading(true);
+      
+      try {
+        // Step 1: Check for OAuth2 token (Discord, LinkedIn, Steam)
+        const oauth2Token = getOAuth2Token();
+        const oauth2Provider = getOAuth2Provider();
+        
+        if (oauth2Token && oauth2Provider) {
+          console.log("Found OAuth2 token, syncing with backend...");
+          setAuthProvider(oauth2Provider.toUpperCase() as AuthProviderType);
+          
+          const success = await syncWithBackend();
+          if (success) {
+            setLoading(false);
+            return; // OAuth2 auth successful, don't set up Firebase listener
+          }
+          // If sync failed, clear token and fall through to Firebase
+          clearOAuth2Token();
+        }
 
-    // Firebase auth state listener (only if not using OAuth2)
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      // Double-check OAuth2 token isn't present (might have been added by popup)
-      if (getOAuth2Token()) {
-        return;
-      }
-      
-      setUser(currentUser);
-      
-      if (currentUser) {
-        setAuthProvider("FIREBASE");
-        await syncWithBackend();
-      } else {
-        setDbUser(null);
-        setAuthProvider(null);
-      }
-      
-      setLoading(false);
-    });
+        // Step 2: Check for OAuth2 callback (redirect flow)
+        const callbackParams = handleOAuth2Callback();
+        if (callbackParams?.token) {
+          console.log("OAuth2 callback detected, token stored");
+          setAuthProvider(callbackParams.provider?.toUpperCase() as AuthProviderType);
+          await syncWithBackend();
+          setLoading(false);
+          return; // OAuth2 callback handled
+        }
 
-    return () => unsubscribe();
-  }, [syncWithBackend]);
+        // Step 3: Fallback to Firebase auth
+        console.log("No OAuth2 token, setting up Firebase listener");
+        
+        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+          // Double-check OAuth2 token wasn't set during Firebase listener setup
+          if (isOAuth2Authenticated()) {
+            return;
+          }
+          
+          setUser(currentUser);
+          
+          if (currentUser) {
+            setAuthProvider("FIREBASE");
+            await syncWithBackend();
+          } else {
+            setDbUser(null);
+            setAuthProvider(null);
+          }
+          
+          setLoading(false);
+        });
+
+        return () => unsubscribe();
+      } catch (error) {
+        console.error("Auth initialization error:", error);
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
+  }, [syncWithBackend]); // Only runs once due to initialized ref
 
   const refreshUser = useCallback(async () => {
     await syncWithBackend();
   }, [syncWithBackend]);
 
   const loginWithGoogle = async () => {
-    await signInWithPopup(auth, googleProvider);
+    setLoading(true);
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const loginWithGithub = async () => {
-    await signInWithPopup(auth, githubProvider);
+    setLoading(true);
+    try {
+      await signInWithPopup(auth, githubProvider);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const loginWithEmail = async (email: string, pass: string) => {
-    await signInWithEmailAndPassword(auth, email, pass);
+    setLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const registerWithEmail = async (email: string, pass: string) => {
-    await createUserWithEmailAndPassword(auth, email, pass);
+    setLoading(true);
+    try {
+      await createUserWithEmailAndPassword(auth, email, pass);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // OAuth2 login methods
   const loginWithOAuth2 = useCallback(async (provider: OAuth2Provider) => {
+    setLoading(true);
     try {
-      setLoading(true);
       const params = await openOAuth2Popup(provider);
       
       if (params.token && params.provider) {
@@ -148,6 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await syncWithBackend();
       }
     } catch (error) {
+      console.error(`${provider} login failed:`, error);
       throw error;
     } finally {
       setLoading(false);
@@ -167,12 +215,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [loginWithOAuth2]);
 
   const logout = async () => {
+    setLoading(true);
     try {
       // Step 1: Call backend logout API to revoke all tokens
       try {
         await api.post("/auth/logout");
       } catch (error) {
-        // Log the error but continue with frontend cleanup
         console.error("Backend logout failed:", error);
       }
     } finally {
@@ -192,6 +240,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setDbUser(null);
       setUser(null);
       setAuthProvider(null);
+      setLoading(false);
     }
   };
 
