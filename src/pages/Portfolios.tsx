@@ -426,7 +426,7 @@ const Portfolios = () => {
   const [selectedDevId, setSelectedDevId] = useState<number | null>(null);
   const [showClassified, setShowClassified] = useState(false);
 
-  const [myProfileData, setMyProfileData] = useState<any>(null); 
+  const [myProfileData, setMyProfileData] = useState<any>(null);
   const [isFetchingMyProfile, setIsFetchingMyProfile] = useState(false);
 
   // Environment-controlled demo mode
@@ -557,11 +557,18 @@ const Portfolios = () => {
   };
 
   const handleMyProfileClick = async () => {
+
+    if (!isAuthenticated) {
+      setMyProfileData(null);
+      setIsModalOpen(true);
+      return;
+    }
+
     setIsFetchingMyProfile(true);
 
     try {
       const data = await portfolioService.getMyPortfolio();
-      
+
       if (data === null) {
         // No existing portfolio - open CreatePortfolioModal in CREATE mode
         setMyProfileData(null);
@@ -569,7 +576,7 @@ const Portfolios = () => {
         // Portfolio exists - open in EDIT mode with existing data
         setMyProfileData(data);
       }
-      
+
       setIsModalOpen(true);
     } catch (error) {
       toast.error("Failed to fetch your profile");
@@ -602,12 +609,12 @@ const Portfolios = () => {
           setIsModalOpen(false);
           setMyProfileData(null);
         }}
-        initialData={myProfileData}
-        onSuccess={() => {
-             if (activeRole === "All") refreshRails();
-             else refreshList();
-          }} 
-          />
+          initialData={myProfileData}
+          onSuccess={() => {
+            if (activeRole === "All") refreshRails();
+            else refreshList();
+          }}
+        />
         {/*<PricingModal 
           isOpen={isPricingOpen} 
           onClose={() => setIsPricingOpen(false)}
