@@ -10,7 +10,7 @@ const rotatingCategories = [
   { text: "Game Designers", color: "#00D4FF", accent: "#00E5FF" },
   { text: "Game Engineers", color: "#A855F7", accent: "#C084FC" },
   { text: "2D Artists", color: "#F97316", accent: "#FB923C" },
-  { text: "Gaming Producers", color: "#F97316", accent: "#FB923C" },
+  { text: "Game Producers", color: "#F97316", accent: "#FB923C" },
 ];
 
 // Optimized Particle System
@@ -312,8 +312,8 @@ export const CompactHeader = ({
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <div className="flex items-center gap-1.5 px-1.5 py-1 rounded-lg bg-white/5 border border-white/10 flex-shrink-0">
               <Activity className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#FFAB00] flex-shrink-0" />
-              <span className="text-[10px] sm:text-lg md:text-lg font-mono text-gray-400 whitespace-nowrap">
-                {">"}  The Hub of India's elite
+              <span className="text-[10px] sm:text-sm md:text-lg font-mono text-gray-400 whitespace-nowrap">
+                {">"}  Checkout India's Professional
               </span>
             </div>  
             <div className="min-w-0 flex-1 overflow-hidden">

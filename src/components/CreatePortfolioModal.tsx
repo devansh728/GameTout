@@ -1072,7 +1072,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }
                           </>
                         ) : (
                           <>
-                            SUBMIT DOSSIER <Save className="w-4 h-4" />
+                            SUBMIT <Save className="w-4 h-4" />
                           </>
                         )}
                       </span>
