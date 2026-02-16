@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { motion, useInView, useMotionValue, useTransform, animate } from "framer-motion";
-import { Copy, Check, Headphones, Users, Gamepad2, Film, MessageSquare, Award, Star, Send, Terminal, Mail, User, Lock } from "lucide-react";
+import { motion, useInView, useMotionValue, useTransform, animate, useScroll } from "framer-motion";
+import { Copy, Check, Headphones, Users, Gamepad2, Film, MessageSquare, Award, Send, Terminal, Mail, User, Lock, ChevronDown, Zap, Globe, ArrowRight } from "lucide-react";
 import { PageTransition, FadeInView } from "@/components/PageTransition";
 import { TypewriterText } from "@/components/TypewriterText";
 import { Footer } from "@/components/Footer";
@@ -20,7 +20,7 @@ const AnimatedCounter = ({ value, label }: { value: string; label: string }) => 
 
   useEffect(() => {
     if (isInView) {
-      const controls = animate(count, numericValue, { duration: 2, ease: "easeOut" });
+      const controls = animate(count, numericValue, { duration: 2.5, ease: "easeOut" });
       const unsubscribe = rounded.on("change", (v) => setDisplayValue(v));
       return () => {
         controls.stop();
@@ -30,18 +30,62 @@ const AnimatedCounter = ({ value, label }: { value: string; label: string }) => 
   }, [isInView, numericValue, count, rounded]);
 
   return (
-    <div ref={ref} className="text-center p-6">
-      <div className="font-display text-[clamp(3rem,8vw,5rem)] text-primary leading-none">
-        {displayValue}{value.includes("+") ? "+" : ""}
+    <div ref={ref} className="text-center p-6 relative">
+      <div className="font-display text-[clamp(3rem,8vw,5rem)] text-primary leading-none tracking-tight">
+        {displayValue}
+        {value.includes("+") && (
+          <span className="text-primary">+</span>
+        )}
       </div>
-      <div className="font-mono text-sm text-muted-foreground uppercase tracking-wider mt-2">
+      <div className="font-mono text-base sm:text-lg text-foreground/70 uppercase tracking-widest mt-4">
         {label}
       </div>
     </div>
   );
 };
 
-const ContactIcon = () => {
+// Floating Particles Component
+const FloatingParticles = () => {
+  const particles = Array.from({ length: 20 }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    size: Math.random() * 3 + 1,
+    duration: Math.random() * 20 + 10,
+    delay: Math.random() * 5,
+  }));
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {particles.map((particle) => (
+        <motion.div
+          key={particle.id}
+          className="absolute rounded-full bg-primary/20"
+          style={{
+            left: `${particle.x}%`,
+            top: `${particle.y}%`,
+            width: particle.size,
+            height: particle.size,
+          }}
+          animate={{
+            y: [-20, 20, -20],
+            x: [-10, 10, -10],
+            opacity: [0.2, 0.6, 0.2],
+          }}
+          transition={{
+            duration: particle.duration,
+            delay: particle.delay,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+// Contact Section Component
+const ContactSection = () => {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: "",
@@ -51,19 +95,17 @@ const ContactIcon = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Feature 8: Show Security Auth Modal before submitting
+
     if (!isAuthenticated) {
       setShowAuthModal(true);
       return;
     }
-    
-    setIsSubmitting(true);
 
-    // Simulate form submission
+    setIsSubmitting(true);
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
     toast({
@@ -83,137 +125,163 @@ const ContactIcon = () => {
       description: "You can now submit your message.",
     });
   };
+
   return (
     <>
-    <BackgroundBeams />
-    {/* Content */}
-        <section className="relative z-10 pt-32 pb-20 px-4 md:px-8 max-w-3xl mx-auto">
-          {/* Terminal Header */}
+      <section className="relative py-32 px-4 md:px-8 overflow-hidden">
+        <div className="absolute inset-0">
+          <BackgroundBeams />
+          <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background" />
+        </div>
+
+        <div className="relative z-10 max-w-2xl mx-auto">
           <FadeInView>
-            <div className="mb-12 text-center">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
-                <Terminal className="w-4 h-4 text-primary" />
-                <span className="font-mono text-sm text-primary">system.contact()</span>
+            <div className="mb-16 text-center">
+              <motion.div
+                initial={{ width: 0 }}
+                whileInView={{ width: "4rem" }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8 }}
+                className="h-[2px] bg-primary mx-auto mb-8"
+              />
+              <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-primary/5 border border-primary/10 mb-8">
+                <Terminal className="w-5 h-5 text-primary" />
+                <span className="font-mono text-base text-primary tracking-wider">system.contact()</span>
               </div>
 
-              <h1 className="font-display text-5xl md:text-6xl mb-4">
-                <TypewriterText text="INITIATE COMMUNICATION" delay={300} speed={80} />
-              </h1>
+              <h2 className="font-display text-5xl md:text-6xl lg:text-7xl mb-8 tracking-tight">
+                <TypewriterText text="GET IN TOUCH" delay={300} speed={80} />
+              </h2>
 
-              <p className="text-muted-foreground max-w-lg mx-auto font-mono text-sm">
-                {">"} Ready to collaborate? Drop us a line and our team will respond within 24 hours.
+              <p className="text-foreground/70 max-w-lg mx-auto text-lg sm:text-xl leading-relaxed">
+                <span className="text-primary font-bold">{">"}</span> Ready to collaborate? Drop a line and we'll respond within 24 hours.
               </p>
             </div>
           </FadeInView>
 
-          {/* Form */}
-          <FadeInView delay={0.3}>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Name Input */}
-              <div className="relative group">
-                <label className="block text-xs font-mono text-muted-foreground mb-2 uppercase tracking-wider">
-                  {">"} Your Name
-                </label>
-                <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
-                    placeholder="Enter your name..."
-                    className="w-full pl-12 pr-4 py-4 bg-muted/30 border border-border rounded-lg font-mono text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all"
-                  />
-                </div>
-              </div>
+          <FadeInView delay={0.2}>
+            <motion.div
+              className="relative p-8 md:p-12 rounded-2xl overflow-hidden"
+              style={{
+                background: "linear-gradient(145deg, hsl(0 0% 6% / 0.9) 0%, hsl(0 0% 3% / 0.9) 100%)",
+                border: "1px solid hsl(0 0% 100% / 0.08)",
+              }}
+            >
+              <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-48 bg-primary/5 blur-3xl rounded-full pointer-events-none" />
 
-              {/* Email Input */}
-              <div className="relative group">
-                <label className="block text-xs font-mono text-muted-foreground mb-2 uppercase tracking-wider">
-                  {">"} Email Address
-                </label>
+              <form onSubmit={handleSubmit} className="relative z-10 space-y-8">
+                {/* Name Input */}
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    required
-                    placeholder="your@email.com"
-                    className="w-full pl-12 pr-4 py-4 bg-muted/30 border border-border rounded-lg font-mono text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all"
-                  />
-                </div>
-              </div>
-
-              {/* Message Input */}
-              <div className="relative group">
-                <label className="block text-xs font-mono text-muted-foreground mb-2 uppercase tracking-wider">
-                  {">"} Message
-                </label>
-                <div className="relative">
-                  <MessageSquare className="absolute left-4 top-4 w-4 h-4 text-muted-foreground" />
-                  <textarea
-                    value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    required
-                    rows={6}
-                    placeholder="Type your message here..."
-                    className="w-full pl-12 pr-4 py-4 bg-muted/30 border border-border rounded-lg font-mono text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all resize-none"
-                  />
-                </div>
-              </div>
-
-              {/* Submit Button */}
-              <motion.button
-                type="submit"
-                disabled={isSubmitting}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-primary text-primary-foreground rounded-lg font-mono font-medium disabled:opacity-50 disabled:cursor-not-allowed animate-glow-pulse"
-              >
-                {isSubmitting ? (
-                  <>
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                      className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full"
+                  <label className="block text-sm font-mono text-foreground/60 mb-3 uppercase tracking-widest font-medium">
+                    Your Name
+                  </label>
+                  <div className="relative">
+                    <User className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-300 ${focusedField === 'name' ? 'text-primary' : 'text-foreground/30'}`} />
+                    <input
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      onFocus={() => setFocusedField('name')}
+                      onBlur={() => setFocusedField(null)}
+                      required
+                      placeholder="Enter your name..."
+                      className="w-full pl-14 pr-5 py-5 bg-white/[0.03] border border-white/[0.08] rounded-xl text-lg text-foreground placeholder:text-foreground/25 focus:outline-none focus:border-primary/40 focus:bg-primary/[0.02] focus:shadow-[0_0_24px_-5px_hsl(43_100%_50%_/_0.12)] transition-all duration-300"
                     />
-                    TRANSMITTING...
-                  </>
-                ) : isAuthenticated ? (
-                  <>
-                    <Send className="w-5 h-5" />
-                    SEND TRANSMISSION
-                  </>
-                ) : (
-                  <>
-                    <Lock className="w-5 h-5" />
-                    VERIFY & SEND
-                  </>
-                )}
-              </motion.button>
-            </form>
-          </FadeInView>
+                  </div>
+                </div>
 
-          {/* Decorative Terminal Lines */}
-          <FadeInView delay={0.5}>
-            <div className="mt-16 font-mono text-xs text-muted-foreground/50 space-y-1">
-              <p>{">"} Connection established: GameTout HQ</p>
-              <p>{">"} Encryption: AES-256</p>
-              <p>{">"} Status: {isAuthenticated ? "Authenticated" : "Awaiting verification"}_</p>
-            </div>
-          </FadeInView>
-        </section>
+                {/* Email Input */}
+                <div className="relative">
+                  <label className="block text-sm font-mono text-foreground/60 mb-3 uppercase tracking-widest font-medium">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-300 ${focusedField === 'email' ? 'text-primary' : 'text-foreground/30'}`} />
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      onFocus={() => setFocusedField('email')}
+                      onBlur={() => setFocusedField(null)}
+                      required
+                      placeholder="your@email.com"
+                      className="w-full pl-14 pr-5 py-5 bg-white/[0.03] border border-white/[0.08] rounded-xl text-lg text-foreground placeholder:text-foreground/25 focus:outline-none focus:border-primary/40 focus:bg-primary/[0.02] focus:shadow-[0_0_24px_-5px_hsl(43_100%_50%_/_0.12)] transition-all duration-300"
+                    />
+                  </div>
+                </div>
 
-        <SecurityAuthModal
-          isOpen={showAuthModal}
-          onClose={() => setShowAuthModal(false)}
-          onSuccess={handleAuthSuccess}
-        />
-       </> 
+                {/* Message Input */}
+                <div className="relative">
+                  <label className="block text-sm font-mono text-foreground/60 mb-3 uppercase tracking-widest font-medium">
+                    Message
+                  </label>
+                  <div className="relative">
+                    <MessageSquare className={`absolute left-4 top-5 w-5 h-5 transition-colors duration-300 ${focusedField === 'message' ? 'text-primary' : 'text-foreground/30'}`} />
+                    <textarea
+                      value={formData.message}
+                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                      onFocus={() => setFocusedField('message')}
+                      onBlur={() => setFocusedField(null)}
+                      required
+                      rows={5}
+                      placeholder="Type your message here..."
+                      className="w-full pl-14 pr-5 py-5 bg-white/[0.03] border border-white/[0.08] rounded-xl text-lg text-foreground placeholder:text-foreground/25 focus:outline-none focus:border-primary/40 focus:bg-primary/[0.02] focus:shadow-[0_0_24px_-5px_hsl(43_100%_50%_/_0.12)] transition-all duration-300 resize-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <motion.button
+                  type="submit"
+                  disabled={isSubmitting}
+                  whileHover={{ scale: 1.01, y: -2 }}
+                  whileTap={{ scale: 0.99 }}
+                  className="w-full flex items-center justify-center gap-3 px-8 py-5 bg-primary text-primary-foreground rounded-xl text-lg font-semibold tracking-wide disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_30px_-5px_hsl(43_100%_50%_/_0.3)] hover:shadow-[0_0_40px_-5px_hsl(43_100%_50%_/_0.5)] transition-shadow duration-300"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                        className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full"
+                      />
+                      <span>TRANSMITTING...</span>
+                    </>
+                  ) : isAuthenticated ? (
+                    <>
+                      <Send className="w-5 h-5" />
+                      <span>SEND MESSAGE</span>
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="w-5 h-5" />
+                      <span>VERIFY & SEND</span>
+                    </>
+                  )}
+                </motion.button>
+              </form>
+
+              {/* Status Bar */}
+              <div className="mt-10 pt-6 border-t border-white/[0.06] font-mono text-sm text-foreground/40 flex items-center justify-between">
+                <span>AES-256 Encrypted</span>
+                <span className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${isAuthenticated ? 'bg-green-500' : 'bg-yellow-500'} animate-pulse`} />
+                  {isAuthenticated ? "Authenticated" : "Pending Verification"}
+                </span>
+              </div>
+            </motion.div>
+          </FadeInView>
+        </div>
+      </section>
+
+      <SecurityAuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onSuccess={handleAuthSuccess}
+      />
+    </>
   );
-
-}
+};
 
 // Glitch Image Component
 const GlitchImage = ({ src, alt }: { src: string; alt: string }) => {
@@ -221,21 +289,22 @@ const GlitchImage = ({ src, alt }: { src: string; alt: string }) => {
 
   return (
     <motion.div
-      className="relative overflow-hidden rounded-lg"
+      className="relative overflow-hidden rounded-2xl"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
+      <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-b from-primary/20 via-transparent to-primary/10 pointer-events-none z-10" />
+
       <img
         src={src}
         alt={alt}
-        className="w-full h-full object-cover"
+        className="w-full h-full object-cover rounded-2xl"
       />
-      
-      {/* Glitch layers */}
+
       {isHovered && (
         <>
           <motion.div
-            className="absolute inset-0 bg-primary/20 mix-blend-multiply"
+            className="absolute inset-0 bg-primary/15 mix-blend-multiply rounded-2xl"
             animate={{
               x: [0, -5, 5, -3, 0],
               opacity: [0, 1, 0.5, 1, 0],
@@ -245,7 +314,7 @@ const GlitchImage = ({ src, alt }: { src: string; alt: string }) => {
           <motion.img
             src={src}
             alt=""
-            className="absolute inset-0 w-full h-full object-cover opacity-70"
+            className="absolute inset-0 w-full h-full object-cover opacity-60 rounded-2xl"
             style={{ filter: "hue-rotate(90deg)" }}
             animate={{
               x: [0, 3, -3, 2, 0],
@@ -262,7 +331,7 @@ const GlitchImage = ({ src, alt }: { src: string; alt: string }) => {
           <motion.img
             src={src}
             alt=""
-            className="absolute inset-0 w-full h-full object-cover opacity-70"
+            className="absolute inset-0 w-full h-full object-cover opacity-60 rounded-2xl"
             style={{ filter: "hue-rotate(-90deg)" }}
             animate={{
               x: [0, -3, 3, -2, 0],
@@ -278,53 +347,89 @@ const GlitchImage = ({ src, alt }: { src: string; alt: string }) => {
           />
         </>
       )}
-      
-      {/* Scanlines */}
-      <div className="absolute inset-0 scanlines pointer-events-none" />
-      
-      {/* Vignette */}
-      <div className="absolute inset-0 vignette pointer-events-none" />
+
+      <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent rounded-2xl pointer-events-none" />
+      <div className="absolute inset-0 scanlines pointer-events-none opacity-30 rounded-2xl" />
     </motion.div>
   );
 };
 
 // Ecosystem Card Component
-const EcosystemCard = ({ 
-  icon: Icon, 
-  title, 
+const EcosystemCard = ({
+  icon: Icon,
+  title,
   description,
-  delay = 0
-}: { 
-  icon: React.ElementType; 
-  title: string; 
+  index = 0,
+}: {
+  icon: React.ElementType;
+  title: string;
   description: string;
-  delay?: number;
+  index?: number;
 }) => (
   <motion.div
-    initial={{ opacity: 0, y: 20 }}
+    initial={{ opacity: 0, y: 30 }}
     whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ duration: 0.5, delay }}
-    whileHover={{ scale: 1.02 }}
-    className="relative p-6 rounded-lg overflow-hidden group"
+    viewport={{ once: true, margin: "-50px" }}
+    transition={{ duration: 0.6, delay: index * 0.08, ease: [0.25, 0.1, 0, 1] }}
+    whileHover={{ y: -6 }}
+    className="relative p-8 rounded-2xl overflow-hidden group cursor-default"
     style={{
-      background: "linear-gradient(145deg, hsl(0 0% 8% / 0.8) 0%, hsl(0 0% 4% / 0.8) 100%)",
-      backdropFilter: "blur(20px)",
-      border: "1px solid hsl(0 0% 100% / 0.1)",
+      background: "linear-gradient(165deg, hsl(0 0% 7% / 0.9) 0%, hsl(0 0% 3% / 0.9) 100%)",
+      border: "1px solid hsl(0 0% 100% / 0.08)",
     }}
   >
-    {/* Glowing border on hover */}
-    <div className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-      style={{ boxShadow: "inset 0 0 30px hsl(43 100% 50% / 0.1), 0 0 30px hsl(43 100% 50% / 0.1)" }}
+    <motion.div
+      className="absolute top-0 left-0 right-0 h-[2px]"
+      style={{
+        background: "linear-gradient(90deg, transparent, hsl(43 100% 50% / 0.4), transparent)",
+      }}
+      initial={{ scaleX: 0 }}
+      whileInView={{ scaleX: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.8, delay: index * 0.08 + 0.3 }}
     />
-    
+
+    <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
+      style={{
+        background: "radial-gradient(circle at 50% 0%, hsl(43 100% 50% / 0.06) 0%, transparent 70%)",
+      }}
+    />
+
     <div className="relative z-10">
-      <div className="w-12 h-12 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center mb-4">
-        <Icon className="w-6 h-6 text-primary" />
+      <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-6 group-hover:border-primary/40 group-hover:bg-primary/15 transition-all duration-500">
+        <Icon className="w-7 h-7 text-primary/80 group-hover:text-primary transition-colors duration-500" />
       </div>
-      <h3 className="font-display text-xl text-foreground mb-2">{title}</h3>
-      <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>
+      <h3 className="font-display text-2xl text-foreground mb-3 tracking-tight">{title}</h3>
+      <p className="text-foreground/60 text-lg leading-relaxed group-hover:text-foreground/70 transition-colors duration-500">{description}</p>
     </div>
+  </motion.div>
+);
+
+// Timeline Item Component
+const TimelineItem = ({
+  year,
+  title,
+  description,
+  index,
+}: {
+  year: string;
+  title: string;
+  description: string;
+  index: number;
+}) => (
+  <motion.div
+    initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
+    whileInView={{ opacity: 1, x: 0 }}
+    viewport={{ once: true, margin: "-50px" }}
+    transition={{ duration: 0.6, delay: 0.1 }}
+    className="relative pl-10 pb-14 last:pb-0"
+  >
+    <div className="absolute left-[4px] top-3 bottom-0 w-[2px] bg-gradient-to-b from-primary/50 to-transparent" />
+    <div className="absolute left-0 top-2 w-[10px] h-[10px] rounded-full bg-primary shadow-[0_0_12px_hsl(43_100%_50%_/_0.6)]" />
+
+    <div className="font-mono text-sm text-primary font-semibold uppercase tracking-[0.2em] mb-2">{year}</div>
+    <h4 className="font-display text-2xl text-foreground mb-2">{title}</h4>
+    <p className="text-foreground/65 text-lg leading-relaxed">{description}</p>
   </motion.div>
 );
 
@@ -335,12 +440,26 @@ const stats = [
   { label: "Documentaries", value: "30+" },
 ];
 
-const roles = ["Game Reviewer", "Documentary Maker", "Steam Curator", "Community Builder"];
+const roles = ["Video Game Journalist", "Documentary Maker", "Steam Curator", "Community Builder"];
+
+const milestones = [
+  { year: "The Beginning", title: "GameTout™ Channel Launch", description: "Started covering the Indian game development scene with honest, ground-level reporting." },
+  { year: "Growing Impact", title: "300+ Industry Interviews", description: "Became the go-to interviewer for Indian game developers, covering events like IGDC extensively." },
+  { year: "Community Building", title: "Indian Gamedev Mixer", description: "Founded the specialized community connecting gamedevs and artists across India." },
+  { year: "Present Day", title: "Ecosystem Architect", description: "Running multiple initiatives including podcasts, meetups, and advocacy groups for the Indian gamedev scene." },
+];
 
 const About = () => {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   const email = "thegametout@gmail.com";
+  const heroRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+  const heroY = useTransform(scrollYProgress, [0, 0.5], [0, -50]);
 
   const copyEmail = async () => {
     await navigator.clipboard.writeText(email);
@@ -354,41 +473,46 @@ const About = () => {
 
   return (
     <PageTransition>
-      <main className="min-h-screen bg-background">
-        {/* Hero Profile Section */}
-        <section className="min-h-[100dvh] flex items-center py-20 px-4 md:px-8">
-          <div className="max-w-7xl mx-auto w-full">
-            <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-              {/* Left: Portrait with Glitch Effect */}
+      <main className="min-h-screen bg-background overflow-x-hidden">
+        {/* ===== HERO SECTION ===== */}
+        <section ref={heroRef} className="relative min-h-[100dvh] flex items-center py-24 px-4 md:px-8">
+          <FloatingParticles />
+
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/[0.03] rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
+          </div>
+
+          <motion.div style={{ opacity: heroOpacity, y: heroY }} className="max-w-7xl mx-auto w-full relative z-10">
+            <div className="grid lg:grid-cols-[1fr,1.2fr] gap-16 lg:gap-24 items-center">
+              {/* Left: Portrait */}
               <FadeInView>
-                <div className="relative">
-                  {/* Classified stamp */}
+                <div className="relative max-w-md mx-auto lg:max-w-none">
                   <motion.div
-                    initial={{ rotate: -12, scale: 0 }}
-                    animate={{ rotate: -12, scale: 1 }}
-                    transition={{ delay: 0.5, type: "spring" }}
-                    className="absolute -top-4 -right-4 z-20 px-4 py-2 bg-destructive/90 font-display text-lg text-destructive-foreground uppercase tracking-wider"
-                    style={{ boxShadow: "4px 4px 0 hsl(0 0% 0% / 0.5)" }}
+                    initial={{ rotate: -12, scale: 0, opacity: 0 }}
+                    animate={{ rotate: -12, scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.8, type: "spring", stiffness: 200 }}
+                    className="absolute -top-4 -right-4 z-20 px-4 py-2 bg-destructive/90 font-display text-lg text-destructive-foreground uppercase tracking-widest rounded-sm"
+                    style={{ boxShadow: "3px 3px 0 hsl(0 0% 0% / 0.4)" }}
                   >
                     Classified
                   </motion.div>
-                  
-                  <div className="aspect-[3/4] max-w-md mx-auto lg:max-w-none">
+
+                  <div className="aspect-[3/4]">
                     <GlitchImage
-                      src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80"
+                      src="/WebsitePic.png"
                       alt="GameTout Founder"
                     />
                   </div>
-                  
-                  {/* Role tags */}
-                  <div className="flex flex-wrap gap-2 mt-6 justify-center lg:justify-start">
+
+                  <div className="flex flex-wrap gap-2.5 mt-8 justify-center lg:justify-start">
                     {roles.map((role, index) => (
                       <motion.span
                         key={role}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.8 + index * 0.1 }}
-                        className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-mono uppercase tracking-wider"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 1 + index * 0.1, ease: [0.25, 0.1, 0, 1] }}
+                        className="px-4 py-2 rounded-full bg-primary/8 border border-primary/20 text-primary text-sm font-mono uppercase tracking-wider"
                       >
                         {role}
                       </motion.span>
@@ -397,220 +521,303 @@ const About = () => {
                 </div>
               </FadeInView>
 
-              {/* Right: Bio with Typewriter */}
+              {/* Right: Bio */}
               <div className="text-center lg:text-left">
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
-                  className="mb-4"
+                  className="mb-6"
                 >
-                  <span className="font-mono text-xs text-muted-foreground uppercase tracking-widest">
+                  <span className="font-mono text-sm text-foreground/50 uppercase tracking-[0.3em]">
                     // Subject Dossier
                   </span>
                 </motion.div>
 
-                <h1 className="font-display text-[clamp(2.5rem,6vw,5rem)] leading-none mb-6">
+                <h1 className="font-display text-[clamp(3rem,6vw,5rem)] leading-[0.92] mb-8 tracking-tight">
                   <span className="text-gradient-gold">The Voice</span>
                   <br />
                   <span className="text-foreground">of Indian Gaming</span>
                 </h1>
 
-                <div className="mb-8">
+                <div className="mb-10">
                   <TypewriterText
-                    text="Unfiltered. Unbiased. Ground-level coverage of the IGDC and beyond."
-                    className="text-lg text-muted-foreground"
+                    text="Upfront. Unfiltered. Ground-level coverage of the Indian Game Development scene and beyond."
+                    className="text-lg sm:text-xl text-foreground/70 leading-relaxed"
                     speed={30}
                     delay={500}
                   />
                 </div>
 
-                <motion.p
+                <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1.5 }}
-                  className="text-muted-foreground leading-relaxed max-w-lg mx-auto lg:mx-0"
+                  transition={{ delay: 1.5, duration: 0.8 }}
+                  className="space-y-6 max-w-xl mx-auto lg:mx-0"
                 >
-                  GameTout is a highly visible and respected figure in the Indian game development ecosystem. 
-                  Known for being upfront, controversial, and candid, his work is closely followed by 
-                  key studios and individuals across the industry.
-                </motion.p>
+                  <p className="text-foreground/85 leading-[1.8] text-lg">
+                    GameTout™ is a highly visible and respected figure in the Indian game development ecosystem,
+                    known for his commitment to being upfront and speaking his mind. His work is closely followed
+                    by almost all studios and key individuals in the industry.
+                  </p>
+                  <p className="text-foreground/75 leading-[1.8] text-lg">
+                    A dedicated game reviewer, documentary maker, and prominent Video Game Journalist, he
+                    specializes in ground-level interviews and critical analysis of industry events like IGDC.
+                    He is an essential advocate, documentarian, and connector for the Indian gamedev scene.
+                  </p>
+                </motion.div>
 
-                <SocialLink3D />
-
-                {/* Scroll indicator */}
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 2 }}
-                  className="mt-12 hidden lg:block"
+                >
+                  <SocialLink3D />
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 2.5 }}
+                  className="mt-16 hidden lg:flex items-center gap-3"
                 >
                   <motion.div
-                    animate={{ y: [0, 10, 0] }}
-                    transition={{ repeat: Infinity, duration: 1.5 }}
-                    className="w-6 h-10 rounded-full border-2 border-muted-foreground/30 flex items-start justify-center p-2"
+                    animate={{ y: [0, 6, 0] }}
+                    transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
                   >
-                    <motion.div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                    <ChevronDown className="w-5 h-5 text-foreground/30" />
                   </motion.div>
+                  <span className="font-mono text-sm text-foreground/30 uppercase tracking-widest">
+                    Scroll to explore
+                  </span>
                 </motion.div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </section>
 
-        {/* Mission Stats Section */}
-        <section className="py-20 px-4 md:px-8 relative overflow-hidden">
-          {/* Grid background */}
-          <div 
-            className="absolute inset-0 opacity-5"
+        {/* ===== STATS SECTION ===== */}
+        <section className="relative py-0 px-4 md:px-8">
+          <div
+            className="absolute inset-0 opacity-[0.03]"
             style={{
               backgroundImage: `
-                linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px),
-                linear-gradient(to bottom, hsl(var(--border)) 1px, transparent 1px)
+                linear-gradient(to right, hsl(var(--foreground)) 1px, transparent 1px),
+                linear-gradient(to bottom, hsl(var(--foreground)) 1px, transparent 1px)
               `,
-              backgroundSize: "60px 60px",
+              backgroundSize: "80px 80px",
             }}
           />
-          
+
           <div className="max-w-5xl mx-auto relative z-10">
             <FadeInView>
-              <div className="text-center mb-12">
-                <span className="font-mono text-xs text-primary uppercase tracking-widest">
+              <div className="text-center mb-16">
+                <motion.div
+                  initial={{ width: 0 }}
+                  whileInView={{ width: "4rem" }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8 }}
+                  className="h-[2px] bg-primary mx-auto mb-8"
+                />
+                <span className="font-mono text-sm text-primary font-semibold uppercase tracking-[0.3em]">
                   // Mission Stats
                 </span>
-                <h2 className="font-display text-4xl mt-2">
+                <h2 className="font-display text-4xl sm:text-5xl mt-4 tracking-tight">
                   Career <span className="text-gradient-gold">Metrics</span>
                 </h2>
               </div>
             </FadeInView>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {stats.map((stat) => (
-                <div
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
+              {stats.map((stat, index) => (
+                <motion.div
                   key={stat.label}
-                  className="relative p-4 rounded-lg border border-border bg-card/50"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="relative p-3 rounded-2xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-sm overflow-hidden group"
                 >
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
+                    style={{
+                      background: "radial-gradient(circle at 50% 50%, hsl(43 100% 50% / 0.05) 0%, transparent 70%)",
+                    }}
+                  />
                   <AnimatedCounter value={stat.value} label={stat.label} />
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* The Ecosystem Section */}
-        <section className="py-20 px-4 md:px-8">
-          <div className="max-w-6xl mx-auto">
+        {/* ===== JOURNEY / TIMELINE SECTION ===== */}
+        <section className="py-24 px-4 md:px-8">
+          <div className="max-w-4xl mx-auto">
             <FadeInView>
-              <div className="text-center mb-12">
-                <span className="font-mono text-xs text-primary uppercase tracking-widest">
-                  // The Ecosystem
+              <div className="text-center mb-16">
+                <motion.div
+                  initial={{ width: 0 }}
+                  whileInView={{ width: "4rem" }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8 }}
+                  className="h-[2px] bg-primary mx-auto mb-8"
+                />
+                <span className="font-mono text-sm text-primary font-semibold uppercase tracking-[0.3em]">
+                  // The Journey
                 </span>
-                <h2 className="font-display text-4xl mt-2">
-                  Building the <span className="text-gradient-gold">Network</span>
+                <h2 className="font-display text-4xl sm:text-5xl mt-4 tracking-tight">
+                  Key <span className="text-gradient-gold">Milestones</span>
                 </h2>
               </div>
             </FadeInView>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="max-w-2xl mx-auto">
+              {milestones.map((milestone, index) => (
+                <TimelineItem key={index} {...milestone} index={index} />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ===== ECOSYSTEM SECTION ===== */}
+        <section className="py-24 px-4 md:px-8 relative">
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/[0.02] rounded-full blur-3xl" />
+          </div>
+
+          <div className="max-w-6xl mx-auto relative z-10">
+            <FadeInView>
+              <div className="text-center mb-16">
+                <motion.div
+                  initial={{ width: 0 }}
+                  whileInView={{ width: "4rem" }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8 }}
+                  className="h-[2px] bg-primary mx-auto mb-8"
+                />
+                <span className="font-mono text-sm text-primary font-semibold uppercase tracking-[0.3em]">
+                  // The Ecosystem
+                </span>
+                <h2 className="font-display text-4xl sm:text-5xl mt-4 tracking-tight">
+                  Building the <span className="text-gradient-gold">Network</span>
+                </h2>
+                <p className="text-foreground/65 text-lg sm:text-xl mt-6 max-w-lg mx-auto leading-relaxed">
+                  A growing ecosystem of communities, content, and connections powering the Indian gamedev scene.
+                </p>
+              </div>
+            </FadeInView>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
               <EcosystemCard
                 icon={Headphones}
-                title="GameTout Gossip Podcast"
-                description="Candid discussions with Global Gaming Personalities. Unscripted, unfiltered conversations available on Spotify & YouTube."
-                delay={0}
+                title="GameTout™ Gossip Podcast"
+                description="A candid discussion platform available on YouTube & Spotify — a key space for interviewing and engaging with Global Gaming Personalities."
+                index={0}
               />
               <EcosystemCard
                 icon={Users}
                 title="Indian Gamedev Mixer"
-                description="The core faction—a specialized community for gamedevs and artists to connect. Includes a dedicated YouTube channel showcasing local talent."
-                delay={0.1}
+                description="A specialized community for gamedevs and artists to connect, with a dedicated YouTube channel to further promote and showcase local talent."
+                index={1}
               />
               <EcosystemCard
                 icon={Award}
                 title="Women Gamedev Mixer"
-                description="A dedicated initiative to foster inclusion and support for women in the Indian games industry. Building a more diverse future."
-                delay={0.2}
+                description="A dedicated group managed by GameTout™ to foster inclusion and support for women in the Indian games industry."
+                index={2}
               />
               <EcosystemCard
                 icon={MessageSquare}
-                title="Bharat GameDev Channels"
-                description="Hosting monthly digital meetups and maintaining active WhatsApp communities for real-time industry connections."
-                delay={0.3}
+                title="Bharat Gamedev Mixer"
+                description="Active WhatsApp networking channels through Bharat Gamedev Mixer / Indian GameDev Mixer for real-time industry connections."
+                index={3}
               />
               <EcosystemCard
                 icon={Gamepad2}
                 title="Steam Curator"
-                description="Promoting Indie and Indian-made games to a global audience. Helping hidden gems find their players."
-                delay={0.4}
+                description="Operating as a Steam Curator, promoting indie and Indian-made games to a global audience. Helping hidden gems find their players."
+                index={4}
               />
               <EcosystemCard
                 icon={Film}
                 title="Documentary Series"
-                description="Long-form cinematic content exploring the stories behind India's most innovative game studios and creators."
-                delay={0.5}
+                description="An extensive body of work including over 30 documentaries — long-form cinematic content exploring the stories behind India's most innovative game studios."
+                index={5}
               />
             </div>
           </div>
         </section>
 
-        {/* Terminal CTA Section */}
-        <section className="py-20 px-4 md:px-8">
+        {/* ===== CTA SECTION ===== */}
+        <section className="py-24 px-4 md:px-8">
           <div className="max-w-3xl mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="relative p-8 md:p-12 rounded-lg bg-card border border-border overflow-hidden"
+              transition={{ duration: 0.8 }}
+              className="relative p-10 md:p-16 rounded-2xl overflow-hidden text-center"
+              style={{
+                background: "linear-gradient(165deg, hsl(0 0% 7% / 0.9) 0%, hsl(0 0% 3% / 0.9) 100%)",
+                border: "1px solid hsl(0 0% 100% / 0.08)",
+              }}
             >
-              {/* Scanlines */}
-              <div className="absolute inset-0 scanlines pointer-events-none opacity-50" />
-              
-              {/* Content */}
-              <div className="relative z-10 text-center">
-                <div className="font-mono text-xs text-muted-foreground mb-4">
-                  {">"} system.broadcast()
-                </div>
-                
-                <h2 className="font-display text-3xl md:text-4xl mb-4">
-                  Website & Magazine <span className="text-gradient-gold">Dropping Soon</span>
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-40 bg-primary/10 blur-3xl rounded-full pointer-events-none" />
+              <div className="absolute inset-0 scanlines pointer-events-none opacity-20 rounded-2xl" />
+
+              <div className="relative z-10">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  whileInView={{ scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ type: "spring", delay: 0.2 }}
+                  className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/25 flex items-center justify-center mx-auto mb-10"
+                >
+                  <Zap className="w-8 h-8 text-primary" />
+                </motion.div>
+
+                <h2 className="font-display text-3xl sm:text-4xl md:text-5xl mb-6 tracking-tight">
+                  Website & Magazine{" "}
+                  <span className="text-gradient-gold">Dropping Soon</span>
                 </h2>
-                
-                <p className="text-muted-foreground mb-8 font-mono text-sm">
+
+                <p className="text-foreground/65 mb-12 text-lg sm:text-xl leading-relaxed">
                   Connect with the source. Join the movement.
                 </p>
 
                 {/* Email Copy Button */}
                 <motion.button
                   onClick={copyEmail}
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  className="inline-flex items-center gap-3 px-6 py-4 bg-primary/10 border border-primary/30 rounded-lg font-mono text-primary hover:bg-primary/20 transition-colors"
+                  className="group inline-flex items-center gap-4 px-8 py-5 bg-white/[0.04] border border-white/[0.1] rounded-xl text-lg text-foreground/80 hover:border-primary/30 hover:bg-primary/[0.04] transition-all duration-300"
                 >
                   {copied ? (
-                    <Check className="w-5 h-5" />
+                    <Check className="w-5 h-5 text-green-400" />
                   ) : (
-                    <Copy className="w-5 h-5" />
+                    <Copy className="w-5 h-5 text-foreground/50 group-hover:text-primary transition-colors" />
                   )}
-                  <span>{email}</span>
-                  <motion.span
-                    animate={{ opacity: [1, 0] }}
-                    transition={{ repeat: Infinity, duration: 0.8 }}
-                    className="text-primary"
-                  >
-                    _
-                  </motion.span>
+                  <span className="font-mono">{email}</span>
+                  <ArrowRight className="w-5 h-5 text-foreground/40 group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
                 </motion.button>
 
-                <div className="mt-8 font-mono text-xs text-muted-foreground/50">
-                  {">"} Status: Active | Location: India | Clearance: Public_
+                <div className="mt-12 flex items-center justify-center gap-8 text-sm text-foreground/35 uppercase tracking-widest">
+                  <span className="flex items-center gap-2">
+                    <Globe className="w-4 h-4" />
+                    India
+                  </span>
+                  <span className="w-px h-4 bg-foreground/15" />
+                  <span>Active</span>
+                  <span className="w-px h-4 bg-foreground/15" />
+                  <span>Public</span>
                 </div>
               </div>
             </motion.div>
           </div>
         </section>
 
-        <ContactIcon/>
-
-
+        {/* ===== CONTACT SECTION ===== */}
+        <ContactSection />
 
         <Footer />
       </main>

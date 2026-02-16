@@ -183,7 +183,7 @@ export const GlobalHeader = ({ onLoginClick, isAuthenticated }: GlobalHeaderProp
           {/* Brand Logo - NOW LARGER */}
           <Link to="/" className="flex flex-col group relative z-50 flex-shrink-0">
             <h1 className="font-display text-3xl md:text-5xl font-bold uppercase text-white leading-none tracking-normal group-hover:text-[#FFAB00] transition-colors drop-shadow-xl">
-              Game<span className="text-[#FFAB00] group-hover:text-white transition-colors">Tout</span>
+              Game<span className="text-[#FFAB00] group-hover:text-white transition-colors">Tout™</span>
             </h1>
           </Link>
         </div>
