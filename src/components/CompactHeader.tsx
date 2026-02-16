@@ -98,7 +98,6 @@ const FloatingShapes = () => {
 };
 
 // 3D Rotating Category Display - More Compact
-// 3D Rotating Category Display - More Compact and Mobile-Friendly
 const Category3DDisplay = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipping, setIsFlipping] = useState(false);
@@ -117,7 +116,7 @@ const Category3DDisplay = () => {
   const current = rotatingCategories[currentIndex];
 
   return (
-    <div className="relative h-8 sm:h-6 flex items-center" style={{ perspective: "800px" }}>
+    <div className="relative h-6 flex items-center" style={{ perspective: "800px" }}>
       <AnimatePresence mode="wait">
         <motion.div
           key={currentIndex}
@@ -125,10 +124,10 @@ const Category3DDisplay = () => {
           animate={{ rotateX: 0, opacity: 1, y: 0 }}
           exit={{ rotateX: 90, opacity: 0, y: -10 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
-          className="relative flex items-center"
+          className="relative"
         >
           <span
-            className="font-bold text-xs sm:text-sm md:text-base uppercase tracking-wider leading-tight py-1"
+            className="font-bold text-[10px] xs:text-xs sm:text-sm md:text-base uppercase tracking-wider"
             style={{
               color: current.color,
               textShadow: `0 0 15px ${current.color}`,
@@ -141,7 +140,7 @@ const Category3DDisplay = () => {
       </AnimatePresence>
 
       <motion.span
-        className="ml-1 inline-block w-2 h-4 sm:h-5 bg-current"
+        className="ml-1 inline-block w-2 h-5 bg-current"
         style={{ color: current.color }}
         animate={{ opacity: [1, 0, 1] }}
         transition={{ duration: 0.8, repeat: Infinity }}
