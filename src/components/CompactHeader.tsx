@@ -15,7 +15,7 @@ const rotatingCategories = [
 
 // Optimized Particle System
 const ParticleField = () => {
-  const particles = useMemo(() => 
+  const particles = useMemo(() =>
     Array.from({ length: 20 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
@@ -157,7 +157,7 @@ const StatsCounter = ({ count, label }: { count: number; label: string }) => {
     let start = 0;
     const duration = 1500;
     const increment = count / (duration / 16);
-    
+
     const timer = setInterval(() => {
       start += increment;
       if (start >= count) {
@@ -226,10 +226,10 @@ const DemoToggle3D = ({ isDemoMode, onToggle }: { isDemoMode: boolean; onToggle:
     onClick={onToggle}
     className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-[8px] sm:text-[10px] font-bold uppercase tracking-wider transition-all flex-shrink-0"
     style={{
-      background: isDemoMode 
+      background: isDemoMode
         ? "rgba(168,85,247,0.2)"
         : "rgba(255,255,255,0.05)",
-      border: isDemoMode 
+      border: isDemoMode
         ? "1px solid rgba(168,85,247,0.3)"
         : "1px solid rgba(255,255,255,0.1)",
       color: isDemoMode ? "#C084FC" : "#9CA3AF",
@@ -310,14 +310,15 @@ export const CompactHeader = ({
         {/* Main Content - Mobile Optimized Layout */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-3 sm:px-4 py-3 sm:py-2.5">
           {/* Left Section - Tagline - Fixed for Mobile */}
-          <div className="flex flex-col xs:flex-row items-start xs:items-center gap-2 flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 flex-shrink-0">
-              <Activity className="w-3 h-3 sm:w-3 sm:h-3 text-[#FFAB00] flex-shrink-0" />
-              <span className="text-[10px] sm:text-xs font-mono text-gray-400 whitespace-nowrap">
-                {">"}  Checkout India's Professional
+          {/* Left Section - Tagline - Fixed for Mobile */}
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 px-1.5 py-1 rounded-lg bg-white/5 border border-white/10 flex-shrink-0">
+              <Activity className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#FFAB00] flex-shrink-0" />
+              <span className="text-[10px] sm:text-xs md:text-lg font-mono text-gray-400 whitespace-nowrap">
+                {">"} Checkout India's Professional
               </span>
-            </div>  
-            <div className="w-full xs:w-auto min-w-0 overflow-visible">
+            </div>
+            <div className="min-w-0 flex-1 overflow-hidden">
               <Category3DDisplay />
             </div>
           </div>
@@ -326,7 +327,7 @@ export const CompactHeader = ({
           <div className="flex items-center justify-end gap-1.5 sm:gap-3 flex-shrink-0">
             {/* Stats - Always Visible Now */}
             <StatsCounter count={totalProfiles} label="Active Talents" />
-            
+
             {/* CTA Button */}
             <CTAButton3D onClick={onMyProfileClick} />
 
