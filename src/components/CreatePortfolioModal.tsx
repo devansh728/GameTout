@@ -36,6 +36,7 @@ const PLATFORM_OPTIONS = [
 ];
 
 // Custom Platform Dropdown Component (similar to createpost)
+// Custom Platform Dropdown Component (similar to createpost)
 const PlatformDropdown = ({
   value,
   onChange,
@@ -50,28 +51,31 @@ const PlatformDropdown = ({
   const selectedPlatform = PLATFORM_OPTIONS.find(p => p.value === value);
 
   return (
-    <div className="relative w-1/4" style={{ zIndex: 1000 - index }}>
+    <div className="relative w-full" style={{ zIndex: 1000 - index }}>
       <motion.button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full text-left bg-black/50 border-b border-white/20 text-white text-sm font-mono py-2 px-2 hover:border-[#FFAB00] transition-colors flex items-center justify-between ${isOpen ? 'border-[#FFAB00]' : ''}`}
+        className={`w-full text-left bg-black/50 border-b border-white/20 text-white text-sm font-mono py-2 px-3 hover:border-[#FFAB00] transition-colors flex items-center justify-between rounded-sm ${
+          isOpen ? 'border-[#FFAB00]' : ''
+        }`}
         whileTap={{ scale: 0.98 }}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 truncate">
           {selectedPlatform ? (
             <>
-              <selectedPlatform.icon className="w-3 h-3" style={{ color: selectedPlatform.color }} />
-              <span>{selectedPlatform.label}</span>
+              <selectedPlatform.icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: selectedPlatform.color }} />
+              <span className="truncate">{selectedPlatform.label}</span>
             </>
           ) : (
-            <span className="text-gray-400">Platform</span>
+            <span className="text-gray-400">Select Platform</span>
           )}
         </div>
         <motion.div
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2 }}
+          className="flex-shrink-0 ml-2"
         >
-          <ChevronDown className="w-3 h-3 text-gray-400" />
+          <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
         </motion.div>
       </motion.button>
 
@@ -87,38 +91,43 @@ const PlatformDropdown = ({
               onClick={() => setIsOpen(false)}
             />
 
-            {/* Dropdown - opens upward */}
+            {/* Dropdown - opens upward on mobile, downward on desktop? Actually let's keep it consistent */}
             <motion.div
               initial={{ opacity: 0, y: 10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              className="absolute bottom-full left-0 right-0 mb-2 bg-[#0a0a0a] border border-[#FFAB00]/30 rounded-lg shadow-2xl max-h-60 overflow-y-auto"
+              className="absolute left-0 right-0 mt-2 bg-[#0a0a0a] border border-[#FFAB00]/30 rounded-lg shadow-2xl max-h-60 overflow-y-auto z-50"
               style={{
-                boxShadow: '0 -10px 50px rgba(0,0,0,0.8), 0 0 20px rgba(255,171,0,0.1)',
-                zIndex: 50
+                boxShadow: '0 10px 50px rgba(0,0,0,0.8), 0 0 20px rgba(255,171,0,0.1)',
               }}
             >
-              {PLATFORM_OPTIONS.map((platform) => {
-                const PlatformIcon = platform.icon;
-                return (
-                  <motion.button
-                    key={platform.value}
-                    type="button"
-                    onClick={() => {
-                      onChange(platform.value);
-                      setIsOpen(false);
-                    }}
-                    className={`w-full px-3 py-2 text-left text-sm hover:bg-white/10 transition-colors flex items-center gap-2 ${value === platform.value
-                      ? 'bg-[#FFAB00]/20 text-[#FFAB00]'
-                      : 'text-gray-300'
+              <div className="p-1">
+                {PLATFORM_OPTIONS.map((platform) => {
+                  const PlatformIcon = platform.icon;
+                  return (
+                    <motion.button
+                      key={platform.value}
+                      type="button"
+                      onClick={() => {
+                        onChange(platform.value);
+                        setIsOpen(false);
+                      }}
+                      className={`w-full px-3 py-2.5 text-left text-sm hover:bg-white/10 transition-colors flex items-center gap-3 rounded ${
+                        value === platform.value
+                          ? 'bg-[#FFAB00]/20 text-[#FFAB00]'
+                          : 'text-gray-300'
                       }`}
-                    whileHover={{ x: 4 }}
-                  >
-                    <PlatformIcon className="w-4 h-4" style={{ color: platform.color }} />
-                    <span>{platform.label}</span>
-                  </motion.button>
-                );
-              })}
+                      whileHover={{ x: 4 }}
+                    >
+                      <PlatformIcon className="w-4 h-4 flex-shrink-0" style={{ color: platform.color }} />
+                      <span className="truncate">{platform.label}</span>
+                      {value === platform.value && (
+                        <CheckCircle className="w-4 h-4 ml-auto flex-shrink-0" />
+                      )}
+                    </motion.button>
+                  );
+                })}
+              </div>
             </motion.div>
           </>
         )}
@@ -294,12 +303,12 @@ const StatusDropdown = ({ value, onChange }: { value: string; onChange: (value: 
   );
 };
 
-export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess , initialData}: CreatePortfolioModalProps) => {
+export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }: CreatePortfolioModalProps) => {
   const { isAuthenticated, dbUser, loginWithGoogle, loginWithGithub,
     loginWithDiscord,
     loginWithLinkedIn,
-    loginWithSteam, 
-    loginWithEmail  
+    loginWithSteam,
+    loginWithEmail
   } = useAuth();
   const { createOrUpdate, loading: isSubmitting, error: submitError, success, reset } = usePortfolioMutation();
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
@@ -327,24 +336,24 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess , initialData}
         name: initialData.name || "",
         shortDescription: initialData.shortDescription || "",
         // Map backend Enum back to Frontend String if needed, or ensure types match
-        role: initialData.jobCategory === JobCategory.DEVELOPMENT ? "Programmer" 
-              : initialData.jobCategory === JobCategory.DESIGN ? "Artist"
-              : initialData.jobCategory === JobCategory.OTHER ? "Audio"
+        role: initialData.jobCategory === JobCategory.DEVELOPMENT ? "Programmer"
+          : initialData.jobCategory === JobCategory.DESIGN ? "Artist"
+            : initialData.jobCategory === JobCategory.OTHER ? "Audio"
               : initialData.jobCategory === JobCategory.PRODUCT_MANAGEMENT ? "Producer"
-              : "Programmer", // Fallback
+                : "Programmer", // Fallback
         location: initialData.location || "",
         experienceYears: initialData.experienceYears || 0,
-        jobStatus: initialData.jobStatus === "OPEN" ? "Open for Work" 
-                   : initialData.jobStatus === "FREELANCE" ? "Freelance" 
-                   : "Deployed",
+        jobStatus: initialData.jobStatus === "OPEN" ? "Open for Work"
+          : initialData.jobStatus === "FREELANCE" ? "Freelance"
+            : "Deployed",
         profileSummary: initialData.profileSummary || "",
         contactEmail: initialData.contactEmail || "",
         profilePhotoUrl: initialData.profilePhotoUrl || "",
         coverPhotoUrl: initialData.coverPhotoUrl || "",
         resumeUrl: initialData.resumeUrl || "",
         // Ensure arrays have at least one empty item if empty
-        skills: initialData.skills && initialData.skills.length > 0 
-          ? initialData.skills.map(s => ({ name: s.name, score: s.score || 50 })) 
+        skills: initialData.skills && initialData.skills.length > 0
+          ? initialData.skills.map(s => ({ name: s.name, score: s.score || 50 }))
           : [{ name: "", score: 50 }],
         socials: initialData.socials && initialData.socials.length > 0
           ? initialData.socials.map(s => ({ platform: s.platform, url: s.url }))
@@ -461,7 +470,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess , initialData}
 
   const handleProfilePhotoDelete = async () => {
     if (!formData.profilePhotoUrl) return;
-    
+
     try {
       setIsDeleting("profile");
       await mediaUploadService.deleteFile(formData.profilePhotoUrl);
@@ -743,7 +752,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess , initialData}
                   {/* 1. Identity Section */}
                   <div className="space-y-4">
                     <h3 className="text-xs font-mono text-gray-500 uppercase tracking-widest border-b border-white/10 pb-2">
-                      01 // Identity Matrix
+                      Identity Matrix
                     </h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -882,7 +891,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess , initialData}
                   {/* 2. Upload Section */}
                   <div className="space-y-4">
                     <h3 className="text-xs font-mono text-gray-500 uppercase tracking-widest border-b border-white/10 pb-2">
-                      02 // Visual Data Upload
+                      Visual Data Upload
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
@@ -925,7 +934,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess , initialData}
                   <div className="space-y-4">
                     <div className="flex justify-between items-center border-b border-white/10 pb-2">
                       <h3 className="text-xs font-mono text-gray-500 uppercase tracking-widest">
-                        03 // Skill Calibration
+                        List Your Skills
                       </h3>
                       <button
                         type="button"
@@ -933,7 +942,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess , initialData}
                         disabled={formData.skills.length >= 10}
                         className="text-[#FFAB00] text-xs font-bold uppercase hover:underline flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <Plus className="w-3 h-3" /> Add Vector
+                        <Plus className="w-3 h-3" /> Add Skill
                       </button>
                     </div>
 
@@ -977,7 +986,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess , initialData}
                   <div className="space-y-4">
                     <div className="flex justify-between items-center border-b border-white/10 pb-2">
                       <h3 className="text-xs font-mono text-gray-500 uppercase tracking-widest">
-                        04 // Comms Channels
+                        Social Handles
                       </h3>
                       <button
                         type="button"
@@ -995,30 +1004,45 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess , initialData}
                           key={index}
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
-                          className="flex gap-4 items-center bg-white/5 p-3 rounded border border-white/5"
+                          className="bg-white/5 p-3 rounded border border-white/5"
                         >
-                          {/* Custom Platform Dropdown */}
-                          <PlatformDropdown
-                            value={social.platform}
-                            onChange={(value) => handleSocialChange(index, "platform", value)}
-                            index={index}
-                          />
+                          {/* Mobile: Stacked layout */}
+                          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center">
+                            {/* Platform Dropdown - Full width on mobile */}
+                            <div className="w-full sm:w-1/4">
+                              <PlatformDropdown
+                                value={social.platform}
+                                onChange={(value) => handleSocialChange(index, "platform", value)}
+                                index={index}
+                              />
+                            </div>
 
-                          <input
-                            type="url"
-                            placeholder="https://..."
-                            className="flex-1 bg-transparent border-b border-white/20 text-white text-sm focus:border-[#FFAB00] focus:outline-none font-mono py-1"
-                            value={social.url}
-                            onChange={(e) => handleSocialChange(index, "url", e.target.value)}
-                          />
-                          {index > 0 && (
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveSocial(index)}
-                              className="text-red-500 hover:text-red-400"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            {/* URL Input - Full width on mobile */}
+                            <div className="flex-1 w-full sm:w-auto flex items-center gap-2">
+                              <input
+                                type="url"
+                                placeholder="https://..."
+                                className="flex-1 bg-transparent border-b border-white/20 text-white text-sm focus:border-[#FFAB00] focus:outline-none font-mono py-1 w-full"
+                                value={social.url}
+                                onChange={(e) => handleSocialChange(index, "url", e.target.value)}
+                              />
+                              {index > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveSocial(index)}
+                                  className="text-red-500 hover:text-red-400 flex-shrink-0"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Hint text for mobile - shows platform selection hint */}
+                          {!social.platform && (
+                            <p className="text-[10px] text-gray-600 mt-2 sm:hidden">
+                              Select platform first, then enter URL
+                            </p>
                           )}
                         </motion.div>
                       ))}
