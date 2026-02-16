@@ -98,6 +98,7 @@ const FloatingShapes = () => {
 };
 
 // 3D Rotating Category Display - More Compact
+// 3D Rotating Category Display - More Compact and Mobile-Friendly
 const Category3DDisplay = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipping, setIsFlipping] = useState(false);
@@ -116,7 +117,7 @@ const Category3DDisplay = () => {
   const current = rotatingCategories[currentIndex];
 
   return (
-    <div className="relative h-6 flex items-center" style={{ perspective: "800px" }}>
+    <div className="relative h-8 sm:h-6 flex items-center" style={{ perspective: "800px" }}>
       <AnimatePresence mode="wait">
         <motion.div
           key={currentIndex}
@@ -124,10 +125,10 @@ const Category3DDisplay = () => {
           animate={{ rotateX: 0, opacity: 1, y: 0 }}
           exit={{ rotateX: 90, opacity: 0, y: -10 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
-          className="relative"
+          className="relative flex items-center"
         >
           <span
-            className="font-bold text-sm md:text-base uppercase tracking-wider"
+            className="font-bold text-xs sm:text-sm md:text-base uppercase tracking-wider leading-tight py-1"
             style={{
               color: current.color,
               textShadow: `0 0 15px ${current.color}`,
@@ -140,7 +141,7 @@ const Category3DDisplay = () => {
       </AnimatePresence>
 
       <motion.span
-        className="ml-1 inline-block w-2 h-5 bg-current"
+        className="ml-1 inline-block w-2 h-4 sm:h-5 bg-current"
         style={{ color: current.color }}
         animate={{ opacity: [1, 0, 1] }}
         transition={{ duration: 0.8, repeat: Infinity }}
@@ -257,6 +258,7 @@ const ScanLine = () => (
 );
 
 // Main Header Component - Fixed for Mobile
+// Main Header Component - Fixed for Mobile
 export const CompactHeader = ({
   onMyProfileClick,
   isDemoMode,
@@ -307,16 +309,16 @@ export const CompactHeader = ({
         }}
       >
         {/* Main Content - Mobile Optimized Layout */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-3 sm:px-4 py-2 sm:py-2.5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-3 sm:px-4 py-3 sm:py-2.5">
           {/* Left Section - Tagline - Fixed for Mobile */}
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 px-1.5 py-1 rounded-lg bg-white/5 border border-white/10 flex-shrink-0">
-              <Activity className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#FFAB00] flex-shrink-0" />
-              <span className="text-[10px] sm:text-xs md:text-lg font-mono text-gray-400 whitespace-nowrap">
+          <div className="flex flex-col xs:flex-row items-start xs:items-center gap-2 flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 flex-shrink-0">
+              <Activity className="w-3 h-3 sm:w-3 sm:h-3 text-[#FFAB00] flex-shrink-0" />
+              <span className="text-[10px] sm:text-xs font-mono text-gray-400 whitespace-nowrap">
                 {">"}  Checkout India's Professional
               </span>
             </div>  
-            <div className="min-w-0 flex-1 overflow-hidden">
+            <div className="w-full xs:w-auto min-w-0 overflow-visible">
               <Category3DDisplay />
             </div>
           </div>
@@ -335,31 +337,6 @@ export const CompactHeader = ({
             )}
           </div>
         </div>
-
-        {/* Right: CTA Button - OPTIMIZED */}
-        {/* <motion.button
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={onMyProfileClick}
-          disabled={isLoadingMyProfile}
-          className="group relative flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#FFAB00] to-[#FF8C00] text-black font-bold uppercase text-sm tracking-wide overflow-hidden rounded-sm shadow-[0_0_20px_rgba(255,171,0,0.3)] hover:shadow-[0_0_30px_rgba(255,171,0,0.5)] transition-shadow disabled:opacity-70 disabled:cursor-wait"
-        >
-          {isLoadingMyProfile ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <UserPlus className="w-4 h-4" />
-          )}
-          <span>My Profile</span> */}
-          
-          {/* Shine effect */}
-          {/* {!isLoadingMyProfile && (
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full"
-              animate={{ translateX: ["-100%", "200%"] }}
-              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-            />
-          )}
-        </motion.button> */}
 
         {/* Bottom Accent Line */}
         <motion.div
