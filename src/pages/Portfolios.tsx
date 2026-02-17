@@ -28,7 +28,7 @@ import { HeroTagline } from "@/components/HeroTagline";
 import { useAuth } from "@/context/AuthContext";
 
 // --- FILTER OPTIONS ---
-const roles = ["All", "Programmer", "Artist", "Designer", "Audio", "Producer"];
+const roles = ["All", "Programmer", "Artist", "Designer", "Audio", "Producer", "Animator", "Community Manager", "Composer", "Designer", "Level Designer", "Marketing Engineer", "Musician", "Product Manager", "QA Tester", "Project Manager", "Writer", "Sound Engineer", "Translator", "UI/UX Designer", "User Acquisation Engineer", "BizDev", "V0 Artist", "Mentor", "Founder"];
 
 // Rotating categories for the animated tagline
 const rotatingCategories = [

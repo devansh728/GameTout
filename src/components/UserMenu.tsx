@@ -113,7 +113,7 @@ export function UserMenu({ isAuthenticated }: UserMenuProps) {
                   <User className="w-6 h-6 text-black" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-display font-bold text-white uppercase text-sm truncate">
+                  <p className="font-display font-bold text-white uppercase text-sm truncate tracking-wider">
                     {dbUser.email?.split("@")[0] || "User"}
                   </p>
                   <p className="text-xs text-gray-400 truncate">{dbUser.email}</p>
