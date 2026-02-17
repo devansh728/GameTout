@@ -5,7 +5,6 @@ import {
   Developer,
   detailToDeveloper,
   JobCategory,
-  CATEGORY_TO_BACKEND,
   BACKEND_TO_CATEGORY,
 } from "@/types/portfolio";
 
@@ -53,6 +52,9 @@ export function usePortfolios(options: UsePortfoliosOptions = {}): UsePortfolios
 
   // Cache for category-based results
   const cacheRef = useRef<Map<string, PortfolioDetail[]>>(new Map());
+  // Track if we've loaded all data for "All" category
+  const allDataLoaded = useRef(false);
+  const allPortfolios = useRef<PortfolioDetail[]>([]);
 
   const fetchPortfolios = useCallback(
     async (cat: string = category, page: number = 0) => {
@@ -60,15 +62,34 @@ export function usePortfolios(options: UsePortfoliosOptions = {}): UsePortfolios
       setError(null);
 
       try {
-        let response;
-        
-        if (cat === "All") {
-          response = await portfolioService.listAll(page, pageSize);
-        } else {
-          response = await portfolioService.list(cat, page, pageSize);
+        // For "All" category with cached data
+        if (cat === "All" && allDataLoaded.current) {
+          const start = page * pageSize;
+          const end = start + pageSize;
+          const paginated = allPortfolios.current.slice(start, end);
+          
+          setPortfolios(paginated);
+          setCurrentPage(page);
+          setTotalElements(allPortfolios.current.length);
+          setTotalPages(Math.ceil(allPortfolios.current.length / pageSize));
+          setHasMore(end < allPortfolios.current.length);
+          setLoading(false);
+          return;
         }
 
+        const response = await portfolioService.list(cat, page, pageSize);
         const newPortfolios = response.content;
+
+        // If this is "All" category and first page, store for potential full load
+        if (cat === "All" && page === 0) {
+          allPortfolios.current = newPortfolios;
+          
+          // If total elements is less than what we might need for full cache,
+          // we can consider all data loaded
+          if (response.totalElements <= pageSize * 2) {
+            allDataLoaded.current = true;
+          }
+        }
 
         if (page === 0) {
           setPortfolios(newPortfolios);
@@ -81,6 +102,12 @@ export function usePortfolios(options: UsePortfoliosOptions = {}): UsePortfolios
               new Map(merged.map((p) => [p.id, p])).values()
             );
             cacheRef.current.set(cat, unique);
+            
+            // Update allPortfolios if this is "All" category
+            if (cat === "All") {
+              allPortfolios.current = unique;
+            }
+            
             return unique;
           });
         }
@@ -99,13 +126,63 @@ export function usePortfolios(options: UsePortfoliosOptions = {}): UsePortfolios
     [category, pageSize]
   );
 
+  // Load all pages for "All" category to build complete cache (optional)
+  const loadAllPages = useCallback(async () => {
+    if (allDataLoaded.current || category !== "All") return;
+    
+    let currentPageNum = 1;
+    let hasMorePages = true;
+    const tempPortfolios = [...allPortfolios.current];
+    
+    while (hasMorePages && currentPageNum < 5) { // Limit to 5 pages max to avoid too many requests
+      try {
+        const response = await portfolioService.list("All", currentPageNum, pageSize);
+        tempPortfolios.push(...response.content);
+        hasMorePages = !response.last;
+        currentPageNum++;
+      } catch (err) {
+        break;
+      }
+    }
+    
+    // Remove duplicates
+    const uniqueMap = new Map();
+    tempPortfolios.forEach(p => uniqueMap.set(p.id, p));
+    allPortfolios.current = Array.from(uniqueMap.values());
+    allDataLoaded.current = true;
+    
+    // Update cache
+    cacheRef.current.set("All", allPortfolios.current);
+  }, [category, pageSize]);
+
   const loadMore = useCallback(async () => {
     if (!hasMore || loading) return;
+    
+    // For "All" category with full cache, serve from cache
+    if (category === "All" && allDataLoaded.current) {
+      const nextPage = currentPage + 1;
+      const start = nextPage * pageSize;
+      const end = start + pageSize;
+      const nextPageContent = allPortfolios.current.slice(start, end);
+      
+      if (nextPageContent.length > 0) {
+        setPortfolios(nextPageContent);
+        setCurrentPage(nextPage);
+        setHasMore(end < allPortfolios.current.length);
+      }
+      return;
+    }
+    
+    // Otherwise fetch from API
     await fetchPortfolios(category, currentPage + 1);
-  }, [fetchPortfolios, category, currentPage, hasMore, loading]);
+  }, [fetchPortfolios, category, currentPage, hasMore, loading, pageSize]);
 
   const refresh = useCallback(async () => {
+    // Clear all caches
+    portfolioService.clearCache();
     cacheRef.current.clear();
+    allDataLoaded.current = false;
+    allPortfolios.current = [];
     await fetchPortfolios(category, 0);
   }, [fetchPortfolios, category]);
 
@@ -116,11 +193,25 @@ export function usePortfolios(options: UsePortfoliosOptions = {}): UsePortfolios
       const cached = cacheRef.current.get(category);
       if (cached && cached.length > 0) {
         setPortfolios(cached);
+        // Estimate pagination from cached data
+        setTotalElements(cached.length);
+        setTotalPages(Math.ceil(cached.length / pageSize));
+        setHasMore(pageSize < cached.length);
       } else {
         fetchPortfolios(category, 0);
       }
     }
-  }, [category, autoFetch, fetchPortfolios]);
+  }, [category, autoFetch, fetchPortfolios, pageSize]);
+
+  // Preload next pages for "All" category in background (optional optimization)
+  useEffect(() => {
+    if (category === "All" && portfolios.length > 0 && !allDataLoaded.current && !loading) {
+      const timer = setTimeout(() => {
+        loadAllPages();
+      }, 3000); // Wait 3 seconds after initial load
+      return () => clearTimeout(timer);
+    }
+  }, [category, portfolios, loading, loadAllPages]);
 
   // Transform portfolios to developers for UI
   const developers: Developer[] = portfolios.map((p) => {
@@ -157,6 +248,7 @@ export function usePortfolios(options: UsePortfoliosOptions = {}): UsePortfolios
 
 /**
  * Hook for fetching portfolios by multiple categories (for Netflix-style rails)
+ * Updated to work with the new service
  */
 export function usePortfolioRails() {
   const [rails, setRails] = useState<Record<string, Developer[]>>({});
@@ -168,29 +260,49 @@ export function usePortfolioRails() {
     setError(null);
 
     try {
-      // Fetch each main category in parallel (3 requests instead of 8+)
-      const [developers, designers, producers] = await Promise.all([
-        portfolioService.getByCategory(JobCategory.DEVELOPMENT, 0, 10),
-        portfolioService.getByCategory(JobCategory.DESIGN, 0, 10),
-        portfolioService.getByCategory(JobCategory.PRODUCT_MANAGEMENT, 0, 10),
-      ]);
-
-      // Build featured rail from combined results (no extra API calls)
-      const allContent = [
-        ...developers.content,
-        ...designers.content,
-        ...producers.content,
+      // Use MAJOR_CATEGORIES from the service for consistency
+      const MAJOR_CATEGORIES = [
+        JobCategory.PROGRAMMER,
+        JobCategory.ARTIST,
+        JobCategory.DESIGNER,
+        JobCategory.PRODUCT_MANAGER,
+        JobCategory.PRODUCER,
       ];
-      const premium = allContent.filter((p) => p.isPremium);
-      const nonPremium = allContent.filter((p) => !p.isPremium);
-      const featured = [...premium, ...nonPremium].slice(0, 6);
 
-      setRails({
-        "Elite Operatives": featured.map(detailToDeveloper),
-        "Engineering Division": developers.content.map(detailToDeveloper),
-        "Visual Arts Corps": designers.content.map(detailToDeveloper),
-        "System Architects": producers.content.map(detailToDeveloper),
+      // Fetch main categories in parallel
+      const requests = MAJOR_CATEGORIES.map(cat =>
+        portfolioService.getByCategory(cat, 0, 8)
+      );
+
+      const responses = await Promise.all(requests);
+
+      // Build rails dynamically from responses
+      const newRails: Record<string, Developer[]> = {};
+
+      // Featured rail (premium from all categories)
+      const allContent = responses.flatMap(r => r.content);
+      const premium = allContent.filter(p => p.isPremium);
+      const nonPremium = allContent.filter(p => !p.isPremium);
+      newRails["Elite Operatives"] = [...premium, ...nonPremium]
+        .slice(0, 6)
+        .map(detailToDeveloper);
+
+      // Category rails
+      const categoryNames = {
+        [JobCategory.PROGRAMMER]: "Engineering Division",
+        [JobCategory.ARTIST]: "Visual Arts Corps",
+        [JobCategory.DESIGNER]: "Design Guild",
+        [JobCategory.PRODUCT_MANAGER]: "Product Management",
+        [JobCategory.PRODUCER]: "Production Unit",
+      };
+
+      responses.forEach((response, index) => {
+        const category = MAJOR_CATEGORIES[index];
+        const railName = categoryNames[category] || `${BACKEND_TO_CATEGORY[category]}s`;
+        newRails[railName] = response.content.map(detailToDeveloper);
       });
+
+      setRails(newRails);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to fetch portfolio rails";
       setError(message);

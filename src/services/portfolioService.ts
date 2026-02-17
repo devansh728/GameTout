@@ -7,6 +7,7 @@ import {
   PortfolioListResponse,
   PortfolioSearchResponse,
   CATEGORY_TO_BACKEND,
+  BACKEND_TO_CATEGORY
 } from "@/types/portfolio";
 
 /**
@@ -22,14 +23,26 @@ export const portfolioService = {
    * @param page - Page number (0-indexed)
    * @param size - Items per page
    */
+
+  _cache: {
+    all: new Map<number, PortfolioDetail[]>(),
+    byCategory: new Map<string, Map<number, PortfolioDetail[]>>(),
+    totalElements: null as number | null,
+  },
+
   list: async (
-    category: string = "All",
+    category: string = "ALL",
     page: number = 0,
     size: number = 20,
   ): Promise<PortfolioListResponse> => {
     const params = new URLSearchParams();
-
-    // Map frontend category to backend enum
+    
+    // If "ALL" or "All", fetch from multiple categories in parallel
+    if (category === "ALL" || category === "All") {
+      return portfolioService.listAllOptimized(page, size);
+    }
+    
+    // Single category fetch
     const backendCategory = CATEGORY_TO_BACKEND[category] || JobCategory.OTHER;
     params.append("category", backendCategory);
     params.append("page", page.toString());
@@ -42,34 +55,61 @@ export const portfolioService = {
   },
 
   /**
-   * List all portfolios (for "All" category - multiple requests)
-   * Fetches from multiple categories and merges results
+   * Optimized "All" categories fetch
+   * Fetches from main categories in parallel with smaller page sizes
    */
-  listAll: async (
+  listAllOptimized: async (
     page: number = 0,
     size: number = 20,
   ): Promise<PortfolioListResponse> => {
-    // Fetch from main categories in parallel
-    const categories = [
-      JobCategory.DEVELOPMENT,
-      JobCategory.DESIGN,
-      JobCategory.PRODUCT_MANAGEMENT,
+    // Check cache first
+    if (portfolioService._cache.all.has(page)) {
+      const cached = portfolioService._cache.all.get(page) || [];
+      return {
+        content: cached,
+        totalElements: portfolioService._cache.totalElements || cached.length,
+        totalPages: Math.ceil((portfolioService._cache.totalElements || cached.length) / size),
+        size: size,
+        number: page,
+        first: page === 0,
+        last: false, // We don't know, but won't matter with cache
+        empty: cached.length === 0,
+      };
+    }
+
+    // Only fetch from MAJOR categories (not all 30+)
+    // This is the key optimization - we don't need to fetch from every category
+    const MAJOR_CATEGORIES = [
+      JobCategory.PROGRAMMER,
+      JobCategory.ARTIST,
+      JobCategory.DESIGNER,
+      JobCategory.AUDIO,
+      JobCategory.PRODUCER,
+      JobCategory.QA_TESTER,
+      JobCategory.WRITER,
+      JobCategory.PRODUCT_MANAGER,
     ];
 
-    const requests = categories.map((cat) =>
-      api.get<PortfolioListResponse>(
-        `/portfolio/list?category=${cat}&page=${page}&size=${Math.ceil(size / categories.length)}`,
-      ),
-    );
+    // Calculate per-category page size
+    const perCategorySize = Math.ceil(size / MAJOR_CATEGORIES.length) + 2; // Add buffer
 
     try {
+      // Fetch from major categories in parallel
+      const requests = MAJOR_CATEGORIES.map(cat =>
+        api.get<PortfolioListResponse>(
+          `/portfolio/list?category=${cat}&page=0&size=${perCategorySize}`
+        ).catch(() => ({ data: { content: [] } })) // Handle individual failures
+      );
+
       const responses = await Promise.all(requests);
 
-      // Merge and deduplicate results
-      const allContent = responses.flatMap((r) => r.data.content);
-      const uniqueContent = Array.from(
-        new Map(allContent.map((item) => [item.id, item])).values(),
-      );
+      // Merge and deduplicate
+      const allContent = responses.flatMap(r => r.data.content);
+      
+      // Remove duplicates by ID
+      const uniqueMap = new Map();
+      allContent.forEach(item => uniqueMap.set(item.id, item));
+      const uniqueContent = Array.from(uniqueMap.values());
 
       // Sort: premium first, then by likes
       uniqueContent.sort((a, b) => {
@@ -77,20 +117,98 @@ export const portfolioService = {
         return (b.likesCount || 0) - (a.likesCount || 0);
       });
 
+      // Paginate
+      const start = page * size;
+      const paginatedContent = uniqueContent.slice(start, start + size);
+
+      // Cache the result
+      portfolioService._cache.all.set(page, paginatedContent);
+      portfolioService._cache.totalElements = uniqueContent.length;
+
       return {
-        content: uniqueContent.slice(0, size),
+        content: paginatedContent,
         totalElements: uniqueContent.length,
-        totalPages: 1,
+        totalPages: Math.ceil(uniqueContent.length / size),
         size: size,
         number: page,
         first: page === 0,
-        last: true,
-        empty: uniqueContent.length === 0,
+        last: start + size >= uniqueContent.length,
+        empty: paginatedContent.length === 0,
       };
     } catch (error) {
-      throw error;
+      console.error("Failed to fetch all portfolios:", error);
+      return {
+        content: [],
+        totalElements: 0,
+        totalPages: 0,
+        size: size,
+        number: page,
+        first: true,
+        last: true,
+        empty: true,
+      };
     }
   },
+
+  /**
+   * Clear cache (useful after mutations)
+   */
+  clearCache: () => {
+    portfolioService._cache.all.clear();
+    portfolioService._cache.byCategory.clear();
+    portfolioService._cache.totalElements = null;
+  },
+
+  /**
+   * List all portfolios (for "All" category - multiple requests)
+   * Fetches from multiple categories and merges results
+   */
+  // listAll: async (
+  //   page: number = 0,
+  //   size: number = 20,
+  // ): Promise<PortfolioListResponse> => {
+  //   // Fetch from main categories in parallel
+  //   const categories = [
+  //     JobCategory.DEVELOPMENT,
+  //     JobCategory.DESIGN,
+  //     JobCategory.PRODUCT_MANAGEMENT,
+  //   ];
+
+  //   const requests = categories.map((cat) =>
+  //     api.get<PortfolioListResponse>(
+  //       `/portfolio/list?category=${cat}&page=${page}&size=${Math.ceil(size / categories.length)}`,
+  //     ),
+  //   );
+
+  //   try {
+  //     const responses = await Promise.all(requests);
+
+  //     // Merge and deduplicate results
+  //     const allContent = responses.flatMap((r) => r.data.content);
+  //     const uniqueContent = Array.from(
+  //       new Map(allContent.map((item) => [item.id, item])).values(),
+  //     );
+
+  //     // Sort: premium first, then by likes
+  //     uniqueContent.sort((a, b) => {
+  //       if (a.isPremium !== b.isPremium) return a.isPremium ? -1 : 1;
+  //       return (b.likesCount || 0) - (a.likesCount || 0);
+  //     });
+
+  //     return {
+  //       content: uniqueContent.slice(0, size),
+  //       totalElements: uniqueContent.length,
+  //       totalPages: 1,
+  //       size: size,
+  //       number: page,
+  //       first: page === 0,
+  //       last: true,
+  //       empty: uniqueContent.length === 0,
+  //     };
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // },
 
   /**
    * Search portfolios by query
