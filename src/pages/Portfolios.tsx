@@ -40,6 +40,40 @@ const rotatingCategories = [
   { text: "Producers", color: "#F97316" },
 ];
 
+
+
+const ScrollHint = () => {
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsVisible(false), 4000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          initial={{ opacity: 0, x: 10 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 10 }}
+          transition={{ duration: 0.4 }}
+          className="absolute right-2 top-1/2 -translate-y-1/2 z-30 sm:hidden"
+        >
+          <motion.div
+            animate={{ x: [0, 6, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            className="flex items-center gap-1 px-2 py-1 bg-[#FFAB00]/20 border border-[#FFAB00]/30 rounded-full"
+          >
+            <span className="text-[9px] font-mono text-[#FFAB00] font-bold uppercase">Scroll</span>
+            <motion.span className="text-[#FFAB00] text-xs">→</motion.span>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
 // --- ANIMATED TAGLINE COMPONENT ---
 const AnimatedTagline = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -673,73 +707,177 @@ const Portfolios = () => {
           showDemoToggle={showDemoFeature}
         />
 
-        {/* CONTROL DECK */}
-        <section className="sticky top-20 z-40 bg-[#0a0a0a]/90 backdrop-blur-xl border-y border-white/10 py-3 mb-6 shadow-2xl">
-          <div className="px-4 md:px-8 max-w-7xl mx-auto flex flex-col lg:flex-row gap-4 items-center">
+        {/* CONTROL DECK - Redesigned */}
+        <section className="sticky top-20 z-40 mb-6">
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-[#0a0a0a]/90 backdrop-blur-2xl" />
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#FFAB00]/30 to-transparent" />
 
-            {/* Search Module */}
-            <div className="relative w-full lg:w-1/3 group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-[#FFAB00] transition-colors" />
-              <input
-                type="text"
-                placeholder="Search talents..."
-                className="w-full bg-black/50 border border-white/10 rounded-sm px-10 py-2 text-sm text-white focus:outline-none focus:border-[#FFAB00] focus:bg-black/80 transition-all font-mono placeholder:text-gray-600"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                {isSearching && <Loader2 className="w-4 h-4 text-[#FFAB00] animate-spin" />}
-                {searchQuery && !isSearching && (
-                  <button
-                    onClick={clearSearch}
-                    className="text-gray-500 hover:text-white transition-colors"
-                  >
-                    <XCircle className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-              {isSearchActive && (
-                <div className="absolute -bottom-5 left-0 text-[10px] font-mono text-gray-500">
-                  <span className="text-[#FFAB00]">{isDemoMode ? displayDevelopers.length : totalResults}</span> results
+          <div className="relative px-4 md:px-8 max-w-7xl mx-auto py-3 sm:py-4">
+
+            {/* Row 1: Search + Active Filter Indicator + View Toggle */}
+            <div className="flex items-center gap-2 sm:gap-3">
+
+              {/* Search - Expandable on mobile */}
+              <div className="relative flex-1 group">
+                <div className="absolute left-0 top-0 bottom-0 w-10 flex items-center justify-center pointer-events-none z-10">
+                  <Search className={`w-4 h-4 transition-colors duration-300 ${searchQuery ? 'text-[#FFAB00]' : 'text-gray-600 group-focus-within:text-[#FFAB00]'
+                    }`} />
                 </div>
-              )}
+                <input
+                  type="text"
+                  placeholder="Search by name, role, or skill..."
+                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-lg pl-10 pr-10 py-2.5 sm:py-3 text-sm text-white focus:outline-none focus:border-[#FFAB00]/50 focus:bg-white/[0.06] focus:shadow-[0_0_0_3px_rgba(255,171,0,0.08)] transition-all duration-300 font-mono placeholder:text-gray-600"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+
+                {/* Right side icons */}
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                  {isSearching && (
+                    <Loader2 className="w-4 h-4 text-[#FFAB00] animate-spin" />
+                  )}
+                  {searchQuery && !isSearching && (
+                    <motion.button
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      onClick={clearSearch}
+                      className="p-0.5 rounded-full hover:bg-white/10 transition-colors"
+                    >
+                      <XCircle className="w-4 h-4 text-gray-500 hover:text-white" />
+                    </motion.button>
+                  )}
+                </div>
+
+                {/* Search results count - floating pill */}
+                <AnimatePresence>
+                  {isSearchActive && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 4, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 4, scale: 0.95 }}
+                      className="absolute -bottom-7 left-0 z-50"
+                    >
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#FFAB00]/10 border border-[#FFAB00]/20 rounded-full text-[10px] font-mono">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#FFAB00] animate-pulse" />
+                        <span className="text-[#FFAB00] font-bold">{isDemoMode ? displayDevelopers.length : totalResults}</span>
+                        <span className="text-gray-500">found</span>
+                      </span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Active filter indicator - shows on mobile when a filter is selected */}
+              <AnimatePresence>
+                {activeRole !== "All" && (
+                  <motion.button
+                    initial={{ scale: 0, width: 0 }}
+                    animate={{ scale: 1, width: "auto" }}
+                    exit={{ scale: 0, width: 0 }}
+                    onClick={() => handleCategoryChange("All")}
+                    className="flex items-center gap-1.5 px-3 py-2 sm:py-2.5 bg-[#FFAB00]/15 border border-[#FFAB00]/25 rounded-lg text-[#FFAB00] text-xs font-bold uppercase tracking-wide whitespace-nowrap overflow-hidden shrink-0"
+                  >
+                    <span className="hidden sm:inline">{activeRole}</span>
+                    <XCircle className="w-3.5 h-3.5 shrink-0" />
+                  </motion.button>
+                )}
+              </AnimatePresence>
+
+              {/* View Toggle - Refined */}
+              <div className="flex items-center bg-white/[0.04] border border-white/[0.06] rounded-lg p-0.5 shrink-0">
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={`p-2 rounded-md transition-all duration-200 ${viewMode === "grid"
+                      ? "bg-[#FFAB00] text-black shadow-[0_0_12px_rgba(255,171,0,0.3)]"
+                      : "text-gray-600 hover:text-white hover:bg-white/5"
+                    }`}
+                  title="Grid View"
+                >
+                  <Grid className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={`p-2 rounded-md transition-all duration-200 ${viewMode === "list"
+                      ? "bg-[#FFAB00] text-black shadow-[0_0_12px_rgba(255,171,0,0.3)]"
+                      : "text-gray-600 hover:text-white hover:bg-white/5"
+                    }`}
+                  title="List View"
+                >
+                  <List className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
-            {/* Filter Tabs */}
-            <div className="flex-1 w-full overflow-x-auto pb-1 scrollbar-none">
-              <div className="flex gap-1.5 items-center">
-                <Filter className="w-4 h-4 text-gray-600 mr-2 shrink-0" />
-                {roles.map((role) => (
+            {/* Row 2: Category Filters - Horizontal scroll with visual cues */}
+            <div className="mt-3 relative">
+              {/* Left fade */}
+              <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#0a0a0a] to-transparent z-10 pointer-events-none opacity-0 sm:opacity-100"
+                id="filter-fade-left"
+              />
+
+              {/* Right fade - always visible on mobile to hint scrollability */}
+              <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-16 bg-gradient-to-l from-[#0a0a0a] to-transparent z-10 pointer-events-none" />
+
+              {/* Scroll container */}
+              <div
+                className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none scroll-smooth px-1 py-1 -mx-1"
+                style={{
+                  maskImage: 'linear-gradient(to right, transparent 0%, black 24px, black calc(100% - 48px), transparent 100%)',
+                  WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 24px, black calc(100% - 48px), transparent 100%)',
+                }}
+              >
+                {/* "All" button - special style */}
+                <button
+                  onClick={() => handleCategoryChange("All")}
+                  className={`group relative whitespace-nowrap px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all duration-300 rounded-lg shrink-0 ${activeRole === "All"
+                      ? "bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.15)]"
+                      : "bg-white/[0.04] text-gray-500 hover:text-white hover:bg-white/[0.08] border border-white/[0.06]"
+                    }`}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Zap className={`w-3 h-3 ${activeRole === "All" ? "text-black" : "text-[#FFAB00]"}`} />
+                    All
+                  </span>
+                  {activeRole === "All" && (
+                    <motion.div
+                      layoutId="activeFilter"
+                      className="absolute inset-0 rounded-lg bg-white -z-10"
+                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    />
+                  )}
+                </button>
+
+                {/* Separator */}
+                <div className="w-px h-6 bg-white/[0.06] shrink-0 mx-0.5" />
+
+                {/* Role filters */}
+                {roles.filter(r => r !== "All").map((role) => (
                   <button
                     key={role}
                     onClick={() => handleCategoryChange(role)}
-                    className={`whitespace-nowrap px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition-all rounded-sm ${activeRole === role
-                      ? "bg-[#FFAB00] text-black shadow-[0_0_10px_rgba(255,171,0,0.4)]"
-                      : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                    className={`group relative whitespace-nowrap px-3 sm:px-4 py-2 text-[11px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-300 rounded-lg shrink-0 ${activeRole === role
+                        ? "bg-[#FFAB00] text-black shadow-[0_0_20px_rgba(255,171,0,0.25)]"
+                        : "bg-white/[0.03] text-gray-500 hover:text-white hover:bg-white/[0.07] border border-transparent hover:border-white/[0.08]"
                       }`}
                   >
                     {role}
+                    {activeRole === role && (
+                      <motion.div
+                        layoutId="activeFilterGold"
+                        className="absolute inset-0 rounded-lg bg-[#FFAB00] -z-10"
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      />
+                    )}
                   </button>
                 ))}
-              </div>
-            </div>
 
-            {/* View Toggle */}
-            <div className="flex items-center bg-black/50 border border-white/10 p-0.5 shrink-0 gap-0.5 rounded-sm">
-              <button
-                onClick={() => setViewMode("grid")}
-                className={`p-1.5 rounded-sm transition-colors ${viewMode === "grid" ? "bg-[#FFAB00] text-black" : "text-gray-500 hover:text-white"}`}
-                title="Grid View"
-              >
-                <Grid className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={`p-1.5 rounded-sm transition-colors ${viewMode === "list" ? "bg-[#FFAB00] text-black" : "text-gray-500 hover:text-white"}`}
-                title="List View"
-              >
-                <List className="w-4 h-4" />
-              </button>
+                {/* End spacer for scroll padding */}
+                <div className="w-8 shrink-0" aria-hidden="true" />
+              </div>
+
+              {/* Scroll hint - only on mobile, fades out after interaction */}
+              <ScrollHint />
             </div>
           </div>
         </section>

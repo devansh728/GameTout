@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { usePortfolioMutation } from "@/hooks/usePortfolioDetail";
 import { useAuth } from "@/context/AuthContext";
-import { JobCategory, JobProfileStatus, PortfolioRequest, CATEGORY_TO_BACKEND, DISPLAY_TO_STATUS, PortfolioDetail } from "@/types/portfolio";
+import { JobCategory, JobProfileStatus, PortfolioRequest, CATEGORY_TO_BACKEND, DISPLAY_TO_STATUS, PortfolioDetail, BACKEND_TO_CATEGORY } from "@/types/portfolio";
 import { MediaUploader } from "@/components/MediaUploader";
 import { mediaUploadService } from "@/services/mediaUploadService";
 import React from "react";
@@ -303,6 +303,10 @@ const StatusDropdown = ({ value, onChange }: { value: string; onChange: (value: 
   );
 };
 
+const getJobCategoryFromRole = (role: string): JobCategory => {
+  return CATEGORY_TO_BACKEND[role] || JobCategory.OTHER;
+};
+
 export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }: CreatePortfolioModalProps) => {
   const { isAuthenticated, dbUser, loginWithGoogle, loginWithGithub,
     loginWithDiscord,
@@ -332,15 +336,18 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }
   useEffect(() => {
     if (isOpen && initialData) {
       // Map API response back to Form State
+
+      const frontendRole = BACKEND_TO_CATEGORY[initialData.jobCategory] || "Programmer";
       setFormData({
         name: initialData.name || "",
         shortDescription: initialData.shortDescription || "",
         // Map backend Enum back to Frontend String if needed, or ensure types match
-        role: initialData.jobCategory === JobCategory.DEVELOPMENT ? "Programmer"
-          : initialData.jobCategory === JobCategory.DESIGN ? "Artist"
-            : initialData.jobCategory === JobCategory.OTHER ? "Audio"
-              : initialData.jobCategory === JobCategory.PRODUCT_MANAGEMENT ? "Producer"
-                : "Programmer", // Fallback
+        // role: initialData.jobCategory === JobCategory.DEVELOPMENT ? "Programmer"
+        //   : initialData.jobCategory === JobCategory.DESIGN ? "Artist"
+        //     : initialData.jobCategory === JobCategory.OTHER ? "Audio"
+        //       : initialData.jobCategory === JobCategory.PRODUCT_MANAGEMENT ? "Producer"
+        //         : "Programmer", // Fallback
+        role: frontendRole,
         location: initialData.location || "",
         experienceYears: initialData.experienceYears || 0,
         jobStatus: initialData.jobStatus === "OPEN" ? "Open for Work"
