@@ -19,7 +19,7 @@ interface CreatePortfolioModalProps {
   initialData?: PortfolioDetail | null;
 }
 
-const roles = ["Programmer", "Artist", "Designer", "Producer", "Audio"];
+const roles = ["Programmer", "Artist", "Designer", "Producer", "Audio", "Animator", "Community Manager", "Composer", "Designer", "Level Designer", "Marketing Engineer", "Musician", "Product Manager", "QA Tester", "Project Manager", "Writer", "Sound Engineer", "Translator", "UI/UX Designer", "User Acquisation Engineer", "BizDev", "V0 Artist", "Mentor", "Founder"];
 const statusOptions = ["Open for Work", "Freelance", "Deployed"];
 
 // Platform options with icons
