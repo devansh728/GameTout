@@ -29,6 +29,11 @@ interface UsePortfoliosReturn {
   refresh: () => Promise<void>;
   getByCategory: (category: string) => Developer[];
 }
+
+/**
+ * Hook for fetching and managing portfolio listings
+ * Handles pagination, caching, and category filtering
+ */
 export function usePortfolios(options: UsePortfoliosOptions = {}): UsePortfoliosReturn {
   const {
     category = "All",
@@ -111,6 +116,7 @@ export function usePortfolios(options: UsePortfoliosOptions = {}): UsePortfolios
     }
   }, [category, autoFetch, fetchPortfolios, pageSize]);
 
+  // Transform portfolios to developers for UI
   const developers: Developer[] = portfolios.map((p) => {
     const dev = detailToDeveloper(p);
     dev.category = BACKEND_TO_CATEGORY[p.jobCategory] || "Other";
@@ -140,3 +146,78 @@ export function usePortfolios(options: UsePortfoliosOptions = {}): UsePortfolios
     getByCategory,
   };
 }
+
+/**
+ * Hook for fetching portfolios by multiple categories (for Netflix-style rails)
+ * Updated to work with the new service
+ */
+export function usePortfolioRails() {
+  const [rails, setRails] = useState<Record<string, Developer[]>>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchRails = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Use MAJOR_CATEGORIES from the service for consistency
+      const MAJOR_CATEGORIES = [
+        JobCategory.PROGRAMMER,
+        JobCategory.ARTIST,
+        JobCategory.DESIGNER,
+        JobCategory.PRODUCT_MANAGER,
+        JobCategory.PRODUCER,
+      ];
+
+      // Fetch main categories in parallel
+      const requests = MAJOR_CATEGORIES.map(cat =>
+        portfolioService.getByCategory(cat, 0, 8)
+      );
+
+      const responses = await Promise.all(requests);
+
+      // Build rails dynamically from responses
+      const newRails: Record<string, Developer[]> = {};
+
+      // Featured rail (premium from all categories)
+      const allContent = responses.flatMap(r => r.content);
+      const premium = allContent.filter(p => p.isPremium);
+      const nonPremium = allContent.filter(p => !p.isPremium);
+      newRails["Elite Operatives"] = [...premium, ...nonPremium]
+        .slice(0, 6)
+        .map(detailToDeveloper);
+
+      // Category rails
+      const categoryNames = {
+        [JobCategory.PROGRAMMER]: "Engineering Division",
+        [JobCategory.ARTIST]: "Visual Arts Corps",
+        [JobCategory.DESIGNER]: "Design Guild",
+        [JobCategory.PRODUCT_MANAGER]: "Product Management",
+        [JobCategory.PRODUCER]: "Production Unit",
+      };
+
+      responses.forEach((response, index) => {
+        const category = MAJOR_CATEGORIES[index];
+        const railName = categoryNames[category] || `${BACKEND_TO_CATEGORY[category]}s`;
+        newRails[railName] = response.content.map(detailToDeveloper);
+      });
+
+      setRails(newRails);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to fetch portfolio rails";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchRails();
+  }, [fetchRails]);
+
+  return { rails, loading, error, refresh: fetchRails };
+}
+
+// Default export for usePortfolios
+export default usePortfolios;
