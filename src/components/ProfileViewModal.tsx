@@ -482,7 +482,7 @@ export const ProfileViewModal = ({ isOpen, onClose, developer, portfolioId }: Pr
                                                     >
                                                         <Terminal className="w-4 h-4 sm:w-5 sm:h-5 text-[#FFAB00]" />
                                                     </motion.div>
-                                                    Mission Profile
+                                                    Tagline
                                                 </h3>
                                                 <motion.div
                                                     className="relative"
@@ -556,7 +556,7 @@ export const ProfileViewModal = ({ isOpen, onClose, developer, portfolioId }: Pr
 
                                                 <h3 className="font-display text-base sm:text-lg text-white uppercase mb-4 sm:mb-5 relative z-10 flex items-center gap-2">
                                                     <Code2 className="w-4 h-4 sm:w-5 sm:h-5 text-[#FFAB00]" />
-                                                    Tech Stack
+                                                    SkillSet
                                                 </h3>
 
                                                 <motion.div
