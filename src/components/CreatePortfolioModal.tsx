@@ -322,7 +322,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }
     shortDescription: "",
     role: "Programmer",
     location: "",
-    experienceYears: 1,
+    experienceYears: 0,
     jobStatus: "Open for Work",
     profileSummary: "",
     contactEmail: "",
@@ -373,7 +373,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }
         shortDescription: "",
         role: "Programmer",
         location: "",
-        experienceYears: 1,
+        experienceYears: 0,
         jobStatus: "Open for Work",
         profileSummary: "",
         contactEmail: dbUser?.email || "",
@@ -395,7 +395,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }
         shortDescription: "",
         role: "Programmer",
         location: "",
-        experienceYears: 1,
+        experienceYears: 0,
         jobStatus: "Open for Work",
         profileSummary: "",
         contactEmail: "",
@@ -804,7 +804,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }
                             max="50"
                             className="w-full bg-black/50 border border-white/20 p-3 rounded-sm text-white focus:border-[#FFAB00] focus:outline-none transition-colors font-mono [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             placeholder="e.g., 5"
-                            value={formData.experienceYears === 0 ? "" : formData.experienceYears}
+                            value={formData.experienceYears === 0 ? 0 : formData.experienceYears}
                             onChange={(e) => {
                               const value = e.target.value;
                               if (value === "") {
@@ -818,7 +818,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }
                             }}
                             onBlur={(e) => {
                               if (e.target.value === "") {
-                                setFormData({ ...formData, experienceYears: 1 });
+                                setFormData({ ...formData, experienceYears: 0 });
                               }
                             }}
                           />
