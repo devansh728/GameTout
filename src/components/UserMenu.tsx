@@ -130,7 +130,7 @@ export function UserMenu({ isAuthenticated }: UserMenuProps) {
             {/* Menu Items */}
             <div className="py-2">
               {/* Settings Option */}
-              <button
+              {/* <button
                 onClick={() => {
                   setIsOpen(false);
                   // TODO: Navigate to settings page
@@ -140,7 +140,7 @@ export function UserMenu({ isAuthenticated }: UserMenuProps) {
               >
                 <Settings className="w-4 h-4" />
                 <span className="text-sm font-medium">Settings</span>
-              </button>
+              </button> */}
 
               {/* Logout Option */}
               <button

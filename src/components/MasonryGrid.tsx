@@ -63,14 +63,14 @@ export const ResponsiveMasonryGrid = ({
   return (
     <div className="w-full overflow-hidden">
       {/* 
-        Responsive Grid Layout:
-        - Mobile (< 640px): 1 column, premium takes full width
-        - Small (640-767px): 2 columns, premium spans 2
-        - Medium (768-1023px): 3 columns, premium spans 2
-        - Large (1024-1279px): 4 columns, premium spans 2
-        - XL (1280px+): 5 columns, premium spans 2
+        Responsive Grid Layout - MORE COLUMNS ON MOBILE:
+        - Mobile (< 640px): 2 columns (more cards visible)
+        - Small (640-767px): 3 columns
+        - Medium (768-1023px): 4 columns
+        - Large (1024-1279px): 5 columns
+        - XL (1280px+): 6 columns
       */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5 lg:gap-6 auto-rows-auto">
+      <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4 lg:gap-5 xl:gap-6 auto-rows-auto">
         {sortedDevelopers.map((dev, index) => (
           <motion.div
             key={dev.id}
@@ -79,7 +79,7 @@ export const ResponsiveMasonryGrid = ({
             transition={{ duration: 0.4, delay: Math.min(index * 0.05, 0.5) }}
             className={`
               ${dev.isPremium 
-                ? "col-span-1 sm:col-span-2 row-span-1 sm:row-span-2" 
+                ? "col-span-2 xs:col-span-2 sm:col-span-2 row-span-1 xs:row-span-2" 
                 : "col-span-1 row-span-1"
               }
             `}

@@ -231,7 +231,7 @@ export const SecurityAuthModal = ({
                 <Chrome className="w-4 h-4 text-gray-400 group-hover:text-white" />
                 <span className="text-xs font-bold text-gray-400 group-hover:text-white uppercase">Google</span>
               </button>
-              <button
+              {/* <button
                 type="button"
                 disabled={loading}
                 onClick={() => handleSocialLogin("github")}
@@ -239,7 +239,7 @@ export const SecurityAuthModal = ({
               >
                 <Github className="w-4 h-4 text-gray-400 group-hover:text-white" />
                 <span className="text-xs font-bold text-gray-400 group-hover:text-white uppercase">GitHub</span>
-              </button>
+              </button> */}
 
               {/* OAuth2 Providers */}
               <button
@@ -251,7 +251,7 @@ export const SecurityAuthModal = ({
                 <DiscordIcon className="w-4 h-4 text-gray-400 group-hover:text-[#5865F2]" />
                 <span className="text-xs font-bold text-gray-400 group-hover:text-[#5865F2] uppercase">Discord</span>
               </button>
-              <button
+              {/* <button
                 type="button"
                 disabled={loading}
                 onClick={() => handleSocialLogin("linkedin")}
@@ -259,11 +259,11 @@ export const SecurityAuthModal = ({
               >
                 <Linkedin className="w-4 h-4 text-gray-400 group-hover:text-[#0A66C2]" />
                 <span className="text-xs font-bold text-gray-400 group-hover:text-[#0A66C2] uppercase">LinkedIn</span>
-              </button>
+              </button> */}
             </div>
 
             {/* Steam - Full Width for Gaming Focus */}
-            <button
+            {/* <button
               type="button"
               disabled={loading}
               onClick={() => handleSocialLogin("steam")}
@@ -272,7 +272,7 @@ export const SecurityAuthModal = ({
               <SteamIcon className="w-4 h-4 text-gray-400 group-hover:text-white" />
               <span className="text-xs font-bold text-gray-400 group-hover:text-white uppercase">Steam</span>
               <span className="text-[10px] text-gray-600 group-hover:text-gray-400 ml-1">(Gaming)</span>
-            </button>
+            </button> */}
           </motion.div>
         </div>
       </DialogContent>
