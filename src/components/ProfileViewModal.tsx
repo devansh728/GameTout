@@ -133,7 +133,8 @@ export const ProfileViewModal = ({ isOpen, onClose, developer, portfolioId }: Pr
 
     const displayData = {
         name: portfolio?.name || developer.name,
-        role: portfolio?.shortDescription || developer.role,
+        // role: portfolio?.shortDescription || developer.role,
+        role: portfolio?.jobCategory,
         location: portfolio?.location || developer.location,
         avatar: portfolio?.profilePhotoUrl || developer.avatar,
         status: portfolio?.jobStatus ? STATUS_DISPLAY[portfolio.jobStatus] : developer.status,
@@ -148,6 +149,7 @@ export const ProfileViewModal = ({ isOpen, onClose, developer, portfolioId }: Pr
         socials: portfolio?.socials || [],
         likesCount: portfolio?.likesCount || 0,
         coverPhotoUrl: portfolio?.coverPhotoUrl || null,
+        tagline: portfolio?.shortDescription || null,
     };
 
     return (
@@ -459,7 +461,7 @@ export const ProfileViewModal = ({ isOpen, onClose, developer, portfolioId }: Pr
                                                 {[
                                                     { label: "Status", value: displayData.status, icon: Zap, color: "text-green-400" },
                                                     { label: "Experience", value: displayData.exp, icon: Code2, color: "text-white" },
-                                                    { label: "Rate", value: displayData.rate, icon: Star, color: "text-[#FFAB00]" },
+                                                    // { label: "Rate", value: displayData.rate, icon: Star, color: "text-[#FFAB00]" },
                                                 ].map((stat, i) => (
                                                     <motion.div
                                                         key={i}
@@ -492,7 +494,7 @@ export const ProfileViewModal = ({ isOpen, onClose, developer, portfolioId }: Pr
                                                 >
                                                     <div className="absolute left-0 top-0 w-0.5 h-full bg-gradient-to-b from-[#FFAB00] via-[#FFAB00]/50 to-transparent" />
                                                     <p className="text-gray-400 leading-relaxed text-xs sm:text-sm pl-3 sm:pl-4 hover:text-gray-300 transition-colors">
-                                                        {displayData.profileSummary ||
+                                                        {displayData.tagline ||
                                                             `Skilled ${displayData.role} with ${displayData.exp} of experience. Currently ${displayData.status.toLowerCase()}. Specializing in ${displayData.skills.slice(0, 3).map(s => s.name).join(', ') || 'game development'}.`
                                                         }
                                                     </p>
@@ -511,6 +513,12 @@ export const ProfileViewModal = ({ isOpen, onClose, developer, portfolioId }: Pr
                                                     initial="hidden"
                                                     animate="visible"
                                                 >
+                                                    <div className="absolute left-0 top-0 w-0.5 h-full bg-gradient-to-b from-[#FFAB00] via-[#FFAB00]/50 to-transparent" />
+                                                    <p className="text-gray-400 leading-relaxed text-xs sm:text-sm pl-3 sm:pl-4 hover:text-gray-300 transition-colors">
+                                                        {displayData.profileSummary ||
+                                                            `Skilled ${displayData.role} with ${displayData.exp} of experience. Currently ${displayData.status.toLowerCase()}. Specializing in ${displayData.skills.slice(0, 3).map(s => s.name).join(', ') || 'game development'}.`
+                                                        }
+                                                    </p>
                                                     {displayData.badges.map((badge: string, i: number) => (
                                                         <motion.div
                                                             key={i}
