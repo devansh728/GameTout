@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { SkillBar } from "@/components/HealthBar";
 import { usePortfolioDetail } from "@/hooks/usePortfolioDetail";
-import { Developer, PortfolioDetail, STATUS_DISPLAY } from "@/types/portfolio";
+import { Developer, PortfolioDetail, STATUS_DISPLAY, BACKEND_TO_CATEGORY } from "@/types/portfolio"; // Import BACKEND_TO_CATEGORY
 import { useAuth } from "@/context/AuthContext";
 
 interface ProfileViewModalProps {
@@ -131,26 +131,40 @@ export const ProfileViewModal = ({ isOpen, onClose, developer, portfolioId }: Pr
 
     if (!developer) return null;
 
+    // Derive the display role from jobCategory using BACKEND_TO_CATEGORY
+    const displayRole = portfolio?.jobCategory ? BACKEND_TO_CATEGORY[portfolio.jobCategory] : developer.role;
+
     const displayData = {
         name: portfolio?.name || developer.name,
-        // role: portfolio?.shortDescription || developer.role,
-        role: portfolio?.jobCategory,
+        role: displayRole, // Use the derived role
         location: portfolio?.location || developer.location,
         avatar: portfolio?.profilePhotoUrl || developer.avatar,
         status: portfolio?.jobStatus ? STATUS_DISPLAY[portfolio.jobStatus] : developer.status,
         exp: portfolio?.experienceYears ? `${portfolio.experienceYears} Yrs` : developer.exp,
         rate: developer.rate || "Contact for rates",
-        badges: developer.badges || [],
+        badges: developer.badges || [], // Badges from developer for initial state
         skills: portfolio?.skills?.map(s => ({ name: s.name, level: s.score })) || developer.skills || [],
         isPremium: portfolio?.isPremium ?? developer.isPremium,
-        profileSummary: portfolio?.profileSummary || null,
+        profileSummary: portfolio?.profileSummary || null, // Full summary
         contactEmail: portfolio?.contactEmail || null,
         resumeUrl: portfolio?.resumeUrl || null,
         socials: portfolio?.socials || [],
         likesCount: portfolio?.likesCount || 0,
         coverPhotoUrl: portfolio?.coverPhotoUrl || null,
-        tagline: portfolio?.shortDescription || null,
+        tagline: portfolio?.shortDescription || null, // Short description is now tagline
     };
+
+    // Prepare the stats array dynamically
+    const stats = [
+        { label: "Status", value: displayData.status, icon: Zap, color: "text-green-400" },
+        { label: "Experience", value: displayData.exp, icon: Code2, color: "text-white" },
+    ];
+    // Add rate only if available and not the default "Contact for rates" string
+    if (displayData.rate && displayData.rate !== "Contact for rates") {
+        stats.push({ label: "Rate", value: displayData.rate, icon: Star, color: "text-[#FFAB00]" });
+    }
+
+    const gridColumnCount = stats.length; // Will be 2 or 3
 
     return (
         <AnimatePresence mode="wait">
@@ -175,13 +189,6 @@ export const ProfileViewModal = ({ isOpen, onClose, developer, portfolioId }: Pr
                             exit="exit"
                             className="pointer-events-auto w-full sm:max-w-4xl h-[95vh] sm:h-auto sm:max-h-[90vh] bg-[#0a0a0a] border-t sm:border border-[#FFAB00]/20 sm:rounded-xl rounded-t-2xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8),0_0_100px_rgba(255,171,0,0.1)] flex flex-col"
                         >
-                            {/* 
-                              KEY CHANGE: On mobile, everything scrolls together.
-                              On desktop (sm+), only the content below header scrolls.
-                              We achieve this by making the entire modal content scrollable on mobile,
-                              but splitting header (shrink-0) + scrollable content on desktop.
-                            */}
-
                             {/* Mobile drag handle */}
                             <div className="sm:hidden flex justify-center pt-2 pb-1 shrink-0">
                                 <div className="w-10 h-1 rounded-full bg-white/20" />
@@ -446,7 +453,7 @@ export const ProfileViewModal = ({ isOpen, onClose, developer, portfolioId }: Pr
 
                                             {/* Stats HUD */}
                                             <motion.div
-                                                className="grid grid-cols-3 gap-2 sm:gap-4 p-4 sm:p-5 bg-gradient-to-br from-white/5 to-transparent border border-white/10 rounded-xl relative overflow-hidden group"
+                                                className={`grid grid-cols-${gridColumnCount} gap-2 sm:gap-4 p-4 sm:p-5 bg-gradient-to-br from-white/5 to-transparent border border-white/10 rounded-xl relative overflow-hidden group`}
                                                 variants={fadeInUp}
                                                 whileHover={{ borderColor: "rgba(255,171,0,0.3)" }}
                                             >
@@ -458,11 +465,7 @@ export const ProfileViewModal = ({ isOpen, onClose, developer, portfolioId }: Pr
                                                 />
                                                 <div className="absolute inset-0 bg-[#FFAB00]/0 group-hover:bg-[#FFAB00]/5 transition-colors duration-500" />
 
-                                                {[
-                                                    { label: "Status", value: displayData.status, icon: Zap, color: "text-green-400" },
-                                                    { label: "Experience", value: displayData.exp, icon: Code2, color: "text-white" },
-                                                    // { label: "Rate", value: displayData.rate, icon: Star, color: "text-[#FFAB00]" },
-                                                ].map((stat, i) => (
+                                                {stats.map((stat, i) => (
                                                     <motion.div
                                                         key={i}
                                                         className={`text-center relative z-10 ${i > 0 ? 'border-l border-white/10' : ''}`}
@@ -475,76 +478,99 @@ export const ProfileViewModal = ({ isOpen, onClose, developer, portfolioId }: Pr
                                                 ))}
                                             </motion.div>
 
-                                            {/* Mission Profile */}
-                                            <motion.div className="space-y-3 sm:space-y-4" variants={slideInLeft}>
-                                                <h3 className="font-display text-lg sm:text-xl text-white uppercase flex items-center gap-2">
+                                            {/* Mission Profile (Tagline) */}
+                                            {displayData.tagline && ( // Only render if tagline exists
+                                                <motion.div className="space-y-3 sm:space-y-4" variants={slideInLeft}>
+                                                    <h3 className="font-display text-lg sm:text-xl text-white uppercase flex items-center gap-2">
+                                                        <motion.div
+                                                            animate={{ rotate: [0, 5, -5, 0] }}
+                                                            transition={{ duration: 2, repeat: Infinity }}
+                                                        >
+                                                            <Terminal className="w-4 h-4 sm:w-5 sm:h-5 text-[#FFAB00]" />
+                                                        </motion.div>
+                                                        Tagline
+                                                    </h3>
                                                     <motion.div
-                                                        animate={{ rotate: [0, 5, -5, 0] }}
-                                                        transition={{ duration: 2, repeat: Infinity }}
+                                                        className="relative"
+                                                        initial={{ opacity: 0 }}
+                                                        animate={{ opacity: 1 }}
+                                                        transition={{ delay: 0.5 }}
                                                     >
-                                                        <Terminal className="w-4 h-4 sm:w-5 sm:h-5 text-[#FFAB00]" />
+                                                        <div className="absolute left-0 top-0 w-0.5 h-full bg-gradient-to-b from-[#FFAB00] via-[#FFAB00]/50 to-transparent" />
+                                                        <p className="text-gray-400 leading-relaxed text-xs sm:text-sm pl-3 sm:pl-4 hover:text-gray-300 transition-colors">
+                                                            {displayData.tagline}
+                                                        </p>
                                                     </motion.div>
-                                                    Tagline
-                                                </h3>
-                                                <motion.div
-                                                    className="relative"
-                                                    initial={{ opacity: 0 }}
-                                                    animate={{ opacity: 1 }}
-                                                    transition={{ delay: 0.5 }}
-                                                >
-                                                    <div className="absolute left-0 top-0 w-0.5 h-full bg-gradient-to-b from-[#FFAB00] via-[#FFAB00]/50 to-transparent" />
-                                                    <p className="text-gray-400 leading-relaxed text-xs sm:text-sm pl-3 sm:pl-4 hover:text-gray-300 transition-colors">
-                                                        {displayData.tagline ||
-                                                            `Skilled ${displayData.role} with ${displayData.exp} of experience. Currently ${displayData.status.toLowerCase()}. Specializing in ${displayData.skills.slice(0, 3).map(s => s.name).join(', ') || 'game development'}.`
-                                                        }
-                                                    </p>
                                                 </motion.div>
-                                            </motion.div>
+                                            )}
 
-                                            {/* Badges */}
-                                            <motion.div variants={fadeInUp}>
-                                                <h3 className="font-display text-base sm:text-lg text-white uppercase mb-3 sm:mb-4 opacity-80 flex items-center gap-2">
-                                                    <Award className="w-4 h-4 sm:w-5 sm:h-5 text-[#FFAB00]" />
-                                                    Short Description
-                                                </h3>
-                                                <motion.div
-                                                    className="flex flex-wrap gap-2 sm:gap-3"
-                                                    variants={staggerContainer}
-                                                    initial="hidden"
-                                                    animate="visible"
-                                                >
-                                                    <div className="absolute left-0 top-0 w-0.5 h-full bg-gradient-to-b from-[#FFAB00] via-[#FFAB00]/50 to-transparent" />
-                                                    <p className="text-gray-400 leading-relaxed text-xs sm:text-sm pl-3 sm:pl-4 hover:text-gray-300 transition-colors">
-                                                        {displayData.profileSummary ||
-                                                            `Skilled ${displayData.role} with ${displayData.exp} of experience. Currently ${displayData.status.toLowerCase()}. Specializing in ${displayData.skills.slice(0, 3).map(s => s.name).join(', ') || 'game development'}.`
-                                                        }
-                                                    </p>
-                                                    {displayData.badges.map((badge: string, i: number) => (
+                                            {/* Profile Summary */}
+                                            {displayData.profileSummary && ( // Only render if summary exists
+                                                <motion.div className="space-y-3 sm:space-y-4" variants={slideInLeft}>
+                                                    <h3 className="font-display text-lg sm:text-xl text-white uppercase flex items-center gap-2">
                                                         <motion.div
-                                                            key={i}
-                                                            variants={scaleIn}
-                                                            whileHover={{
-                                                                scale: 1.1,
-                                                                backgroundColor: "rgba(255,171,0,0.15)",
-                                                                boxShadow: "0 0 15px rgba(255,171,0,0.3)"
-                                                            }}
-                                                            whileTap={{ scale: 0.95 }}
-                                                            className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2.5 bg-[#FFAB00]/5 border border-[#FFAB00]/20 rounded-lg text-[#FFAB00] text-[10px] sm:text-xs font-bold uppercase cursor-default transition-all duration-300"
+                                                            animate={{ rotate: [0, 5, -5, 0] }}
+                                                            transition={{ duration: 2, repeat: Infinity }}
                                                         >
-                                                            <Award className="w-3 h-3 sm:w-4 sm:h-4" /> {badge}
+                                                            <Terminal className="w-4 h-4 sm:w-5 sm:h-5 text-[#FFAB00]" />
                                                         </motion.div>
-                                                    ))}
-                                                    {displayData.isPremium && (
-                                                        <motion.div
-                                                            variants={scaleIn}
-                                                            whileHover={{ scale: 1.1 }}
-                                                            className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2.5 bg-green-500/5 border border-green-500/20 rounded-lg text-green-400 text-[10px] sm:text-xs font-bold uppercase cursor-default"
-                                                        >
-                                                            <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" /> Verified Pro
-                                                        </motion.div>
-                                                    )}
+                                                        Profile Summary
+                                                    </h3>
+                                                    <motion.div
+                                                        className="relative"
+                                                        initial={{ opacity: 0 }}
+                                                        animate={{ opacity: 1 }}
+                                                        transition={{ delay: 0.5 }}
+                                                    >
+                                                        <div className="absolute left-0 top-0 w-0.5 h-full bg-gradient-to-b from-[#FFAB00] via-[#FFAB00]/50 to-transparent" />
+                                                        <p className="text-gray-400 leading-relaxed text-xs sm:text-sm pl-3 sm:pl-4 hover:text-gray-300 transition-colors">
+                                                            {displayData.profileSummary}
+                                                        </p>
+                                                    </motion.div>
                                                 </motion.div>
-                                            </motion.div>
+                                            )}
+
+
+                                            {/* Badges / Awards */}
+                                            {displayData.badges.length > 0 && ( // Only render if badges exist
+                                                <motion.div variants={fadeInUp}>
+                                                    <h3 className="font-display text-base sm:text-lg text-white uppercase mb-3 sm:mb-4 opacity-80 flex items-center gap-2">
+                                                        <Award className="w-4 h-4 sm:w-5 sm:h-5 text-[#FFAB00]" />
+                                                        My Key Skills
+                                                    </h3>
+                                                    <motion.div
+                                                        className="flex flex-wrap gap-2 sm:gap-3"
+                                                        variants={staggerContainer}
+                                                        initial="hidden"
+                                                        animate="visible"
+                                                    >
+                                                        {displayData.badges.map((badge: string, i: number) => (
+                                                            <motion.div
+                                                                key={i}
+                                                                variants={scaleIn}
+                                                                whileHover={{
+                                                                    scale: 1.1,
+                                                                    backgroundColor: "rgba(255,171,0,0.15)",
+                                                                    boxShadow: "0 0 15px rgba(255,171,0,0.3)"
+                                                                }}
+                                                                whileTap={{ scale: 0.95 }}
+                                                                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2.5 bg-[#FFAB00]/5 border border-[#FFAB00]/20 rounded-lg text-[#FFAB00] text-[10px] sm:text-xs font-bold uppercase cursor-default transition-all duration-300"
+                                                            >
+                                                                <Award className="w-3 h-3 sm:w-4 sm:h-4" /> {badge}
+                                                            </motion.div>
+                                                        ))}
+                                                        {displayData.isPremium && (
+                                                            <motion.div
+                                                                variants={scaleIn}
+                                                                whileHover={{ scale: 1.1 }}
+                                                                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2.5 bg-green-500/5 border border-green-500/20 rounded-lg text-green-400 text-[10px] sm:text-xs font-bold uppercase cursor-default"
+                                                            >
+                                                                <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" /> Verified Pro
+                                                            </motion.div>
+                                                        )}
+                                                    </motion.div>
+                                                </motion.div>
+                                            )}
                                         </div>
 
                                         {/* RIGHT COLUMN */}
@@ -606,6 +632,7 @@ export const ProfileViewModal = ({ isOpen, onClose, developer, portfolioId }: Pr
                                                                 portfolio: { icon: Globe, color: "#FFAB00", hoverBg: "hover:bg-[#FFAB00]/10" },
                                                                 website: { icon: Globe, color: "#FFAB00", hoverBg: "hover:bg-[#FFAB00]/10" },
                                                                 twitter: { icon: Globe, color: "#1DA1F2", hoverBg: "hover:bg-[#1DA1F2]/10" },
+                                                                // Add other social platforms as needed
                                                             };
                                                             const config = iconMap[social.platform.toLowerCase()] || { icon: Globe, color: "#FFAB00", hoverBg: "hover:bg-[#FFAB00]/10" };
                                                             const SocialIcon = config.icon;
