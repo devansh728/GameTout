@@ -11,6 +11,7 @@ import { JobCategory, JobProfileStatus, PortfolioRequest, CATEGORY_TO_BACKEND, D
 import { MediaUploader } from "@/components/MediaUploader";
 import { mediaUploadService } from "@/services/mediaUploadService";
 import React from "react";
+import { toast } from "./ui/sonner";
 
 interface CreatePortfolioModalProps {
   isOpen: boolean;
@@ -55,9 +56,8 @@ const PlatformDropdown = ({
       <motion.button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full text-left bg-black/50 border-b border-white/20 text-white text-sm font-mono py-2 px-3 hover:border-[#FFAB00] transition-colors flex items-center justify-between rounded-sm ${
-          isOpen ? 'border-[#FFAB00]' : ''
-        }`}
+        className={`w-full text-left bg-black/50 border-b border-white/20 text-white text-sm font-mono py-2 px-3 hover:border-[#FFAB00] transition-colors flex items-center justify-between rounded-sm ${isOpen ? 'border-[#FFAB00]' : ''
+          }`}
         whileTap={{ scale: 0.98 }}
       >
         <div className="flex items-center gap-2 truncate">
@@ -112,11 +112,10 @@ const PlatformDropdown = ({
                         onChange(platform.value);
                         setIsOpen(false);
                       }}
-                      className={`w-full px-3 py-2.5 text-left text-sm hover:bg-white/10 transition-colors flex items-center gap-3 rounded ${
-                        value === platform.value
-                          ? 'bg-[#FFAB00]/20 text-[#FFAB00]'
-                          : 'text-gray-300'
-                      }`}
+                      className={`w-full px-3 py-2.5 text-left text-sm hover:bg-white/10 transition-colors flex items-center gap-3 rounded ${value === platform.value
+                        ? 'bg-[#FFAB00]/20 text-[#FFAB00]'
+                        : 'text-gray-300'
+                        }`}
                       whileHover={{ x: 4 }}
                     >
                       <PlatformIcon className="w-4 h-4 flex-shrink-0" style={{ color: platform.color }} />
@@ -425,9 +424,13 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }
   }, [dbUser?.email, formData.contactEmail]);
 
   const handleAddSkill = () => {
-    if (formData.skills.length < 10) {
-      setFormData({ ...formData, skills: [...formData.skills, { name: "", score: 50 }] });
+    if (formData.skills.length >= 3) {
+      toast.error("Maximum 3 skills allowed", {
+        description: "Remove an existing skill to add a new one.",
+      });
+      return;
     }
+    setFormData({ ...formData, skills: [...formData.skills, { name: "", score: 50 }] });
   };
 
   const handleRemoveSkill = (index: number) => {
@@ -544,12 +547,14 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }
       return value && value.trim() !== "" ? value.trim() : undefined;
     };
 
+    const cleanedExperience = formData.experienceYears === -1 ? 0 : formData.experienceYears;
+
     // Build request payload with proper null handling
     const request: PortfolioRequest = {
       name: formData.name.trim(),
       shortDescription: formData.shortDescription?.trim() || formData.role,
       location: formData.location.trim(),
-      experienceYears: formData.experienceYears,
+      experienceYears: cleanedExperience,
       jobCategory: CATEGORY_TO_BACKEND[formData.role] || JobCategory.OTHER,
       jobStatus: DISPLAY_TO_STATUS[formData.jobStatus] || JobProfileStatus.OPEN,
       profileSummary: formData.profileSummary?.trim() || "",
@@ -799,26 +804,28 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }
                         <label className="text-sm font-bold text-gray-300 uppercase">Experience (Years)</label>
                         <div className="relative">
                           <input
-                            type="number"
-                            min="0"
-                            max="50"
-                            className="w-full bg-black/50 border border-white/20 p-3 rounded-sm text-white focus:border-[#FFAB00] focus:outline-none transition-colors font-mono [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            className="w-full bg-black/50 border border-white/20 p-3 rounded-sm text-white focus:border-[#FFAB00] focus:outline-none transition-colors font-mono"
                             placeholder="e.g., 5"
-                            value={formData.experienceYears === 0 ? "" : formData.experienceYears}
+                            value={formData.experienceYears === -1 ? "" : formData.experienceYears}
                             onChange={(e) => {
-                              const value = e.target.value;
-                              if (value === "") {
-                                setFormData({ ...formData, experienceYears: 0 });
-                              } else {
-                                const numValue = parseInt(value);
-                                if (!isNaN(numValue) && numValue >= 0) {
-                                  setFormData({ ...formData, experienceYears: numValue });
-                                }
+                              const raw = e.target.value;
+                              if (raw === "") {
+                                setFormData({ ...formData, experienceYears: -1 });
+                                return;
+                              }
+                              if (!/^\d+$/.test(raw)) return;
+
+                              const numValue = parseInt(raw, 10);
+                              if (numValue >= 0 && numValue <= 50) {
+                                setFormData({ ...formData, experienceYears: numValue });
                               }
                             }}
-                            onBlur={(e) => {
-                              if (e.target.value === "") {
-                                setFormData({ ...formData, experienceYears: 1 });
+                            onBlur={() => {
+                              if (formData.experienceYears === -1) {
+                                setFormData({ ...formData, experienceYears: 0 });
                               }
                             }}
                           />
@@ -826,7 +833,10 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }
                             <button
                               type="button"
                               onClick={() =>
-                                setFormData({ ...formData, experienceYears: Math.min(50, formData.experienceYears + 1) })
+                                setFormData({
+                                  ...formData,
+                                  experienceYears: Math.min(50, (formData.experienceYears === -1 ? 0 : formData.experienceYears) + 1)
+                                })
                               }
                               className="text-[#FFAB00] hover:text-white w-4 h-4 flex items-center justify-center"
                             >
@@ -837,7 +847,10 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }
                             <button
                               type="button"
                               onClick={() =>
-                                setFormData({ ...formData, experienceYears: Math.max(0, formData.experienceYears - 1) })
+                                setFormData({
+                                  ...formData,
+                                  experienceYears: Math.max(0, (formData.experienceYears === -1 ? 0 : formData.experienceYears) - 1)
+                                })
                               }
                               className="text-[#FFAB00] hover:text-white w-4 h-4 flex items-center justify-center"
                             >
@@ -946,10 +959,10 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }
                       <button
                         type="button"
                         onClick={handleAddSkill}
-                        disabled={formData.skills.length >= 10}
+                        disabled={formData.skills.length >= 3}
                         className="text-[#FFAB00] text-xs font-bold uppercase hover:underline flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <Plus className="w-3 h-3" /> Add Skill
+                        <Plus className="w-3 h-3" /> Add Skill ({formData.skills.length}/3)
                       </button>
                     </div>
 

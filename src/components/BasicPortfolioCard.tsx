@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { MapPin, Linkedin, Lock, Eye } from "lucide-react";
 import { Developer } from "@/types/portfolio";
+import { toast } from "sonner";
 
 interface BasicPortfolioCardProps {
   developer: Developer;
@@ -25,6 +26,20 @@ export const BasicPortfolioCard = ({
 
   const firstName = developer.name.split(" ")[0];
 
+  const handleLinkedinClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (!developer.linkedinUrl) {
+      toast.info("LinkedIn not provided", {
+        description: `${developer.name} hasn't linked their LinkedIn profile.`,
+        icon: <Linkedin className="w-4 h-4 text-[#0077B5]" />,
+      });
+      return;
+    }
+
+    window.open(developer.linkedinUrl, "_blank", "noopener,noreferrer");
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
@@ -37,7 +52,7 @@ export const BasicPortfolioCard = ({
     >
       {/* Card container - aspect-square preserved */}
       <div className="relative w-full aspect-square bg-gradient-to-br from-[#0a0a0a] to-[#111111] rounded-lg border border-white/10 overflow-hidden transition-all duration-300 group-hover:border-white/30 group-hover:shadow-xl">
-        
+
         {/* Subtle grid pattern */}
         <div
           className="absolute inset-0 opacity-5 pointer-events-none"
@@ -64,7 +79,7 @@ export const BasicPortfolioCard = ({
 
         {/* === MAIN CONTENT - Flexbox column, no absolute positioning === */}
         <div className="relative z-[1] flex flex-col items-center justify-between h-full px-2 sm:px-3 py-3 sm:py-4">
-          
+
           {/* Top section: Avatar */}
           <div className="relative shrink-0">
             <div className="absolute inset-0 rounded-full bg-white/10 blur-xl scale-150 opacity-0 group-hover:opacity-50 transition-opacity duration-300" />
@@ -122,20 +137,23 @@ export const BasicPortfolioCard = ({
 
           {/* Bottom section: LinkedIn button */}
           <div className="shrink-0 mt-1.5 sm:mt-2">
-            <motion.a
-              href="#"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
+            <motion.button
+              type="button"
+              onClick={handleLinkedinClick}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="flex items-center gap-1 px-2.5 py-1 bg-[#0077B5]/10 hover:bg-[#0077B5] text-[#0077B5] hover:text-white rounded-md border border-[#0077B5]/30 transition-all duration-300"
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-md border transition-all duration-300 ${
+                developer.linkedinUrl
+                  ? "bg-[#0077B5]/10 hover:bg-[#0077B5] text-[#0077B5] hover:text-white border-[#0077B5]/30"
+                  : "bg-white/5 text-gray-600 border-white/10 cursor-default"
+              }`}
+              title={developer.linkedinUrl ? "View LinkedIn Profile" : "LinkedIn not provided"}
             >
               <Linkedin className="w-2.5 h-2.5 xs:w-3 xs:h-3" />
               <span className="text-[7px] xs:text-[8px] font-bold uppercase tracking-wide">
-                Connect
+                {developer.linkedinUrl ? "Connect" : "LinkedIn"}
               </span>
-            </motion.a>
+            </motion.button>
           </div>
         </div>
 

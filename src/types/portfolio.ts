@@ -270,6 +270,7 @@ export interface Developer {
   category: string; // Frontend category name
   isPremium: boolean;
   rate?: string; // Optional - not from backend
+  linkedinUrl?: string;
 }
 
 /**
@@ -288,6 +289,7 @@ export function toDevelo(card: PortfolioCard): Developer {
     skills: card.skills?.map(s => ({ name: s.name, level: s.score })) || [],
     category: "Programmer", // Will be set based on context
     isPremium: card.isPremium,
+    linkedinUrl: undefined,
   };
 }
 
@@ -295,6 +297,9 @@ export function toDevelo(card: PortfolioCard): Developer {
  * Transform PortfolioDetail to Developer for UI
  */
 export function detailToDeveloper(detail: PortfolioDetail): Developer {
+  const linkedinUrl = detail.socials?.find(
+    (s) => s.platform?.toLowerCase() === "linkedin"
+  )?.url ?? undefined;
   return {
     id: detail.id,
     name: detail.name || "Unknown",
@@ -307,5 +312,6 @@ export function detailToDeveloper(detail: PortfolioDetail): Developer {
     skills: detail.skills?.map(s => ({ name: s.name, level: s.score })) || [],
     category: BACKEND_TO_CATEGORY[detail.jobCategory] || "Other",
     isPremium: detail.isPremium,
+    linkedinUrl,
   };
 }
