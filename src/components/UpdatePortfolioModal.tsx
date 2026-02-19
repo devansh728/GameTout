@@ -40,7 +40,7 @@ const PLATFORM_OPTIONS = [
   { value: "ArtStation", label: "ArtStation", icon: ExternalLink, color: "#13AFF0" },
   { value: "Behance", label: "Behance", icon: ExternalLink, color: "#0057FF" },
   { value: "YouTube", label: "YouTube", icon: Youtube, color: "#FF0000" },
-  { value: "Itch.io", label: "Itch.io", icon: ExternalLink, color: "#FA5C5C" },
+  { value: "Steam", label: "Steam", icon: ExternalLink, color: "#1B2838" },
 ];
 
 const PlatformDropdown = ({
@@ -92,11 +92,15 @@ const PlatformDropdown = ({
               className="fixed inset-0 z-40"
               onClick={() => setIsOpen(false)}
             />
+            {/* Changed: Opens upward with bottom-full and mb-2 */}
             <motion.div
               initial={{ opacity: 0, y: 10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              className="absolute left-0 right-0 mt-2 bg-[#0a0a0a] border border-[#FFAB00]/30 rounded-lg shadow-2xl max-h-60 overflow-y-auto z-50"
+              className="absolute left-0 right-0 bottom-full mb-2 bg-[#0a0a0a] border border-[#FFAB00]/30 rounded-lg shadow-2xl max-h-60 overflow-y-auto z-50"
+              style={{
+                boxShadow: '0 -10px 50px rgba(0,0,0,0.8), 0 0 20px rgba(255,171,0,0.1)',
+              }}
             >
               {PLATFORM_OPTIONS.map((option) => (
                 <button
@@ -106,10 +110,17 @@ const PlatformDropdown = ({
                     onChange(option.value);
                     setIsOpen(false);
                   }}
-                  className="w-full px-4 py-2.5 flex items-center gap-3 text-gray-300 hover:text-white hover:bg-[#FFAB00]/10 transition-colors text-left border-b border-white/5 last:border-b-0"
+                  className={`w-full px-4 py-2.5 flex items-center gap-3 text-left border-b border-white/5 last:border-b-0 transition-colors ${
+                    value === option.value
+                      ? "text-[#FFAB00] bg-[#FFAB00]/10"
+                      : "text-gray-300 hover:text-white hover:bg-white/10"
+                  }`}
                 >
                   <option.icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: option.color }} />
                   <span className="text-sm">{option.label}</span>
+                  {value === option.value && (
+                    <CheckCircle className="w-3.5 h-3.5 ml-auto" />
+                  )}
                 </button>
               ))}
             </motion.div>
