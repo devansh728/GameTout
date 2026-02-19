@@ -532,7 +532,7 @@ export const ProfileViewModal = ({ isOpen, onClose, developer, portfolioId }: Pr
 
 
                                             {/* Badges / Awards */}
-                                            {displayData.badges.length > 0 && ( // Only render if badges exist
+                                            {/* {displayData.badges.length > 0 && ( // Only render if badges exist
                                                 <motion.div variants={fadeInUp}>
                                                     <h3 className="font-display text-base sm:text-lg text-white uppercase mb-3 sm:mb-4 opacity-80 flex items-center gap-2">
                                                         <Award className="w-4 h-4 sm:w-5 sm:h-5 text-[#FFAB00]" />
@@ -570,7 +570,7 @@ export const ProfileViewModal = ({ isOpen, onClose, developer, portfolioId }: Pr
                                                         )}
                                                     </motion.div>
                                                 </motion.div>
-                                            )}
+                                            )} */}
                                         </div>
 
                                         {/* RIGHT COLUMN */}
