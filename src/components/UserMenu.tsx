@@ -71,7 +71,7 @@ export function UserMenu({ isAuthenticated }: UserMenuProps) {
 
         {/* Status Text */}
         <span className="hidden md:block font-display text-sm font-bold text-white uppercase leading-none tracking-wider group-hover:text-[#FFAB00] transition-colors">
-          OP_ONLINE
+          ONLINE
         </span>
 
         {/* Chevron Indicator */}
@@ -113,16 +113,16 @@ export function UserMenu({ isAuthenticated }: UserMenuProps) {
                   <User className="w-6 h-6 text-black" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-display font-bold text-white uppercase text-sm truncate tracking-wider">
+                  {/* <p className="font-display font-bold text-white uppercase text-sm truncate tracking-wider">
                     {dbUser.email?.split("@")[0] || "User"}
-                  </p>
+                  </p> */}
                   <p className="text-xs text-gray-400 truncate">{dbUser.email}</p>
-                  {dbUser.role !== "USER" && (
+                  {/* {dbUser.role !== "USER" && (
                     <p className="text-xs text-[#FFAB00] font-semibold uppercase mt-1">
                       {dbUser.role}
                       {dbUser.subscriptionType && ` • ${dbUser.subscriptionType}`}
                     </p>
-                  )}
+                  )} */}
                 </div>
               </div>
             </div>

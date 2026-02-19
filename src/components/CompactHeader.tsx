@@ -213,7 +213,7 @@ const CTAButton3D = ({ onClick }: { onClick: () => void }) => {
       >
         <span className="relative flex items-center gap-1 sm:gap-1.5 font-bold text-black uppercase text-[10px] sm:text-xs tracking-wide">
           <UserPlus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-          <span className="xs:inline">Create Portfolio</span>
+          <span className="xs:inline">Create/Edit Portfolio</span>
         </span>
       </motion.div>
     </motion.button>
