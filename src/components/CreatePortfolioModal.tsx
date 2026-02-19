@@ -647,7 +647,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }
             <span className="text-xs font-bold text-gray-300 group-hover:text-[#5865F2] uppercase">Discord</span>
           </button> */}
 
-          {/* <button
+        {/* <button
             onClick={() => loginWithLinkedIn()}
             className="flex items-center justify-center gap-2 px-4 py-3 bg-white/10 border border-white/20 hover:border-[#0A66C2] hover:bg-[#0A66C2]/10 transition-colors group rounded-lg"
           >
@@ -740,7 +740,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }
                 <form onSubmit={handleSubmit} className="p-6 space-y-8">
 
                   {/* Success Message */}
-                  {success && (
+                  {/* {success && (
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -749,10 +749,10 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }
                       <CheckCircle className="w-5 h-5" />
                       <span className="font-mono text-sm">Portfolio created successfully!</span>
                     </motion.div>
-                  )}
+                  )} */}
 
                   {/* Error Message */}
-                  {submitError && (
+                  {/* {submitError && (
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -761,15 +761,15 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }
                       <AlertCircle className="w-5 h-5" />
                       <span className="font-mono text-sm">{submitError}</span>
                     </motion.div>
-                  )}
+                  )} */}
 
                   {/* Email Verification Warning */}
-                  {dbUser && !dbUser.emailVerified && (
+                  {/* {dbUser && !dbUser.emailVerified && (
                     <div className="flex items-center gap-3 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded text-yellow-400">
                       <AlertCircle className="w-5 h-5" />
                       <span className="font-mono text-sm">Please verify your email to create a portfolio.</span>
                     </div>
-                  )}
+                  )} */}
 
                   {/* 1. Identity Section */}
                   <div className="space-y-4">
@@ -1079,39 +1079,65 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }
                     </div>
                   </div>
 
-                  {/* Footer Actions */}
-                  <div className="flex justify-between items-center pt-4 border-t border-white/10">
-                    <button
-                      type="button"
-                      onClick={onClose}
-                      disabled={isSubmitting}
-                      className="px-6 py-3 border border-white/20 text-gray-400 font-bold uppercase tracking-widest hover:bg-white/10 hover:text-white transition-colors disabled:opacity-50"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={isSubmitting || !formData.name || !formData.location || !formData.contactEmail}
-                      className="relative group px-8 py-3 bg-[#FFAB00] text-black font-bold uppercase tracking-widest overflow-hidden hover:bg-white transition-colors duration-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <span className="relative z-10 flex items-center gap-2">
-                        {isSubmitting ? (
-                          <>
-                            <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                            UPLOADING...
-                          </>
-                        ) : (
-                          <>
-                            SUBMIT <Save className="w-4 h-4" />
-                          </>
+                  <div className="space-y-4">
+                    {/* Success Message */}
+                    {success && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex items-center gap-3 p-4 bg-green-500/10 border border-green-500/30 rounded text-green-400"
+                      >
+                        <CheckCircle className="w-5 h-5" />
+                        <span className="font-mono text-sm">Portfolio created successfully!</span>
+                      </motion.div>
+                    )}
+
+                    {/* Error Message */}
+                    {submitError && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded text-red-400"
+                      >
+                        <AlertCircle className="w-5 h-5" />
+                        <span className="font-mono text-sm">{submitError}</span>
+                      </motion.div>
+                    )}
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className="flex justify-between items-center pt-4 border-t border-white/10">
+                      <button
+                        type="button"
+                        onClick={onClose}
+                        disabled={isSubmitting}
+                        className="px-6 py-3 border border-white/20 text-gray-400 font-bold uppercase tracking-widest hover:bg-white/10 hover:text-white transition-colors disabled:opacity-50"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isSubmitting || !formData.name || !formData.location || !formData.contactEmail}
+                        className="relative group px-8 py-3 bg-[#FFAB00] text-black font-bold uppercase tracking-widest overflow-hidden hover:bg-white transition-colors duration-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <span className="relative z-10 flex items-center gap-2">
+                          {isSubmitting ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                              UPLOADING...
+                            </>
+                          ) : (
+                            <>
+                              SUBMIT <Save className="w-4 h-4" />
+                            </>
+                          )}
+                        </span>
+                        {/* Glitch Overlay */}
+                        {!isSubmitting && (
+                          <div className="absolute inset-0 bg-white translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-300 ease-out opacity-50" />
                         )}
-                      </span>
-                      {/* Glitch Overlay */}
-                      {!isSubmitting && (
-                        <div className="absolute inset-0 bg-white translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-300 ease-out opacity-50" />
-                      )}
-                    </button>
-                  </div>
+                      </button>
+                    </div>
                 </form>
               )}
             </div>
