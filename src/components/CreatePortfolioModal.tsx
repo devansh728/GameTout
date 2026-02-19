@@ -1088,7 +1088,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }
                         className="flex items-center gap-3 p-4 bg-green-500/10 border border-green-500/30 rounded text-green-400"
                       >
                         <CheckCircle className="w-5 h-5" />
-                        <span className="font-mono text-sm">Portfolio created successfully!</span>
+                        <span className="font-mono text-sm">Portfolio created successfully! It will take 60 mins to appear on the website 😊🚀.</span>
                       </motion.div>
                     )}
 
