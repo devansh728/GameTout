@@ -4,6 +4,7 @@ import { MapPin, UserPlus, List, Grid, CheckCircle, Clock, XCircle, Zap, Search,
 import { PageTransition, FadeInView } from "@/components/PageTransition";
 import { Footer } from "@/components/Footer";
 import { CreatePortfolioModal } from "@/components/CreatePortfolioModal";
+import { UpdatePortfolioModal } from "@/components/UpdatePortfolioModal";
 import { ProfileViewModal } from "@/components/ProfileViewModal";
 import { CompactHeader } from "@/components/CompactHeader";
 // New Components for redesigned UI
@@ -17,7 +18,7 @@ import { ClassifiedOverlay } from "@/components/ClassifiedOverlay";
 import { usePortfolios, usePortfolioRails } from "@/hooks/usePortfolios";
 import { usePortfolioSearch } from "@/hooks/usePortfolioSearch";
 import { useEliteAccess } from "@/hooks/useEliteAccess";
-import { Developer } from "@/types/portfolio";
+import { Developer, PortfolioDetail } from "@/types/portfolio";
 
 // Demo Data for showcasing new design
 import { demoPortfolios, getDemoByCategory } from "@/data/demoPortfolios";
@@ -477,6 +478,10 @@ const Portfolios = () => {
   const [myProfileData, setMyProfileData] = useState<any>(null);
   const [isFetchingMyProfile, setIsFetchingMyProfile] = useState(false);
 
+  // Update portfolio modal states
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [updatePortfolioData, setUpdatePortfolioData] = useState<PortfolioDetail | null>(null);
+
   // Environment-controlled demo mode
   const showDemoFeature = import.meta.env.VITE_SHOW_DEMO === 'true';
   const [isDemoMode, setIsDemoMode] = useState(showDemoFeature);
@@ -653,12 +658,33 @@ const Portfolios = () => {
         <div className="fixed inset-0 pointer-events-none z-0 bg-gradient-to-b from-background via-transparent to-background"></div>
 
         {/* MODALS */}
-        <CreatePortfolioModal isOpen={isModalOpen} onClose={() => {
-          setIsModalOpen(false);
-          setMyProfileData(null);
-        }}
+        <CreatePortfolioModal 
+          isOpen={isModalOpen} 
+          onClose={() => {
+            setIsModalOpen(false);
+            setMyProfileData(null);
+          }}
           initialData={myProfileData}
           onSuccess={() => {
+            if (activeRole === "All") refreshRails();
+            else refreshList();
+          }}
+          onOpenEditModal={(portfolio) => {
+            setUpdatePortfolioData(portfolio);
+            setIsUpdateModalOpen(true);
+          }}
+        />
+
+        <UpdatePortfolioModal
+          isOpen={isUpdateModalOpen}
+          onClose={() => {
+            setIsUpdateModalOpen(false);
+            setUpdatePortfolioData(null);
+          }}
+          initialData={updatePortfolioData!}
+          onSuccess={() => {
+            setIsUpdateModalOpen(false);
+            setUpdatePortfolioData(null);
             if (activeRole === "All") refreshRails();
             else refreshList();
           }}

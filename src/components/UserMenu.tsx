@@ -1,7 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LogOut, User, Settings, ShieldCheck, Loader2 } from "lucide-react";
+import { LogOut, User, Settings, ShieldCheck, Loader2, Edit2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { UpdatePortfolioModal } from "@/components/UpdatePortfolioModal";
+import { portfolioService } from "@/services/portfolioService";
+import { PortfolioDetail } from "@/types/portfolio";
+import { toast } from "./ui/sonner";
 
 interface UserMenuProps {
   isAuthenticated: boolean;
@@ -12,6 +16,11 @@ export function UserMenu({ isAuthenticated }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  // Edit portfolio modal states
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingPortfolio, setEditingPortfolio] = useState<PortfolioDetail | null>(null);
+  const [isLoadingPortfolio, setIsLoadingPortfolio] = useState(false);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -30,9 +39,27 @@ export function UserMenu({ isAuthenticated }: UserMenuProps) {
       await logout();
       setIsOpen(false);
     } catch (error) {
-      console.error("Logout failed:", error);
+      // Silent error handling - no console logs
     } finally {
       setIsLoggingOut(false);
+    }
+  };
+
+  const handleOpenEditModal = async () => {
+    setIsLoadingPortfolio(true);
+    try {
+      const data = await portfolioService.getMyPortfolio();
+      if (data) {
+        setEditingPortfolio(data);
+        setIsEditModalOpen(true);
+        setIsOpen(false);
+      } else {
+        toast.error("No portfolio found. Please create one first.");
+      }
+    } catch (error) {
+      toast.error("Failed to load portfolio for editing");
+    } finally {
+      setIsLoadingPortfolio(false);
     }
   };
 
@@ -129,18 +156,24 @@ export function UserMenu({ isAuthenticated }: UserMenuProps) {
 
             {/* Menu Items */}
             <div className="py-2">
-              {/* Settings Option */}
-              {/* <button
-                onClick={() => {
-                  setIsOpen(false);
-                  // TODO: Navigate to settings page
-                  // navigate("/settings");
-                }}
-                className="w-full px-4 py-3 flex items-center gap-3 text-gray-300 hover:text-white hover:bg-white/10 transition-colors text-left"
+              {/* Update Portfolio Option */}
+              <button
+                onClick={handleOpenEditModal}
+                disabled={isLoadingPortfolio}
+                className="w-full px-4 py-3 flex items-center gap-3 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Settings className="w-4 h-4" />
-                <span className="text-sm font-medium">Settings</span>
-              </button> */}
+                {isLoadingPortfolio ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="text-sm font-medium">Loading...</span>
+                  </>
+                ) : (
+                  <>
+                    <Edit2 className="w-4 h-4" />
+                    <span className="text-sm font-medium">Update Portfolio</span>
+                  </>
+                )}
+              </button>
 
               {/* Logout Option */}
               <button
@@ -157,6 +190,22 @@ export function UserMenu({ isAuthenticated }: UserMenuProps) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Update Portfolio Modal */}
+      {editingPortfolio && (
+        <UpdatePortfolioModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setEditingPortfolio(null);
+          }}
+          initialData={editingPortfolio}
+          onSuccess={() => {
+            setIsEditModalOpen(false);
+            setEditingPortfolio(null);
+          }}
+        />
+      )}
     </div>
   );
 }

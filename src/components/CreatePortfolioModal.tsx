@@ -3,13 +3,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Plus, Trash2, Save, Terminal, AlertCircle, CheckCircle,
   Loader2, LogIn, ChevronDown, Globe, Lock, Linkedin,
-  Github, Twitter, Youtube, Link2, ExternalLink
+  Github, Twitter, Youtube, Link2, ExternalLink, ShieldCheck, Edit2
 } from "lucide-react";
 import { usePortfolioMutation } from "@/hooks/usePortfolioDetail";
 import { useAuth } from "@/context/AuthContext";
 import { JobCategory, JobProfileStatus, PortfolioRequest, CATEGORY_TO_BACKEND, DISPLAY_TO_STATUS, PortfolioDetail, BACKEND_TO_CATEGORY } from "@/types/portfolio";
 import { MediaUploader } from "@/components/MediaUploader";
 import { mediaUploadService } from "@/services/mediaUploadService";
+import { portfolioService } from "@/services/portfolioService";
 import React from "react";
 import { toast } from "./ui/sonner";
 
@@ -18,6 +19,7 @@ interface CreatePortfolioModalProps {
   onClose: () => void;
   onSuccess?: () => void;
   initialData?: PortfolioDetail | null;
+  onOpenEditModal?: (portfolio: PortfolioDetail) => void;
 }
 
 const roles = ["Programmer", "Artist", "Designer", "Producer", "Audio", "Animator", "Community Manager", "Composer", "Level Designer", "Marketing Engineer", "Musician", "Product Manager", "QA Tester", "Project Manager", "Writer", "Sound Engineer", "Translator", "UI/UX Designer", "User Acquisation Engineer", "BizDev", "V0 Artist", "Mentor", "Founder"];
@@ -306,7 +308,7 @@ const getJobCategoryFromRole = (role: string): JobCategory => {
   return CATEGORY_TO_BACKEND[role] || JobCategory.OTHER;
 };
 
-export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }: CreatePortfolioModalProps) => {
+export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData, onOpenEditModal }: CreatePortfolioModalProps) => {
   const { isAuthenticated, dbUser, loginWithGoogle, loginWithGithub,
     loginWithDiscord,
     loginWithLinkedIn,
@@ -315,6 +317,12 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }
   } = useAuth();
   const { createOrUpdate, loading: isSubmitting, error: submitError, success, reset } = usePortfolioMutation();
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  
+  // Portfolio checking states
+  const [mode, setMode] = useState<'create' | 'edit'>('create');
+  const [existingPortfolio, setExistingPortfolio] = useState<PortfolioDetail | null>(null);
+  const [isCheckingPortfolio, setIsCheckingPortfolio] = useState(false);
+  
   // Form State
   const [formData, setFormData] = useState({
     name: "",
@@ -384,6 +392,28 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }
       });
     }
   }, [isOpen, initialData, dbUser]);
+
+  // Check if user has existing portfolio
+  useEffect(() => {
+    if (isOpen && isAuthenticated && dbUser?.id && !initialData) {
+      setIsCheckingPortfolio(true);
+      portfolioService.getMyPortfolio()
+        .then(data => {
+          if (data) {
+            setExistingPortfolio(data);
+            setMode('edit');
+          } else {
+            setExistingPortfolio(null);
+            setMode('create');
+          }
+        })
+        .catch(() => {
+          setExistingPortfolio(null);
+          setMode('create');
+        })
+        .finally(() => setIsCheckingPortfolio(false));
+    }
+  }, [isOpen, isAuthenticated, dbUser?.id, initialData]);
 
   // Reset form and close on success
   useEffect(() => {
@@ -552,12 +582,12 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }
     // Build request payload with proper null handling
     const request: PortfolioRequest = {
       name: formData.name.trim(),
-      shortDescription: formData.shortDescription?.trim() || formData.role,
+      shortDescription: formData.shortDescription?.trim() || "Game Developer",
       location: formData.location.trim(),
       experienceYears: cleanedExperience,
       jobCategory: CATEGORY_TO_BACKEND[formData.role] || JobCategory.OTHER,
       jobStatus: DISPLAY_TO_STATUS[formData.jobStatus] || JobProfileStatus.OPEN,
-      profileSummary: formData.profileSummary?.trim() || "",
+      profileSummary: formData.profileSummary?.trim() || undefined,
       contactEmail: formData.contactEmail.trim(),
       profilePhotoUrl: clean(formData.profilePhotoUrl),
       coverPhotoUrl: clean(formData.coverPhotoUrl),
@@ -566,12 +596,88 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }
         .filter(s => s.name && s.name.trim() !== "")
         .map(s => ({ name: s.name.trim(), score: s.score })),
       socials: formData.socials
-        .filter(s => s.platform && s.platform.trim() !== "" && s.url && s.url.trim() !== "")
+        .filter(s => s.platform?.trim() && s.url?.trim())
         .map(s => ({ platform: s.platform.trim(), url: s.url.trim() })),
     };
 
     await createOrUpdate(request);
   };
+
+  const renderLockedPortfolioView = () => (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9, y: 40 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.9, y: 40 }}
+      transition={{ type: "spring", damping: 25, stiffness: 300 }}
+      className="w-full max-w-3xl mx-auto bg-[#0a0a0a] border border-[#FFAB00]/20 rounded-xl shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col"
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between p-6 border-b border-white/10">
+        <div className="flex items-center gap-3">
+          <ShieldCheck className="w-5 h-5 text-[#FFAB00]" />
+          <h2 className="text-lg font-bold text-white uppercase tracking-wider">PORTFOLIO EXISTS</h2>
+        </div>
+        <motion.button
+          onClick={onClose}
+          className="p-2 hover:bg-[#FFAB00]/10 rounded-lg text-white hover:text-[#FFAB00] transition-all"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <X className="w-5 h-5" />
+        </motion.button>
+      </div>
+
+      {/* Content */}
+      <div className="p-8 flex flex-col items-center justify-center text-center space-y-6">
+        <div className="w-16 h-16 rounded-full bg-[#FFAB00]/10 flex items-center justify-center">
+          <CheckCircle className="w-8 h-8 text-[#FFAB00]" />
+        </div>
+
+        <div>
+          <h3 className="text-lg font-bold text-white mb-2 uppercase">Your Portfolio Already Exists</h3>
+          <p className="text-gray-400 text-sm">
+            You already have a portfolio. To make changes, please use the
+            <br />
+            <span className="text-[#FFAB00] font-bold">"Update Portfolio"</span> button in your User Menu.
+          </p>
+        </div>
+
+        {existingPortfolio && (
+          <div className="bg-black/50 border border-[#FFAB00]/20 rounded-lg p-4 w-full max-w-sm">
+            <p className="text-gray-400 text-xs uppercase mb-3 tracking-wider">Quick Preview</p>
+            <p className="text-white font-bold text-lg mb-1">{existingPortfolio.name}</p>
+            <p className="text-gray-400 text-sm mb-3">{BACKEND_TO_CATEGORY[existingPortfolio.jobCategory]}</p>
+            <p className="text-gray-500 text-xs">{existingPortfolio.location}</p>
+          </div>
+        )}
+
+        <div className="flex gap-3 w-full max-w-sm justify-center">
+          <motion.button
+            onClick={() => {
+              if (existingPortfolio) {
+                onOpenEditModal?.(existingPortfolio);
+              }
+              onClose();
+            }}
+            className="flex-1 px-4 py-3 bg-[#FFAB00] text-black hover:bg-[#FFB900] rounded-lg font-bold flex items-center justify-center gap-2 transition-all"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Edit2 className="w-4 h-4" />
+            EDIT PORTFOLIO
+          </motion.button>
+          <motion.button
+            onClick={onClose}
+            className="flex-1 px-4 py-3 bg-white/10 text-white hover:bg-white/20 rounded-lg font-semibold transition-all"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            CLOSE
+          </motion.button>
+        </div>
+      </div>
+    </motion.div>
+  );
 
   // Show login prompt if not authenticated
   // Show login prompt if not authenticated
@@ -736,6 +842,13 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData }
               {/* Form Content */}
               {!isAuthenticated ? (
                 renderAuthPrompt()
+              ) : isCheckingPortfolio ? (
+                <div className="p-8 flex flex-col items-center justify-center space-y-4">
+                  <Loader2 className="w-8 h-8 text-[#FFAB00] animate-spin" />
+                  <p className="text-gray-400">Checking portfolio...</p>
+                </div>
+              ) : mode === 'edit' && existingPortfolio ? (
+                renderLockedPortfolioView()
               ) : (
                 <form onSubmit={handleSubmit} className="p-6 space-y-8">
 
