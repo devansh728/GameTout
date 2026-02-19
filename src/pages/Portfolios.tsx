@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
-import { MapPin, UserPlus, List, Grid, CheckCircle, Clock, XCircle, Zap, Search, Terminal, Filter, Loader2, AlertCircle, RefreshCw, Crown, Sparkles, Shield, Lock, Calendar, Radio, Wifi, Cpu, Signal, Activity, Hexagon, Triangle, Circle } from "lucide-react";
+import { MapPin, UserPlus, List, Grid, CheckCircle, Clock, XCircle, Zap, Search, Terminal, ChevronDown, Filter, Loader2, AlertCircle, RefreshCw, Crown, Sparkles, Shield, Lock, Calendar, Radio, Wifi, Cpu, Signal, Activity, Hexagon, Triangle, Circle } from "lucide-react";
 import { PageTransition, FadeInView } from "@/components/PageTransition";
 import { Footer } from "@/components/Footer";
 import { CreatePortfolioModal } from "@/components/CreatePortfolioModal";
@@ -39,8 +39,6 @@ const rotatingCategories = [
   { text: "Audio Engineers", color: "#A855F7" },
   { text: "Producers", color: "#F97316" },
 ];
-
-
 
 const ScrollHint = () => {
   const [isVisible, setIsVisible] = useState(true);
@@ -186,7 +184,7 @@ const DCompactHeader = ({
           </div>
         </div>
 
-        {/* Demo Mode Toggle - positioned in corner */}
+        {/* Demo Mode Toggle */}
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
@@ -203,10 +201,8 @@ const DCompactHeader = ({
 
       {/* Main Header Row */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-
         {/* Left: Title & Tagline */}
         <div className="flex-1">
-          {/* Compact Title */}
           <div className="flex items-center gap-3 mb-2">
             <h1 className="font-display text-3xl md:text-4xl text-white uppercase tracking-tight leading-none">
               Talent
@@ -214,17 +210,7 @@ const DCompactHeader = ({
                 Network
               </span>
             </h1>
-
-            {/* Stats Badge */}
-            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
-              <Zap className="w-3 h-3 text-[#FFAB00]" />
-              <span className="text-[10px] font-mono text-gray-400">
-                <span className="text-white font-bold">847</span> Active Profiles
-              </span>
-            </div>
           </div>
-
-          {/* Animated Tagline */}
           <AnimatedTagline />
         </div>
 
@@ -237,11 +223,9 @@ const DCompactHeader = ({
         >
           <UserPlus className="w-4 h-4" />
           <span>Create Profile</span>
-
-          {/* Shine effect */}
           <motion.div
             className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full"
-            animate={{ translateX: ["−100%", "200%"] }}
+            animate={{ translateX: ["-100%", "200%"] }}
             transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
           />
         </motion.button>
@@ -250,7 +234,7 @@ const DCompactHeader = ({
   );
 };
 
-// --- COMPONENTS (keeping existing ones) ---
+// --- COMPONENTS ---
 
 const StatusBadge = ({ status }: { status: string }) => {
   let color = "bg-gray-500";
@@ -375,81 +359,111 @@ const EmptyState = ({ category }: { category: string }) => (
   </div>
 );
 
-// Elite Access Banner (Compact version)
-// const EliteAccessBanner = ({ 
-//   isElite, 
-//   onUpgrade,
-//   daysRemaining = 0,
-//   isExpiringSoon = false,
-// }: { 
-//   isElite: boolean; 
-//   onUpgrade: () => void;
-//   daysRemaining?: number;
-//   isExpiringSoon?: boolean;
-// }) => {
-//   if (isElite) {
-//     return (
-//       <motion.div
-//         initial={{ opacity: 0, y: -10 }}
-//         animate={{ opacity: 1, y: 0 }}
-//         className={`flex items-center justify-between gap-3 px-4 py-2 mb-4 rounded-sm ${
-//           isExpiringSoon 
-//             ? "bg-gradient-to-r from-orange-500/10 to-transparent border-l-2 border-orange-500" 
-//             : "bg-gradient-to-r from-[#FFAB00]/10 to-transparent border-l-2 border-[#FFAB00]"
-//         }`}
-//       >
-//         <div className="flex items-center gap-2">
-//           <Crown className={`w-4 h-4 ${isExpiringSoon ? "text-orange-500" : "text-[#FFAB00]"}`} />
-//           <span className={`font-bold uppercase text-xs tracking-wide ${isExpiringSoon ? "text-orange-500" : "text-[#FFAB00]"}`}>
-//             Elite Active
-//           </span>
-//         </div>
-//         {daysRemaining > 0 && (
-//           <div className="flex items-center gap-2 text-xs">
-//             <span className={isExpiringSoon ? "text-orange-400" : "text-gray-400"}>
-//               {daysRemaining}d left
-//             </span>
-//             {isExpiringSoon && (
-//               <motion.button
-//                 whileHover={{ scale: 1.05 }}
-//                 whileTap={{ scale: 0.95 }}
-//                 onClick={onUpgrade}
-//                 className="px-2 py-0.5 bg-orange-500 text-black text-[10px] font-bold uppercase rounded"
-//               >
-//                 Renew
-//               </motion.button>
-//             )}
-//           </div>
-//         )}
-//       </motion.div>
-//     );
-//   }
+// More Categories Button Component
+const MoreCategoriesButton = ({
+  roles,
+  activeRole,
+  onCategoryChange
+}: {
+  roles: string[];
+  activeRole: string;
+  onCategoryChange: (role: string) => void;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
-//   return (
-//     <motion.div
-//       initial={{ opacity: 0, y: -10 }}
-//       animate={{ opacity: 1, y: 0 }}
-//       className="flex items-center justify-between gap-4 px-4 py-3 bg-gradient-to-r from-[#FFAB00]/5 via-[#FFAB00]/10 to-transparent border border-[#FFAB00]/20 rounded-sm mb-4"
-//     >
-//       <div className="flex items-center gap-3">
-//         <Shield className="w-5 h-5 text-[#FFAB00]" />
-//         <div>
-//           <span className="text-white font-bold text-sm">Unlock Full Access</span>
-//           <span className="text-gray-500 text-xs ml-2 hidden md:inline">• Complete profiles & contact info</span>
-//         </div>
-//       </div>
-//       <motion.button
-//         whileHover={{ scale: 1.05 }}
-//         whileTap={{ scale: 0.95 }}
-//         onClick={onUpgrade}
-//         className="px-4 py-1.5 bg-gradient-to-r from-[#FFAB00] to-[#FFD700] text-black font-bold uppercase text-xs rounded-sm shadow-[0_0_15px_rgba(255,171,0,0.3)]"
-//       >
-//         <Crown className="w-3 h-3 inline mr-1" />
-//         Get Elite
-//       </motion.button>
-//     </motion.div>
-//   );
-// };
+  const filteredRoles = useMemo(() => {
+    return roles.filter(role =>
+      role.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [roles, searchTerm]);
+
+  return (
+    <div className="relative">
+      <motion.button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="px-3 sm:px-4 py-2 text-[11px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-300 rounded-lg bg-white/[0.03] text-gray-500 hover:text-white hover:bg-white/[0.07] border border-transparent hover:border-white/[0.08] flex items-center gap-1"
+        whileTap={{ scale: 0.95 }}
+      >
+        More <ChevronDown className="w-3 h-3" />
+      </motion.button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40"
+              onClick={() => setIsOpen(false)}
+            />
+
+            {/* Dropdown */}
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              className="absolute left-0 mt-2 w-64 bg-[#0a0a0a] border border-[#FFAB00]/30 rounded-lg shadow-2xl z-50"
+              style={{
+                boxShadow: '0 10px 50px rgba(0,0,0,0.8), 0 0 20px rgba(255,171,0,0.1)',
+              }}
+            >
+              {/* Search input inside dropdown */}
+              <div className="p-2 border-b border-white/10">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search categories..."
+                    className="w-full bg-white/[0.04] border border-white/[0.06] rounded-lg pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-[#FFAB00]/50 transition-all duration-300 font-mono placeholder:text-gray-600"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                    <Search className="w-4 h-4" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Categories list */}
+              <div className="max-h-60 overflow-y-auto p-1">
+                {filteredRoles.length > 0 ? (
+                  filteredRoles.map((role) => (
+                    <motion.button
+                      key={role}
+                      type="button"
+                      onClick={() => {
+                        onCategoryChange(role);
+                        setIsOpen(false);
+                        setSearchTerm("");
+                      }}
+                      className={`w-full px-4 py-2 text-left text-sm hover:bg-white/10 transition-colors flex items-center gap-2 rounded ${activeRole === role
+                        ? 'bg-[#FFAB00]/20 text-[#FFAB00] font-bold'
+                        : 'text-gray-300'
+                        }`}
+                      whileHover={{ x: 4 }}
+                    >
+                      <span className="uppercase">{role}</span>
+                      {activeRole === role && (
+                        <CheckCircle className="w-4 h-4 ml-auto" />
+                      )}
+                    </motion.button>
+                  ))
+                ) : (
+                  <div className="p-4 text-center text-gray-500 text-sm">
+                    No categories found
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
 const Portfolios = () => {
   const [activeRole, setActiveRole] = useState("All");
@@ -649,12 +663,6 @@ const Portfolios = () => {
             else refreshList();
           }}
         />
-        {/*<PricingModal 
-          isOpen={isPricingOpen} 
-          onClose={() => setIsPricingOpen(false)}
-          onSelectPlan={handlePlanSelect}
-          demoMode={isDemoMode}
-        />*/}
 
         <ProfileViewModal
           isOpen={!!selectedDev && !showClassified}
@@ -789,8 +797,8 @@ const Portfolios = () => {
                 <button
                   onClick={() => setViewMode("grid")}
                   className={`p-2 rounded-md transition-all duration-200 ${viewMode === "grid"
-                      ? "bg-[#FFAB00] text-black shadow-[0_0_12px_rgba(255,171,0,0.3)]"
-                      : "text-gray-600 hover:text-white hover:bg-white/5"
+                    ? "bg-[#FFAB00] text-black shadow-[0_0_12px_rgba(255,171,0,0.3)]"
+                    : "text-gray-600 hover:text-white hover:bg-white/5"
                     }`}
                   title="Grid View"
                 >
@@ -799,8 +807,8 @@ const Portfolios = () => {
                 <button
                   onClick={() => setViewMode("list")}
                   className={`p-2 rounded-md transition-all duration-200 ${viewMode === "list"
-                      ? "bg-[#FFAB00] text-black shadow-[0_0_12px_rgba(255,171,0,0.3)]"
-                      : "text-gray-600 hover:text-white hover:bg-white/5"
+                    ? "bg-[#FFAB00] text-black shadow-[0_0_12px_rgba(255,171,0,0.3)]"
+                    : "text-gray-600 hover:text-white hover:bg-white/5"
                     }`}
                   title="List View"
                 >
@@ -809,30 +817,25 @@ const Portfolios = () => {
               </div>
             </div>
 
-            {/* Row 2: Category Filters - Horizontal scroll with visual cues */}
+            {/* Row 2: Category Filters - Fixed Layout */}
             <div className="mt-3 relative">
-              {/* Left fade */}
-              <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#0a0a0a] to-transparent z-10 pointer-events-none opacity-0 sm:opacity-100"
+              {/* Left fade - only on mobile */}
+              <div
+                className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#0a0a0a] to-transparent z-10 pointer-events-none sm:opacity-0"
                 id="filter-fade-left"
               />
 
-              {/* Right fade - always visible on mobile to hint scrollability */}
-              <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-16 bg-gradient-to-l from-[#0a0a0a] to-transparent z-10 pointer-events-none" />
+              {/* Right fade - only on mobile */}
+              <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-16 bg-gradient-to-l from-[#0a0a0a] to-transparent z-10 pointer-events-none sm:opacity-0" />
 
-              {/* Scroll container */}
-              <div
-                className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none scroll-smooth px-1 py-1 -mx-1"
-                style={{
-                  maskImage: 'linear-gradient(to right, transparent 0%, black 24px, black calc(100% - 48px), transparent 100%)',
-                  WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 24px, black calc(100% - 48px), transparent 100%)',
-                }}
-              >
-                {/* "All" button - special style */}
+              {/* Desktop: Show first 6 categories + More button + Search */}
+              <div className="hidden sm:flex items-center gap-2 flex-wrap">
+                {/* "All" button */}
                 <button
                   onClick={() => handleCategoryChange("All")}
                   className={`group relative whitespace-nowrap px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all duration-300 rounded-lg shrink-0 ${activeRole === "All"
-                      ? "bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.15)]"
-                      : "bg-white/[0.04] text-gray-500 hover:text-white hover:bg-white/[0.08] border border-white/[0.06]"
+                    ? "bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.15)]"
+                    : "bg-white/[0.04] text-gray-500 hover:text-white hover:bg-white/[0.08] border border-white/[0.06]"
                     }`}
                 >
                   <span className="flex items-center gap-1.5">
@@ -841,7 +844,7 @@ const Portfolios = () => {
                   </span>
                   {activeRole === "All" && (
                     <motion.div
-                      layoutId="activeFilter"
+                      layoutId="activeFilterDesktop"
                       className="absolute inset-0 rounded-lg bg-white -z-10"
                       transition={{ type: "spring", stiffness: 380, damping: 30 }}
                     />
@@ -851,20 +854,20 @@ const Portfolios = () => {
                 {/* Separator */}
                 <div className="w-px h-6 bg-white/[0.06] shrink-0 mx-0.5" />
 
-                {/* Role filters */}
-                {roles.filter(r => r !== "All").map((role) => (
+                {/* First 6 role filters */}
+                {roles.filter(r => r !== "All").slice(0, 8).map((role) => (
                   <button
                     key={role}
                     onClick={() => handleCategoryChange(role)}
                     className={`group relative whitespace-nowrap px-3 sm:px-4 py-2 text-[11px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-300 rounded-lg shrink-0 ${activeRole === role
-                        ? "bg-[#FFAB00] text-black shadow-[0_0_20px_rgba(255,171,0,0.25)]"
-                        : "bg-white/[0.03] text-gray-500 hover:text-white hover:bg-white/[0.07] border border-transparent hover:border-white/[0.08]"
+                      ? "bg-[#FFAB00] text-black shadow-[0_0_20px_rgba(255,171,0,0.25)]"
+                      : "bg-white/[0.03] text-gray-500 hover:text-white hover:bg-white/[0.07] border border-transparent hover:border-white/[0.08]"
                       }`}
                   >
                     {role}
                     {activeRole === role && (
                       <motion.div
-                        layoutId="activeFilterGold"
+                        layoutId="activeFilterGoldDesktop"
                         className="absolute inset-0 rounded-lg bg-[#FFAB00] -z-10"
                         transition={{ type: "spring", stiffness: 380, damping: 30 }}
                       />
@@ -872,26 +875,115 @@ const Portfolios = () => {
                   </button>
                 ))}
 
-                {/* End spacer for scroll padding */}
-                <div className="w-8 shrink-0" aria-hidden="true" />
+                {/* More button for desktop */}
+                {roles.filter(r => r !== "All").length > 6 && (
+                  <MoreCategoriesButton
+                    roles={roles.filter(r => r !== "All").slice(6)}
+                    activeRole={activeRole}
+                    onCategoryChange={handleCategoryChange}
+                  />
+                )}
+
+                {/* Category search input for desktop */}
+                {/* <div className="ml-auto flex items-center gap-2">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search categories..."
+                      className="bg-white/[0.04] border border-white/[0.06] rounded-lg pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-[#FFAB00]/50 focus:bg-white/[0.06] transition-all duration-300 font-mono placeholder:text-gray-600 w-48"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          const query = (e.target as HTMLInputElement).value.toLowerCase().trim();
+                          if (!query) return;
+
+                          const matchedRole = roles.find(r =>
+                            r.toLowerCase().includes(query)
+                          );
+
+                          if (matchedRole) {
+                            handleCategoryChange(matchedRole);
+                            (e.target as HTMLInputElement).value = '';
+                          } else {
+                            toast.info(`No category found matching "${query}"`);
+                          }
+                        }
+                      }}
+                    />
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                      <Search className="w-4 h-4" />
+                    </div>
+                  </div> */}
+                {/* </div> */}
               </div>
 
-              {/* Scroll hint - only on mobile, fades out after interaction */}
-              <ScrollHint />
+              {/* Mobile: Horizontal scroll */}
+              <div className="sm:hidden">
+                {/* Scroll container for mobile */}
+                <div
+                  className="flex items-center gap-1.5 overflow-x-auto scrollbar-none scroll-smooth px-1 py-1 -mx-1"
+                  style={{
+                    maskImage: 'linear-gradient(to right, transparent 0%, black 24px, black calc(100% - 48px), transparent 100%)',
+                    WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 24px, black calc(100% - 48px), transparent 100%)',
+                  }}
+                >
+                  {/* "All" button */}
+                  <button
+                    onClick={() => handleCategoryChange("All")}
+                    className={`group relative whitespace-nowrap px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all duration-300 rounded-lg shrink-0 ${activeRole === "All"
+                      ? "bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.15)]"
+                      : "bg-white/[0.04] text-gray-500 hover:text-white hover:bg-white/[0.08] border border-white/[0.06]"
+                      }`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Zap className={`w-3 h-3 ${activeRole === "All" ? "text-black" : "text-[#FFAB00]"}`} />
+                      All
+                    </span>
+                    {activeRole === "All" && (
+                      <motion.div
+                        layoutId="activeFilterMobile"
+                        className="absolute inset-0 rounded-lg bg-white -z-10"
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                  </button>
+
+                  {/* Separator */}
+                  <div className="w-px h-6 bg-white/[0.06] shrink-0 mx-0.5" />
+
+                  {/* Role filters for mobile */}
+                  {roles.filter(r => r !== "All").map((role) => (
+                    <button
+                      key={role}
+                      onClick={() => handleCategoryChange(role)}
+                      className={`group relative whitespace-nowrap px-3 py-2 text-[11px] font-bold uppercase tracking-wider transition-all duration-300 rounded-lg shrink-0 ${activeRole === role
+                        ? "bg-[#FFAB00] text-black shadow-[0_0_20px_rgba(255,171,0,0.25)]"
+                        : "bg-white/[0.03] text-gray-500 hover:text-white hover:bg-white/[0.07] border border-transparent hover:border-white/[0.08]"
+                        }`}
+                    >
+                      {role}
+                      {activeRole === role && (
+                        <motion.div
+                          layoutId="activeFilterGoldMobile"
+                          className="absolute inset-0 rounded-lg bg-[#FFAB00] -z-10"
+                          transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                        />
+                      )}
+                    </button>
+                  ))}
+
+                  {/* End spacer for scroll padding */}
+                  <div className="w-8 shrink-0" aria-hidden="true" />
+                </div>
+
+                {/* Scroll hint */}
+                <ScrollHint />
+              </div>
             </div>
           </div>
         </section>
 
         {/* DATABASE CONTENT */}
         <section className="px-4 md:px-8 max-w-[1600px] mx-auto pb-20 min-h-[500px] relative z-10">
-
-          {/* Elite Access Banner */}
-          {/* <EliteAccessBanner 
-            isElite={isElite} 
-            onUpgrade={handleUnlockClick} 
-            daysRemaining={daysRemaining}
-            isExpiringSoon={isExpiringSoon}
-          /> */}
 
           <AnimatePresence mode="wait">
 
