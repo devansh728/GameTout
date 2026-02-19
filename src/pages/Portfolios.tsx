@@ -734,7 +734,7 @@ const Portfolios = () => {
                 </div>
                 <input
                   type="text"
-                  placeholder="Search by name, role, or skill..."
+                  placeholder="Search by name ..."
                   className="w-full bg-white/[0.04] border border-white/[0.06] rounded-lg pl-10 pr-10 py-2.5 sm:py-3 text-sm text-white focus:outline-none focus:border-[#FFAB00]/50 focus:bg-white/[0.06] focus:shadow-[0_0_0_3px_rgba(255,171,0,0.08)] transition-all duration-300 font-mono placeholder:text-gray-600"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
