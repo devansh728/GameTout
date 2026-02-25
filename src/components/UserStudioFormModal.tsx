@@ -7,6 +7,7 @@ import {
 import { StudioRequest } from "@/types/studio";
 import { MediaUploader } from "@/components/MediaUploader";
 import { mediaUploadService } from "@/services/mediaUploadService";
+import { CustomDropdown } from "@/components/CustomDropdown";
 
 interface UserStudioFormModalProps {
   isOpen: boolean;
@@ -296,6 +297,16 @@ export const UserStudioFormModal = ({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const countryOptions = COUNTRY_LIST.map((country) => ({
+    value: country,
+    label: country,
+  }));
+
+  const stateOptions = INDIAN_STATE_LIST.map((state) => ({
+    value: state,
+    label: state,
+  }));
+
   const isIndia = formData.country.toLowerCase() === "india";
 
   return (
@@ -520,28 +531,20 @@ export const UserStudioFormModal = ({
                         <Globe className="w-4 h-4 text-primary" />
                         Country *
                       </label>
-                      <div className="relative">
-                        <select
-                          required
-                          value={formData.country}
-                          onChange={(e) => {
-                            updateField("country", e.target.value);
-                            // Clear city when country changes
-                            if (e.target.value.toLowerCase() !== "india") {
-                              updateField("city", "");
-                            }
-                          }}
-                          className="w-full bg-black/50 border border-white/20 p-3 rounded-lg text-white focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono appearance-none cursor-pointer"
-                        >
-                          <option value="">Select Country</option>
-                          {COUNTRY_LIST.map((country) => (
-                            <option key={country} value={country}>
-                              {country}
-                            </option>
-                          ))}
-                        </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                      </div>
+                      <CustomDropdown
+                        value={formData.country}
+                        onChange={(value) => {
+                          updateField("country", value);
+                          // Clear city when country changes
+                          if (value.toLowerCase() !== "india") {
+                            updateField("city", "");
+                          }
+                        }}
+                        placeholder="Select Country"
+                        options={countryOptions}
+                        searchable
+                        dropdownClassName="max-h-72"
+                      />
                     </div>
 
                     {/* City/State */}
@@ -551,22 +554,14 @@ export const UserStudioFormModal = ({
                         {isIndia ? "State *" : "City"}
                       </label>
                       {isIndia ? (
-                        <div className="relative">
-                          <select
-                            required
-                            value={formData.city}
-                            onChange={(e) => updateField("city", e.target.value)}
-                            className="w-full bg-black/50 border border-white/20 p-3 rounded-lg text-white focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono appearance-none cursor-pointer"
-                          >
-                            <option value="">Select State</option>
-                            {INDIAN_STATE_LIST.map((state) => (
-                              <option key={state} value={state}>
-                                {state}
-                              </option>
-                            ))}
-                          </select>
-                          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                        </div>
+                        <CustomDropdown
+                          value={formData.city}
+                          onChange={(value) => updateField("city", value)}
+                          placeholder="Select State"
+                          options={stateOptions}
+                          searchable
+                          dropdownClassName="max-h-72"
+                        />
                       ) : (
                         <input
                           type="text"
@@ -582,19 +577,19 @@ export const UserStudioFormModal = ({
                     <div className="md:col-span-2 p-3 bg-primary/5 border border-primary/20 rounded-lg">
                       <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
                         <MapPin className="w-3 h-3 text-primary" />
-                        <span>Coordinates</span>
+                        <span>Coordinates (Auto-filled based on location)</span>
                       </div>
-                      <div className="flex gap-4 font-mono text-sm">
+                      <div className="flex gap-6 font-mono text-sm">
                         <div className="flex items-center gap-2">
-                          <span className="text-gray-500">Lat:</span>
-                          <span className="text-primary">
-                            {formData.latitude.toFixed(4)}
+                          <span className="text-gray-500">Latitude:</span>
+                          <span className="text-primary font-bold">
+                            {formData.latitude.toFixed(4)}°
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-gray-500">Lng:</span>
-                          <span className="text-primary">
-                            {formData.longitude.toFixed(4)}
+                          <span className="text-gray-500">Longitude:</span>
+                          <span className="text-primary font-bold">
+                            {formData.longitude.toFixed(4)}°
                           </span>
                         </div>
                       </div>

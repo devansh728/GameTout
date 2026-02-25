@@ -18,6 +18,7 @@ import { useAuth } from "@/context/AuthContext";
 import { statsService } from "@/services/statsService";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
 import { HeroTagline } from "@/components/HeroTagline";
+import { CustomDropdown } from "@/components/CustomDropdown";
 
 // ============================================
 // STUDIO RATING SECTION COMPONENT
@@ -234,9 +235,9 @@ const Studios = () => {
   // Filter studios by search query (client-side)
   const filteredStudios = searchQuery.trim()
     ? studios.filter(s =>
-        s.studioName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.city.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      s.studioName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.city.toLowerCase().includes(searchQuery.toLowerCase())
+    )
     : studios;
 
   const handleFilterChange = (key: keyof StudioFilters, value: string) => {
@@ -371,40 +372,50 @@ const Studios = () => {
                 </div>
 
                 {/* Country Filter */}
-                <select
-                  value={filters.country || ""}
-                  onChange={(e) => handleFilterChange("country", e.target.value)}
-                  className="bg-white/[0.04] border border-white/[0.06] rounded-lg px-3 py-2 text-xs text-white focus:border-[#FFAB00]/50 focus:outline-none font-mono cursor-pointer"
-                >
-                  <option value="">All Countries</option>
-                  {countries.map(country => (
-                    <option key={country} value={country}>{country}</option>
-                  ))}
-                </select>
+                <div className="w-36">
+                  <CustomDropdown
+                    value={filters.country || ""}
+                    onChange={(value) => handleFilterChange("country", value)}
+                    placeholder="Countries"
+                    options={[
+                      { value: "", label: "Countries" },
+                      ...countries.map((country) => ({ value: country, label: country })),
+                    ]}
+                    searchable={countries.length > 10}
+                  />
+                </div>
 
                 {/* City Filter */}
-                <select
-                  value={filters.city || ""}
-                  onChange={(e) => handleFilterChange("city", e.target.value)}
-                  className="bg-white/[0.04] border border-white/[0.06] rounded-lg px-3 py-2 text-xs text-white focus:border-[#FFAB00]/50 focus:outline-none font-mono cursor-pointer"
-                >
-                  <option value="">All Cities</option>
-                  {cities.map(city => (
-                    <option key={city} value={city}>{city}</option>
-                  ))}
-                </select>
+                <div className="w-36">
+                  <CustomDropdown
+                    value={filters.city || ""}
+                    onChange={(value) => handleFilterChange("city", value)}
+                    placeholder="All Cities"
+                    options={[
+                      { value: "", label: "Cities" },
+                      ...cities.map((city) => ({ value: city, label: city })),
+                    ]}
+                    searchable={cities.length > 10}
+                  />
+                </div>
 
                 {/* Rating Filter */}
-                <select
-                  value={filters.ratings || ""}
-                  onChange={(e) => handleFilterChange("ratings", e.target.value)}
-                  className="bg-white/[0.04] border border-white/[0.06] rounded-lg px-3 py-2 text-xs text-white focus:border-[#FFAB00]/50 focus:outline-none font-mono cursor-pointer"
-                >
-                  <option value="">All Ratings</option>
-                  {[5, 4, 3, 2, 1].map(rating => (
-                    <option key={rating} value={rating}>{rating}+ Stars</option>
-                  ))}
-                </select>
+                <div className="w-32">
+                  <CustomDropdown
+                    value={filters.ratings?.toString() || ""}
+                    onChange={(value) => handleFilterChange("ratings", value)}
+                    placeholder="All Ratings"
+                    icon={<Star className="w-3 h-3" />}
+                    options={[
+                      { value: "", label: "Ratings" },
+                      { value: "5", label: "5 Stars" },
+                      { value: "4", label: "4+ Stars" },
+                      { value: "3", label: "3+ Stars" },
+                      { value: "2", label: "2+ Stars" },
+                      { value: "1", label: "1+ Stars" },
+                    ]}
+                  />
+                </div>
 
                 {/* Clear Filters */}
                 <AnimatePresence>
