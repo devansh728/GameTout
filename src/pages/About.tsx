@@ -688,7 +688,7 @@ const About = () => {
         </section>
 
         {/* ===== JOURNEY / TIMELINE SECTION ===== */}
-        <section className="py-16 sm:py-24 px-4 md:px-8">
+        {/* <section className="py-16 sm:py-24 px-4 md:px-8">
           <div className="max-w-4xl mx-auto">
             <FadeInView>
               <div className="text-center mb-10 sm:mb-16">
@@ -714,10 +714,10 @@ const About = () => {
               ))}
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* ===== ECOSYSTEM SECTION ===== */}
-        <section className="py-16 sm:py-24 px-4 md:px-8 relative">
+        {/* <section className="py-16 sm:py-24 px-4 md:px-8 relative">
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] bg-primary/[0.02] rounded-full blur-3xl" />
           </div>
@@ -783,10 +783,10 @@ const About = () => {
               />
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* ===== CTA SECTION ===== */}
-        <section className="py-16 sm:py-24 px-4 md:px-8">
+        {/* <section className="py-16 sm:py-24 px-4 md:px-8">
           <div className="max-w-3xl mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -820,10 +820,10 @@ const About = () => {
 
                 <p className="text-foreground/65 mb-8 sm:mb-12 text-base sm:text-lg md:text-xl leading-relaxed">
                   Connect with the source. Join the movement.
-                </p>
+                </p> */}
 
                 {/* Email Copy Button */}
-                <motion.button
+                {/* <motion.button
                   onClick={copyEmail}
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
@@ -851,7 +851,7 @@ const About = () => {
               </div>
             </motion.div>
           </div>
-        </section>
+        </section> */}
 
         {/* ===== CONTACT SECTION ===== */}
         <ContactSection />

@@ -11,8 +11,8 @@ const socialLinks = [
 
 const footerLinks = {
   platform: [/*"Featured", "Documentary", "Reviews",*/ "Portfolios", "Studios"],
-  company: ["About Us", "Careers", "Press Kit", "Privacy Policy", "Terms"],
-  community: ["Discord", "Forums", "Events", "Newsletter", "Partners"],
+  company: ["About Us","FAQs"],
+  community: ["Discord", "Whatsapp", "Youtube", "Linkedin"],
 };
 
 export const Footer = () => {
@@ -25,7 +25,7 @@ export const Footer = () => {
           {/* Brand */}
           <div className="lg:col-span-2">
             <h3 className="font-display text-3xl mb-4">
-              <span className="text-gradient-gold">GAME</span>TOUT
+              <span className="text-gradient-gold">GAME</span>TOUT<span className="text-[0.5em] align-super font-bold text-white/90"> ™</span>
             </h3>
             <p className="text-muted-foreground text-sm mb-6 max-w-sm">
               India's premier gaming hub. Cinematic stories, expert reviews, 
@@ -33,7 +33,7 @@ export const Footer = () => {
             </p>
             
             {/* Newsletter */}
-            <div className="flex gap-2">
+            {/* <div className="flex gap-2">
               <input
                 type="email"
                 value={email}
@@ -44,7 +44,7 @@ export const Footer = () => {
               <button className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
                 <Send className="w-4 h-4" />
               </button>
-            </div>
+            </div> */}
           </div>
 
           {/* Links */}
