@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { Studio, StudioRequest, StudioPageResponse, StudioFilters } from "@/types/studio";
+import { Studio, StudioRequest, StudioPageResponse, StudioFilters, StudioRatingDTO, RatingStatsDTO } from "@/types/studio";
 
 /**
  * Studio API Service
@@ -138,8 +138,8 @@ export const studioService = {
    * Users can update their rating by calling this again
    * POST /api/user/studio/{id}/rate
    */
-  rateStudio: async (id: number, rating: number): Promise<StudioRatingResponse> => {
-    const { data } = await api.post<StudioRatingResponse>(`/user/studio/${id}/rate`, { rating });
+  rateStudio: async (id: number, rating: number): Promise<StudioRatingDTO> => {
+    const { data } = await api.post<StudioRatingDTO>(`/user/studio/${id}/rate`, { rating });
     return data;
   },
 
@@ -152,7 +152,6 @@ export const studioService = {
       const { data } = await api.get<StudioRatingDTO>(`/user/studio/${id}/rating`);
       return data;
     } catch (error: any) {
-      // 404 means user hasn't rated yet
       if (error.response?.status === 404) {
         return null;
       }
@@ -174,26 +173,26 @@ export const studioService = {
 // TYPES
 // ============================================
 
-export interface StudioRatingDTO {
-  id: number;
-  studioId: number;
-  userId: number;
-  rating: number;
-  createdAt: string;
-  updatedAt: string;
-}
+// export interface StudioRatingDTO {
+//   id: number;
+//   studioId: number;
+//   userId: number;
+//   rating: number;
+//   createdAt: string;
+//   updatedAt: string;
+// }
 
-export interface StudioRatingResponse {
-  rating: StudioRatingDTO;
-  newAverageRating: number;
-  newRatingCount: number;
-}
+// export interface StudioRatingResponse {
+//   rating: StudioRatingDTO;
+//   newAverageRating: number;
+//   newRatingCount: number;
+// }
 
-export interface RatingStatsDTO {
-  studioId: number;
-  averageRating: number;
-  ratingCount: number;
-  ratingDistribution: Record<number, number>; // e.g., { 1: 5, 2: 10, 3: 20, 4: 30, 5: 35 }
-}
+// export interface RatingStatsDTO {
+//   studioId: number;
+//   averageRating: number;
+//   ratingCount: number;
+//   ratingDistribution: Record<number, number>; // e.g., { 1: 5, 2: 10, 3: 20, 4: 30, 5: 35 }
+// }
 
 export default studioService;

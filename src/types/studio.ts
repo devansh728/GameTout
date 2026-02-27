@@ -23,6 +23,21 @@ export interface Studio {
   updatedAt?: string;
 }
 
+export interface StudioRatingDTO {
+  studioId: number;
+  averageRating: number;
+  ratingCount: number;
+  userRating?: number | null; 
+}
+
+export interface RatingStatsDTO {
+  studioId: number;
+  averageRating: number;
+  ratingCount: number;
+}
+
+export type StudioRatingResponse = StudioRatingDTO;
+
 export interface StudioRequest {
   studioName: string;
   studioLogoUrl?: string;
