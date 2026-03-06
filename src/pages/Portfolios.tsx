@@ -245,19 +245,35 @@ const DCompactHeader = ({
 // --- COMPONENTS ---
 
 const StatusBadge = ({ status }: { status: string }) => {
-  let color = "bg-gray-500";
+  let dotColor = "bg-gray-500";
+  let bgColor = "bg-gray-500/10";
+  let borderColor = "border-gray-500";
+  let textColor = "text-gray-500";
+  let shadowColor = "";
 
   if (status === "Open for Work") {
-    color = "bg-green-500 shadow-[0_0_10px_#22c55e]";
+    dotColor = "bg-green-500";
+    bgColor = "bg-green-500/10";
+    borderColor = "border-green-500";
+    textColor = "text-green-500";
+    shadowColor = "shadow-[0_0_10px_#22c55e]";
   } else if (status === "Freelance") {
-    color = "bg-[#FFAB00] shadow-[0_0_10px_#FFAB00]";
+    dotColor = "bg-white";
+    bgColor = "bg-white/10";
+    borderColor = "border-white";
+    textColor = "text-white";
+    shadowColor = "shadow-[0_0_10px_#ffffff]";
   } else if (status === "Deployed") {
-    color = "bg-red-500";
+    dotColor = "bg-red-500";
+    bgColor = "bg-red-500/10";
+    borderColor = "border-red-500";
+    textColor = "text-red-500";
+    shadowColor = "shadow-[0_0_10px_#ef4444]";
   }
 
   return (
-    <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full ${color} bg-opacity-10 border border-current text-[10px] font-bold uppercase tracking-wider text-white`}>
-      <span className={`w-2 h-2 rounded-full ${color}`}></span>
+    <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full ${bgColor} border ${borderColor} text-[10px] font-bold uppercase tracking-wider ${textColor}`}>
+      <span className={`w-2 h-2 rounded-full ${dotColor} ${shadowColor}`}></span>
       {status}
     </div>
   );
@@ -280,7 +296,7 @@ const TacticalRow = ({ dev, onClick, isRestricted, onUnlock }: {
     <div className="flex items-center gap-4 w-full md:w-1/4">
       <img src={dev.avatar} alt={dev.name} className="w-10 h-10 rounded-full object-cover border border-white/20" loading="lazy" />
       <div>
-        <h4 className="tracking-widest font-display text-white text-lg leading-none flex items-center gap-2">
+        <h4 className="font-bold uppercase tracking-wider text-white text-lg leading-none flex items-center gap-2">
           {dev.name}
           {dev.isPremium && <Crown className="w-4 h-4 text-[#FFAB00]" />}
         </h4>
@@ -521,7 +537,7 @@ const Portfolios = () => {
   } = usePortfolios({
     categories: activeCategories,
     // Only default to OPEN when categories are selected; empty for ALL view (uses listAll)
-    statuses: activeCategories.length > 0 
+    statuses: activeCategories.length > 0
       ? (activeStatuses.length > 0 ? activeStatuses : [JobProfileStatus.OPEN])
       : [],
     autoFetch: !isDemoMode
@@ -1062,7 +1078,7 @@ const Portfolios = () => {
                         onClick={() => handleStatusToggle(status.value)}
                         disabled={isDisabled}
                         className={`group relative whitespace-nowrap px-3 py-2 text-[11px] font-bold uppercase tracking-wider transition-all duration-300 rounded-lg shrink-0 flex items-center gap-1.5 border ${isDisabled
-                          ? "opacity-30 cursor-not-allowed bg-white/[0.02] text-gray-600 border-white/[0.03]"
+                          ? "cursor-not-allowed bg-white/[0.02] text-gray-600 border-white/[0.03]"
                           : isSelected
                             ? "bg-opacity-20 border-opacity-50"
                             : "bg-white/[0.03] text-gray-500 hover:text-white hover:bg-white/[0.07] border-transparent hover:border-white/[0.08]"
@@ -1074,6 +1090,15 @@ const Portfolios = () => {
                           boxShadow: `0 0 15px ${status.color}30`
                         } : {}}
                       >
+                        {/* Always-visible colored dot */}
+                        <span
+                          className="w-2 h-2 rounded-full shrink-0"
+                          style={{
+                            backgroundColor: status.color,
+                            boxShadow: `0 0 6px ${status.color}50`,
+                            opacity: isDisabled ? 0.3 : 1
+                          }}
+                        />
                         {isSelected && <CheckCircle className="w-3 h-3" />}
                         {status.label}
                       </button>
@@ -1142,6 +1167,7 @@ const Portfolios = () => {
 
                   {/* Status filters for mobile */}
                   {/* Status filters for mobile */}
+                  {/* Status filters for mobile */}
                   {statusOptions.map((status) => {
                     const isSelected = activeStatuses.includes(status.value);
                     const isDisabled = activeCategories.length === 0;
@@ -1152,7 +1178,7 @@ const Portfolios = () => {
                         onClick={() => handleStatusToggle(status.value)}
                         disabled={isDisabled}
                         className={`group relative whitespace-nowrap px-3 py-2 text-[11px] font-bold uppercase tracking-wider transition-all duration-300 rounded-lg shrink-0 flex items-center gap-1.5 border ${isDisabled
-                          ? "opacity-30 cursor-not-allowed bg-white/[0.02] text-gray-600 border-white/[0.03]"
+                          ? "cursor-not-allowed bg-white/[0.02] text-gray-600 border-white/[0.03]"
                           : isSelected
                             ? ""
                             : "bg-white/[0.05] text-gray-300 border-white/[0.1]"
@@ -1169,11 +1195,13 @@ const Portfolios = () => {
                             }
                         }
                       >
+                        {/* Always-visible colored dot */}
                         <span
                           className="w-2 h-2 rounded-full shrink-0"
                           style={{
-                            backgroundColor: isDisabled ? '#4B5563' : status.color,
-                            boxShadow: isDisabled ? 'none' : `0 0 6px ${status.color}50`,
+                            backgroundColor: status.color,
+                            boxShadow: `0 0 6px ${status.color}50`,
+                            opacity: isDisabled ? 0.3 : 1
                           }}
                         />
                         {isSelected && <CheckCircle className="w-3 h-3" />}
