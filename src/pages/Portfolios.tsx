@@ -87,38 +87,6 @@ const rotatingCategories = [
   { text: "Producers", color: "#F97316" },
 ];
 
-const ScrollHint = () => {
-  const [isVisible, setIsVisible] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(false), 4000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.div
-          initial={{ opacity: 0, x: 10 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: 10 }}
-          transition={{ duration: 0.4 }}
-          className="absolute right-2 top-1/2 -translate-y-1/2 z-30 sm:hidden"
-        >
-          <motion.div
-            animate={{ x: [0, 6, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-            className="flex items-center gap-1 px-2 py-1 bg-[#FFAB00]/20 border border-[#FFAB00]/30 rounded-full"
-          >
-            <span className="text-[9px] font-mono text-[#FFAB00] font-bold uppercase">Scroll</span>
-            <motion.span className="text-[#FFAB00] text-xs">→</motion.span>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-};
-
 // --- ANIMATED TAGLINE COMPONENT ---
 const AnimatedTagline = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -423,7 +391,7 @@ const EmptyState = ({ category }: { category: string }) => (
   </div>
 );
 
-// More Categories Button Component (Multi-select)
+// More Categories Button Component (Multi-select) - Desktop
 const MoreCategoriesButton = ({
   roles,
   activeCategories,
@@ -525,6 +493,200 @@ const MoreCategoriesButton = ({
         )}
       </AnimatePresence>
     </div>
+  );
+};
+
+// Mobile Category Search Button - Bottom Sheet Style
+const MobileCategorySearchButton = ({
+  roles,
+  activeCategories,
+  onCategoryToggle,
+  onClearAll
+}: {
+  roles: string[];
+  activeCategories: string[];
+  onCategoryToggle: (role: string) => void;
+  onClearAll: () => void;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredRoles = useMemo(() => {
+    return roles.filter(role =>
+      role.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [roles, searchTerm]);
+
+  const selectedCount = activeCategories.length;
+
+  return (
+    <>
+      {/* Trigger Button */}
+      <motion.button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        className={`relative whitespace-nowrap px-3 py-2 text-[11px] font-bold uppercase tracking-wider transition-all duration-300 rounded-lg shrink-0 flex items-center gap-1.5 border ${
+          selectedCount > 0
+            ? "bg-[#FFAB00]/20 text-[#FFAB00] border-[#FFAB00]/40"
+            : "bg-white/[0.05] text-gray-300 border-white/[0.1] hover:border-[#FFAB00]/30"
+        }`}
+        whileTap={{ scale: 0.95 }}
+      >
+        <Search className="w-3 h-3" />
+        <span>Categories</span>
+        {selectedCount > 0 && (
+          <span className="ml-1 px-1.5 py-0.5 bg-[#FFAB00] text-black text-[10px] rounded-full font-bold">
+            {selectedCount}
+          </span>
+        )}
+      </motion.button>
+
+      {/* Bottom Sheet Modal */}
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm"
+              onClick={() => setIsOpen(false)}
+            />
+
+            {/* Bottom Sheet */}
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0a] border-t border-[#FFAB00]/30 rounded-t-2xl max-h-[85vh] flex flex-col"
+              style={{
+                boxShadow: '0 -10px 50px rgba(0,0,0,0.8), 0 0 30px rgba(255,171,0,0.1)',
+              }}
+            >
+              {/* Handle bar */}
+              <div className="flex justify-center py-3">
+                <div className="w-10 h-1 bg-white/20 rounded-full" />
+              </div>
+
+              {/* Header */}
+              <div className="px-4 pb-3 border-b border-white/10">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-display text-lg text-white uppercase tracking-wide flex items-center gap-2">
+                    <Filter className="w-4 h-4 text-[#FFAB00]" />
+                    Select Categories
+                  </h3>
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+                  >
+                    <X className="w-4 h-4 text-gray-400" />
+                  </button>
+                </div>
+
+                {/* Search input */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search categories..."
+                    className="w-full bg-white/[0.06] border border-white/[0.1] rounded-lg pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-[#FFAB00]/50 transition-all duration-300 font-mono placeholder:text-gray-500"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    autoFocus
+                  />
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                    <Search className="w-4 h-4" />
+                  </div>
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Selected chips */}
+                {selectedCount > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-3">
+                    {activeCategories.slice(0, 5).map(cat => (
+                      <motion.button
+                        key={cat}
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        onClick={() => onCategoryToggle(cat)}
+                        className="flex items-center gap-1 px-2 py-1 bg-[#FFAB00]/20 border border-[#FFAB00]/30 rounded-full text-[#FFAB00] text-[10px] font-bold uppercase"
+                      >
+                        {cat}
+                        <X className="w-3 h-3" />
+                      </motion.button>
+                    ))}
+                    {selectedCount > 5 && (
+                      <span className="px-2 py-1 text-[10px] text-gray-500">+{selectedCount - 5} more</span>
+                    )}
+                    <button
+                      onClick={onClearAll}
+                      className="px-2 py-1 text-[10px] text-red-400 hover:text-red-300 uppercase font-bold"
+                    >
+                      Clear all
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Categories list */}
+              <div className="flex-1 overflow-y-auto p-2">
+                {filteredRoles.length > 0 ? (
+                  <div className="grid grid-cols-1 gap-1">
+                    {filteredRoles.map((role) => {
+                      const isSelected = activeCategories.includes(role);
+                      return (
+                        <motion.button
+                          key={role}
+                          type="button"
+                          onClick={() => onCategoryToggle(role)}
+                          className={`w-full px-4 py-3 text-left text-sm transition-colors flex items-center gap-3 rounded-lg ${
+                            isSelected
+                              ? 'bg-[#FFAB00]/20 text-[#FFAB00]'
+                              : 'text-gray-300 hover:bg-white/5'
+                          }`}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <div className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${
+                            isSelected ? 'bg-[#FFAB00] border-[#FFAB00]' : 'border-gray-600'
+                          }`}>
+                            {isSelected && <CheckCircle className="w-3 h-3 text-black" />}
+                          </div>
+                          <span className="uppercase font-medium">{role}</span>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-10 text-gray-500">
+                    <Search className="w-8 h-8 mb-2 opacity-50" />
+                    <p className="text-sm">No categories found</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer with Done button */}
+              <div className="p-4 border-t border-white/10 bg-[#0a0a0a]">
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setIsOpen(false)}
+                  className="w-full py-3 bg-[#FFAB00] text-black font-bold uppercase text-sm tracking-wide rounded-lg"
+                >
+                  Done {selectedCount > 0 && `(${selectedCount} selected)`}
+                </motion.button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 
@@ -1043,15 +1205,6 @@ const Portfolios = () => {
 
             {/* Row 2: Category Filters - Fixed Layout */}
             <div className="mt-3 relative">
-              {/* Left fade - only on mobile */}
-              <div
-                className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#0a0a0a] to-transparent z-10 pointer-events-none sm:opacity-0"
-                id="filter-fade-left"
-              />
-
-              {/* Right fade - only on mobile */}
-              <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-16 bg-gradient-to-l from-[#0a0a0a] to-transparent z-10 pointer-events-none sm:opacity-0" />
-
               {/* Desktop: Show first 6 categories + More button + Status filters */}
               <div className="hidden sm:flex items-center gap-2 flex-wrap">
                 {/* "All" button - clears filters */}
@@ -1178,16 +1331,9 @@ const Portfolios = () => {
                 {/* </div> */}
               </div>
 
-              {/* Mobile: Horizontal scroll */}
+              {/* Mobile: Compact filter bar */}
               <div className="sm:hidden">
-                {/* Scroll container for mobile */}
-                <div
-                  className="flex items-center gap-1.5 overflow-x-auto scrollbar-none scroll-smooth px-1 py-1 -mx-1"
-                  style={{
-                    maskImage: 'linear-gradient(to right, transparent 0%, black 24px, black calc(100% - 48px), transparent 100%)',
-                    WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 24px, black calc(100% - 48px), transparent 100%)',
-                  }}
-                >
+                <div className="flex items-center gap-1.5 flex-wrap">
                   {/* "All" button */}
                   <button
                     onClick={clearAllFilters}
@@ -1253,30 +1399,14 @@ const Portfolios = () => {
                   {/* Separator */}
                   <div className="w-px h-6 bg-white/[0.06] shrink-0 mx-0.5" />
 
-                  {/* Role filters for mobile (multi-select) */}
-                  {roles.map((role) => {
-                    const isSelected = activeCategories.includes(role);
-                    return (
-                      <button
-                        key={role}
-                        onClick={() => handleCategoryToggle(role)}
-                        className={`group relative whitespace-nowrap px-3 py-2 text-[11px] font-bold uppercase tracking-wider transition-all duration-300 rounded-lg shrink-0 flex items-center gap-1 ${isSelected
-                          ? "bg-[#FFAB00] text-black shadow-[0_0_20px_rgba(255,171,0,0.25)]"
-                          : "bg-white/[0.03] text-gray-500 hover:text-white hover:bg-white/[0.07] border border-transparent hover:border-white/[0.08]"
-                          }`}
-                      >
-                        {isSelected && <CheckCircle className="w-3 h-3" />}
-                        {role}
-                      </button>
-                    );
-                  })}
-
-                  {/* End spacer for scroll padding */}
-                  <div className="w-8 shrink-0" aria-hidden="true" />
+                  {/* Mobile Category Search Button */}
+                  <MobileCategorySearchButton
+                    roles={roles}
+                    activeCategories={activeCategories}
+                    onCategoryToggle={handleCategoryToggle}
+                    onClearAll={() => setActiveCategories([])}
+                  />
                 </div>
-
-                {/* Scroll hint */}
-                <ScrollHint />
               </div>
             </div>
           </div>
