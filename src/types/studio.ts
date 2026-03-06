@@ -3,6 +3,9 @@
  * TypeScript interfaces matching backend DTOs
  */
 
+export type StudioCategory = "PRODUCT_BASED" | "SERVICE_BASED";
+export type HiringStatus = "HIRING" | "NOT_HIRING" | "OPEN_TO_HIRE";
+
 export interface Studio {
   id: number;
   studioName: string;
@@ -13,12 +16,20 @@ export interface Studio {
   ratingCount?: number; // Total number of ratings
   averageRating?: number; // Calculated average rating
   status: "PENDING" | "REJECTED" | "PUBLISHED";
+  category?: StudioCategory;
+  hiringStatus?: HiringStatus;
   country: string;
   city: string;
   description?: string;
   employeesCount: number;
   latitude: number;
   longitude: number;
+  studioEmail?: string;
+  studioMobile?: string;
+  youtubeUrl?: string;
+  linkedinUrl?: string;
+  twitterUrl?: string;
+  discordUrl?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -51,6 +62,14 @@ export interface StudioRequest {
   latitude: number;
   longitude: number;
   status: "PENDING" | "REJECTED" | "PUBLISHED";
+  category?: StudioCategory;
+  hiringStatus?: HiringStatus;
+  studioEmail?: string;
+  studioMobile?: string;
+  youtubeUrl?: string;
+  linkedinUrl?: string;
+  twitterUrl?: string;
+  discordUrl?: string;
 }
 
 export interface StudioPageResponse {
@@ -66,6 +85,8 @@ export interface StudioFilters {
   country?: string;
   city?: string;
   ratings?: number;
+  category?: StudioCategory;
+  hiringStatus?: HiringStatus;
 }
 
 // Helper for employee count display

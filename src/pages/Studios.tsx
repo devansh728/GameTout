@@ -168,6 +168,23 @@ const StudioCard = ({
                 <Building className="w-6 h-6 text-gray-600" />
               </div>
             )}
+            {/* Hiring Status Indicator Dot */}
+            {studio.hiringStatus && studio.hiringStatus !== "NOT_HIRING" && (
+              <motion.div 
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className={`absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-[#0a0a0a] ${
+                  studio.hiringStatus === "HIRING" 
+                    ? "bg-green-500" 
+                    : "bg-yellow-500"
+                }`}
+                title={studio.hiringStatus === "HIRING" ? "Hiring" : "Open to Hire"}
+              >
+                <span className="absolute inset-0 rounded-full animate-ping opacity-50" 
+                  style={{ backgroundColor: studio.hiringStatus === "HIRING" ? "#22c55e" : "#eab308" }} 
+                />
+              </motion.div>
+            )}
           </div>
 
           <div className="flex-1 min-w-0">
@@ -269,7 +286,7 @@ const Studios = () => {
     reset();
   };
 
-  const hasActiveFilters = filters.country || filters.city || filters.ratings;
+  const hasActiveFilters = filters.country || filters.city || filters.ratings || filters.category || filters.hiringStatus;
 
   return (
     <PageTransition>
@@ -413,6 +430,37 @@ const Studios = () => {
                       { value: "3", label: "3+ Stars" },
                       { value: "2", label: "2+ Stars" },
                       { value: "1", label: "1+ Stars" },
+                    ]}
+                  />
+                </div>
+
+                {/* Category Filter */}
+                <div className="w-36">
+                  <CustomDropdown
+                    value={filters.category || ""}
+                    onChange={(value) => handleFilterChange("category", value)}
+                    placeholder="Category"
+                    icon={<Grid className="w-3 h-3" />}
+                    options={[
+                      { value: "", label: "Category" },
+                      { value: "PRODUCT_BASED", label: "Product/IP Based" },
+                      { value: "SERVICE_BASED", label: "Service Based" },
+                    ]}
+                  />
+                </div>
+
+                {/* Hiring Status Filter */}
+                <div className="w-36">
+                  <CustomDropdown
+                    value={filters.hiringStatus || ""}
+                    onChange={(value) => handleFilterChange("hiringStatus", value)}
+                    placeholder="Hiring"
+                    icon={<Zap className="w-3 h-3" />}
+                    options={[
+                      { value: "", label: "Hiring Status" },
+                      { value: "HIRING", label: "Hiring" },
+                      { value: "OPEN_TO_HIRE", label: "Open to Hire" },
+                      { value: "NOT_HIRING", label: "Not Hiring" },
                     ]}
                   />
                 </div>

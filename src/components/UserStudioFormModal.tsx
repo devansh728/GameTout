@@ -2,9 +2,10 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Building2, MapPin, Globe, Users, Star,
-  Send, Loader2, AlertCircle, CheckCircle, Clock, ChevronDown
+  Send, Loader2, AlertCircle, CheckCircle, Clock, ChevronDown,
+  Briefcase, Mail, Phone, Youtube, Linkedin, Twitter, MessageCircle
 } from "lucide-react";
-import { StudioRequest } from "@/types/studio";
+import { StudioRequest, StudioCategory, HiringStatus } from "@/types/studio";
 import { MediaUploader } from "@/components/MediaUploader";
 import { mediaUploadService } from "@/services/mediaUploadService";
 import { CustomDropdown } from "@/components/CustomDropdown";
@@ -237,6 +238,14 @@ const initialFormData: StudioRequest = {
   employeesCount: 10,
   latitude: 20.5937,
   longitude: 78.9629,
+  category: undefined,
+  hiringStatus: "NOT_HIRING",
+  studioEmail: "",
+  studioMobile: "",
+  youtubeUrl: "",
+  linkedinUrl: "",
+  twitterUrl: "",
+  discordUrl: "",
 };
 
 // ============================================
@@ -693,7 +702,8 @@ export const UserStudioFormModal = ({
                       </div>
                     </div>
 
-                    <div className="space-y-2">
+                    {/* Self Rating - COMMENTED OUT, using default value of 3 */}
+                    {/* <div className="space-y-2">
                       <label className="text-sm font-bold text-gray-300 uppercase flex items-center gap-2">
                         <Star className="w-4 h-4 text-primary" />
                         Self Rating (1-5) *
@@ -722,6 +732,143 @@ export const UserStudioFormModal = ({
                           ))}
                         </div>
                       </div>
+                    </div> */}
+
+                    {/* Category */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-gray-300 uppercase flex items-center gap-2">
+                        <Briefcase className="w-4 h-4 text-primary" />
+                        Studio Category
+                      </label>
+                      <CustomDropdown
+                        value={formData.category || ""}
+                        onChange={(value) => updateField("category", value as StudioCategory || undefined)}
+                        placeholder="Select Category"
+                        options={[
+                          { value: "", label: "Select Category" },
+                          { value: "PRODUCT_BASED", label: "Product/IP Based" },
+                          { value: "SERVICE_BASED", label: "Service Based" },
+                        ]}
+                      />
+                    </div>
+
+                    {/* Hiring Status */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-gray-300 uppercase flex items-center gap-2">
+                        <Users className="w-4 h-4 text-primary" />
+                        Hiring Status
+                      </label>
+                      <CustomDropdown
+                        value={formData.hiringStatus || "NOT_HIRING"}
+                        onChange={(value) => updateField("hiringStatus", value as HiringStatus)}
+                        placeholder="Select Status"
+                        options={[
+                          { value: "NOT_HIRING", label: "Not Hiring" },
+                          { value: "HIRING", label: "Hiring" },
+                          { value: "OPEN_TO_HIRE", label: "Open to Hire" },
+                        ]}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 4: Contact & Social */}
+                <div className="space-y-4">
+                  <h3 className="text-xs font-mono text-gray-500 uppercase tracking-widest border-b border-white/10 pb-2 flex items-center gap-2">
+                    <span className="text-primary">04</span>
+                    <span>//</span>
+                    Contact & Social
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Studio Email */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-gray-300 uppercase flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-primary" />
+                        Studio Email
+                      </label>
+                      <input
+                        type="email"
+                        value={formData.studioEmail || ""}
+                        onChange={(e) => updateField("studioEmail", e.target.value)}
+                        className="w-full bg-black/50 border border-white/20 p-3 rounded-lg text-white focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                        placeholder="contact@yourstudio.com"
+                      />
+                    </div>
+
+                    {/* Studio Mobile */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-gray-300 uppercase flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-primary" />
+                        Studio Mobile
+                      </label>
+                      <input
+                        type="tel"
+                        value={formData.studioMobile || ""}
+                        onChange={(e) => updateField("studioMobile", e.target.value)}
+                        className="w-full bg-black/50 border border-white/20 p-3 rounded-lg text-white focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                        placeholder="+91 98765 43210"
+                      />
+                    </div>
+
+                    {/* YouTube */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-gray-300 uppercase flex items-center gap-2">
+                        <Youtube className="w-4 h-4 text-red-500" />
+                        YouTube Channel
+                      </label>
+                      <input
+                        type="url"
+                        value={formData.youtubeUrl || ""}
+                        onChange={(e) => updateField("youtubeUrl", e.target.value)}
+                        className="w-full bg-black/50 border border-white/20 p-3 rounded-lg text-white focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                        placeholder="https://youtube.com/@yourstudio"
+                      />
+                    </div>
+
+                    {/* LinkedIn */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-gray-300 uppercase flex items-center gap-2">
+                        <Linkedin className="w-4 h-4 text-blue-500" />
+                        LinkedIn
+                      </label>
+                      <input
+                        type="url"
+                        value={formData.linkedinUrl || ""}
+                        onChange={(e) => updateField("linkedinUrl", e.target.value)}
+                        className="w-full bg-black/50 border border-white/20 p-3 rounded-lg text-white focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                        placeholder="https://linkedin.com/company/yourstudio"
+                      />
+                    </div>
+
+                    {/* Twitter */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-gray-300 uppercase flex items-center gap-2">
+                        <Twitter className="w-4 h-4 text-sky-500" />
+                        Twitter / X
+                      </label>
+                      <input
+                        type="url"
+                        value={formData.twitterUrl || ""}
+                        onChange={(e) => updateField("twitterUrl", e.target.value)}
+                        className="w-full bg-black/50 border border-white/20 p-3 rounded-lg text-white focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                        placeholder="https://twitter.com/yourstudio"
+                      />
+                    </div>
+
+                    {/* Discord */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-gray-300 uppercase flex items-center gap-2">
+                        <MessageCircle className="w-4 h-4 text-indigo-500" />
+                        Discord Server
+                      </label>
+                      <input
+                        type="url"
+                        value={formData.discordUrl || ""}
+                        onChange={(e) => updateField("discordUrl", e.target.value)}
+                        className="w-full bg-black/50 border border-white/20 p-3 rounded-lg text-white focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                        placeholder="https://discord.gg/yourstudio"
+                      />
                     </div>
                   </div>
                 </div>

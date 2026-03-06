@@ -46,6 +46,8 @@ export const studioService = {
     if (filters.country) params.append("country", filters.country);
     if (filters.city) params.append("city", filters.city);
     if (filters.ratings) params.append("ratings", filters.ratings.toString());
+    if (filters.category) params.append("category", filters.category);
+    if (filters.hiringStatus) params.append("hiringStatus", filters.hiringStatus);
 
     const { data } = await api.get<StudioPageResponse>(`/user/studio/filter?${params.toString()}`);
     return data;
