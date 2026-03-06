@@ -29,7 +29,46 @@ import { HeroTagline } from "@/components/HeroTagline";
 import { useAuth } from "@/context/AuthContext";
 
 // --- FILTER OPTIONS ---
-const roles = ["Programmer", "Artist", "Designer", "Audio", "Producer", "Animator", "Community Manager", "Composer", "Level Designer", "Marketing Engineer", "Musician", "Product Manager", "QA Tester", "Project Manager", "Writer", "Sound Engineer", "Translator", "UI/UX Designer", "User Acquisation Engineer", "BizDev", "V0 Artist", "Mentor", "Founder"];
+// New categories first, then legacy ones
+const roles = [
+  // Programming
+  "Gameplay Programmer", "Engine Programmer", "Graphics Programmer", "AI Programmer",
+  "Network Engineer", "Multiplayer Engineer", "Tools Programmer", "Build Engineer",
+  "DevOps Engineer", "Platform Engineer", "Physics Programmer", "UI Programmer",
+  "AR/VR Developer", "Mobile Game Developer", "Backend Game Developer", "Online Services Engineer",
+  // Art
+  "Concept Artist", "Environment Artist", "Character Artist", "Prop Artist",
+  "Texture Artist", "Lighting Artist", "Technical Artist", "Character Modeler",
+  "Environment Modeler", "Cinematic Artist", "Motion Capture Artist", "Matte Painter",
+  // Animation
+  "3D Animator", "2D Animator", "Character Animator", "Gameplay Animator",
+  "Technical Animator", "Motion Capture Animator",
+  // Design
+  "Game Designer", "Systems Designer", "Narrative Designer", "Combat Designer",
+  "Economy Designer", "Monetization Designer", "Puzzle Designer", "Multiplayer Designer",
+  // Audio
+  "Audio Programmer", "Music Producer", "Dialogue Editor", "Foley Artist",
+  // QA
+  "QA Engineer", "QA Automation Engineer", "Game Tester", "Compatibility Tester",
+  // Production
+  "Associate Producer", "Executive Producer", "Release Manager", "Development Director",
+  // Marketing/Community
+  "Social Media Manager", "Publishing Manager", "Brand Manager", "PR Manager",
+  // Operations
+  "Live Ops Manager", "Game Operations Manager", "Event Manager",
+  // Analytics
+  "Monetization Analyst", "Game Data Analyst", "Data Scientist", "Player Insights Analyst", "Economy Analyst",
+  // Writing/Localization
+  "Localization Specialist", "Technical Writer", "Game Writer", "Lore Designer",
+  // Other New
+  "Esports Manager", "Playtest Coordinator", "Accessibility Designer", "User Researcher",
+  // Legacy categories
+  "Programmer", "Artist", "Designer", "Audio", "Producer", "Animator",
+  "Community Manager", "Composer", "Level Designer", "Marketing Engineer",
+  "Musician", "Product Manager", "QA Tester", "Project Manager", "Writer",
+  "Sound Engineer", "Translator", "UI/UX Designer", "User Acquisition Engineer",
+  "BizDev", "3D Artist", "VFX Artist", "Mentor", "Video Editor", "Other"
+];
 
 // Status options with display labels
 const statusOptions: { value: JobProfileStatus; label: string; color: string }[] = [
