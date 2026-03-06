@@ -1,11 +1,13 @@
 import { api } from "@/lib/api";
 import {
   JobCategory,
+  JobProfileStatus,
   PortfolioCard,
   PortfolioDetail,
   PortfolioRequest,
   PortfolioListResponse,
   PortfolioSearchResponse,
+  PortfolioFilters,
   CATEGORY_TO_BACKEND,
   BACKEND_TO_CATEGORY
 } from "@/types/portfolio";
@@ -60,6 +62,47 @@ export const portfolioService = {
    */
   listAll: async (page: number = 0, size: number = 20): Promise<PortfolioListResponse> => {
     const { data } = await api.get<PortfolioListResponse>(`/portfolio/list/all?page=${page}&size=${size}`);
+    return data;
+  },
+
+  /**
+   * List portfolios with multiple category/status filters
+   * GET /api/portfolio/list/filter?categories=X,Y&statuses=A,B
+   * 
+   * @param filters - Object with categories[] and statuses[]
+   * @param page - Page number (0-indexed)
+   * @param size - Items per page
+   */
+  listByFilters: async (
+    filters: PortfolioFilters,
+    page: number = 0,
+    size: number = 20
+  ): Promise<PortfolioListResponse> => {
+    const params = new URLSearchParams();
+    
+    // Add multiple categories (convert display names to backend enums)
+    if (filters.categories && filters.categories.length > 0) {
+      filters.categories.forEach(cat => {
+        const backendCat = CATEGORY_TO_BACKEND[cat];
+        if (backendCat) {
+          params.append("categories", backendCat);
+        }
+      });
+    }
+    
+    // Add multiple statuses
+    if (filters.statuses && filters.statuses.length > 0) {
+      filters.statuses.forEach(status => {
+        params.append("statuses", status);
+      });
+    }
+    
+    params.append("page", page.toString());
+    params.append("size", size.toString());
+    
+    const { data } = await api.get<PortfolioListResponse>(
+      `/portfolio/list/filter?${params.toString()}`
+    );
     return data;
   },
 

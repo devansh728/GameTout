@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
-import { MapPin, UserPlus, List, Grid, CheckCircle, Clock, XCircle, Zap, Search, Terminal, ChevronDown, Filter, Loader2, AlertCircle, RefreshCw, Crown, Sparkles, Shield, Lock, Calendar, Radio, Wifi, Cpu, Signal, Activity, Hexagon, Triangle, Circle } from "lucide-react";
+import { MapPin, UserPlus, List, Grid, CheckCircle, Clock, XCircle, Zap, Search, Terminal, ChevronDown, Filter, Loader2, AlertCircle, RefreshCw, Crown, Sparkles, Shield, Lock, Calendar, Radio, Wifi, Cpu, Signal, Activity, Hexagon, Triangle, Circle, X } from "lucide-react";
 import { PageTransition, FadeInView } from "@/components/PageTransition";
 import { Footer } from "@/components/Footer";
 import { CreatePortfolioModal } from "@/components/CreatePortfolioModal";
@@ -18,7 +18,7 @@ import { ClassifiedOverlay } from "@/components/ClassifiedOverlay";
 import { usePortfolios, usePortfolioRails } from "@/hooks/usePortfolios";
 import { usePortfolioSearch } from "@/hooks/usePortfolioSearch";
 import { useEliteAccess } from "@/hooks/useEliteAccess";
-import { Developer, PortfolioDetail } from "@/types/portfolio";
+import { Developer, PortfolioDetail, JobProfileStatus, PortfolioFilters } from "@/types/portfolio";
 
 // Demo Data for showcasing new design
 import { demoPortfolios, getDemoByCategory } from "@/data/demoPortfolios";
@@ -29,7 +29,14 @@ import { HeroTagline } from "@/components/HeroTagline";
 import { useAuth } from "@/context/AuthContext";
 
 // --- FILTER OPTIONS ---
-const roles = ["All", "Programmer", "Artist", "Designer", "Audio", "Producer", "Animator", "Community Manager", "Composer", "Level Designer", "Marketing Engineer", "Musician", "Product Manager", "QA Tester", "Project Manager", "Writer", "Sound Engineer", "Translator", "UI/UX Designer", "User Acquisation Engineer", "BizDev", "V0 Artist", "Mentor", "Founder"];
+const roles = ["Programmer", "Artist", "Designer", "Audio", "Producer", "Animator", "Community Manager", "Composer", "Level Designer", "Marketing Engineer", "Musician", "Product Manager", "QA Tester", "Project Manager", "Writer", "Sound Engineer", "Translator", "UI/UX Designer", "User Acquisation Engineer", "BizDev", "V0 Artist", "Mentor", "Founder"];
+
+// Status options with display labels
+const statusOptions: { value: JobProfileStatus; label: string; color: string }[] = [
+  { value: JobProfileStatus.OPEN, label: "Open for Work", color: "#00FF88" },
+  { value: JobProfileStatus.FREELANCE, label: "Freelance", color: "#00D4FF" },
+  { value: JobProfileStatus.DEPLOYED, label: "Deployed", color: "#A855F7" },
+];
 
 // Rotating categories for the animated tagline
 const rotatingCategories = [
@@ -360,15 +367,15 @@ const EmptyState = ({ category }: { category: string }) => (
   </div>
 );
 
-// More Categories Button Component
+// More Categories Button Component (Multi-select)
 const MoreCategoriesButton = ({
   roles,
-  activeRole,
-  onCategoryChange
+  activeCategories,
+  onCategoryToggle
 }: {
   roles: string[];
-  activeRole: string;
-  onCategoryChange: (role: string) => void;
+  activeCategories: string[];
+  onCategoryToggle: (role: string) => void;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -431,27 +438,26 @@ const MoreCategoriesButton = ({
               {/* Categories list */}
               <div className="max-h-60 overflow-y-auto p-1">
                 {filteredRoles.length > 0 ? (
-                  filteredRoles.map((role) => (
-                    <motion.button
-                      key={role}
-                      type="button"
-                      onClick={() => {
-                        onCategoryChange(role);
-                        setIsOpen(false);
-                        setSearchTerm("");
-                      }}
-                      className={`w-full px-4 py-2 text-left text-sm hover:bg-white/10 transition-colors flex items-center gap-2 rounded ${activeRole === role
-                        ? 'bg-[#FFAB00]/20 text-[#FFAB00] font-bold'
-                        : 'text-gray-300'
-                        }`}
-                      whileHover={{ x: 4 }}
-                    >
-                      <span className="uppercase">{role}</span>
-                      {activeRole === role && (
-                        <CheckCircle className="w-4 h-4 ml-auto" />
-                      )}
-                    </motion.button>
-                  ))
+                  filteredRoles.map((role) => {
+                    const isSelected = activeCategories.includes(role);
+                    return (
+                      <motion.button
+                        key={role}
+                        type="button"
+                        onClick={() => onCategoryToggle(role)}
+                        className={`w-full px-4 py-2 text-left text-sm hover:bg-white/10 transition-colors flex items-center gap-2 rounded ${isSelected
+                          ? 'bg-[#FFAB00]/20 text-[#FFAB00] font-bold'
+                          : 'text-gray-300'
+                          }`}
+                        whileHover={{ x: 4 }}
+                      >
+                        <div className={`w-4 h-4 rounded border flex items-center justify-center ${isSelected ? 'bg-[#FFAB00] border-[#FFAB00]' : 'border-gray-600'}`}>
+                          {isSelected && <CheckCircle className="w-3 h-3 text-black" />}
+                        </div>
+                        <span className="uppercase">{role}</span>
+                      </motion.button>
+                    );
+                  })
                 ) : (
                   <div className="p-4 text-center text-gray-500 text-sm">
                     No categories found
@@ -467,7 +473,10 @@ const MoreCategoriesButton = ({
 };
 
 const Portfolios = () => {
-  const [activeRole, setActiveRole] = useState("All");
+  // Multi-filter state (replaces single activeRole)
+  const [activeCategories, setActiveCategories] = useState<string[]>([]);
+  const [activeStatuses, setActiveStatuses] = useState<JobProfileStatus[]>([]);
+
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPricingOpen, setIsPricingOpen] = useState(false);
@@ -506,9 +515,14 @@ const Portfolios = () => {
     loading: listLoading,
     error: listError,
     getByCategory,
+    fetchWithFilters,
     fetchPortfolios,
     refresh: refreshList
-  } = usePortfolios({ category: activeRole, autoFetch: !isDemoMode });
+  } = usePortfolios({
+    categories: activeCategories,
+    statuses: activeStatuses,
+    autoFetch: !isDemoMode
+  });
 
   const {
     rails,
@@ -557,10 +571,13 @@ const Portfolios = () => {
   // Determine data source (demo or API)
   const developers = useMemo(() => {
     if (isDemoMode) {
-      return activeRole === "All" ? demoPortfolios : getDemoByCategory(activeRole);
+      // No filters = show all
+      if (activeCategories.length === 0) return demoPortfolios;
+      // Filter by selected categories
+      return demoPortfolios.filter(d => activeCategories.includes(d.role));
     }
     return apiDevelopers;
-  }, [isDemoMode, activeRole, apiDevelopers]);
+  }, [isDemoMode, activeCategories, apiDevelopers]);
 
   // Determine which data to show
   const isSearchActive = searchQuery.length >= 2;
@@ -601,13 +618,52 @@ const Portfolios = () => {
     setShowClassified(false);
   };
 
-  const handleCategoryChange = (category: string) => {
-    setActiveRole(category);
+  // Toggle category selection (multi-select)
+  const handleCategoryToggle = (category: string) => {
     clearSearch();
-    if (!isDemoMode && category !== "All") {
-      fetchPortfolios(category, 0);
+    setActiveCategories(prev => {
+      const isSelected = prev.includes(category);
+      const newCategories = isSelected
+        ? prev.filter(c => c !== category)
+        : [...prev, category];
+
+      // Trigger fetch with new filters
+      if (!isDemoMode) {
+        fetchWithFilters({ categories: newCategories, statuses: activeStatuses }, 0);
+      }
+      return newCategories;
+    });
+  };
+
+  // Toggle status selection (multi-select)
+  const handleStatusToggle = (status: JobProfileStatus) => {
+    clearSearch();
+    setActiveStatuses(prev => {
+      const isSelected = prev.includes(status);
+      const newStatuses = isSelected
+        ? prev.filter(s => s !== status)
+        : [...prev, status];
+
+      // Trigger fetch with new filters
+      if (!isDemoMode) {
+        fetchWithFilters({ categories: activeCategories, statuses: newStatuses }, 0);
+      }
+      return newStatuses;
+    });
+  };
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setActiveCategories([]);
+    setActiveStatuses([]);
+    clearSearch();
+    if (!isDemoMode) {
+      fetchWithFilters({ categories: [], statuses: [] }, 0);
     }
   };
+
+  // Check if any filters are active
+  const hasActiveFilters = activeCategories.length > 0 || activeStatuses.length > 0;
 
   const handleMyProfileClick = async () => {
 
@@ -638,8 +694,8 @@ const Portfolios = () => {
     }
   };
 
-  const isLoading = isDemoMode ? false : (activeRole === "All" && !isSearchActive) ? railsLoading : listLoading;
-  const error = isDemoMode ? null : (activeRole === "All" && !isSearchActive) ? railsError : listError;
+  const isLoading = isDemoMode ? false : (activeCategories.length === 0 && activeStatuses.length === 0 && !isSearchActive) ? railsLoading : listLoading;
+  const error = isDemoMode ? null : (activeCategories.length === 0 && activeStatuses.length === 0 && !isSearchActive) ? railsError : listError;
 
   return (
     <PageTransition>
@@ -658,15 +714,15 @@ const Portfolios = () => {
         <div className="fixed inset-0 pointer-events-none z-0 bg-gradient-to-b from-background via-transparent to-background"></div>
 
         {/* MODALS */}
-        <CreatePortfolioModal 
-          isOpen={isModalOpen} 
+        <CreatePortfolioModal
+          isOpen={isModalOpen}
           onClose={() => {
             setIsModalOpen(false);
             setMyProfileData(null);
           }}
           initialData={myProfileData}
           onSuccess={() => {
-            if (activeRole === "All") refreshRails();
+            if (!hasActiveFilters) refreshRails();
             else refreshList();
           }}
           onOpenEditModal={(portfolio) => {
@@ -685,7 +741,7 @@ const Portfolios = () => {
           onSuccess={() => {
             setIsUpdateModalOpen(false);
             setUpdatePortfolioData(null);
-            if (activeRole === "All") refreshRails();
+            if (!hasActiveFilters) refreshRails();
             else refreshList();
           }}
         />
@@ -802,19 +858,71 @@ const Portfolios = () => {
                 </AnimatePresence>
               </div>
 
-              {/* Active filter indicator - shows on mobile when a filter is selected */}
+              {/* Active filter indicator - shows selected filters as chips */}
               <AnimatePresence>
-                {activeRole !== "All" && (
-                  <motion.button
+                {hasActiveFilters && (
+                  <motion.div
                     initial={{ scale: 0, width: 0 }}
                     animate={{ scale: 1, width: "auto" }}
                     exit={{ scale: 0, width: 0 }}
-                    onClick={() => handleCategoryChange("All")}
-                    className="flex items-center gap-1.5 px-3 py-2 sm:py-2.5 bg-[#FFAB00]/15 border border-[#FFAB00]/25 rounded-lg text-[#FFAB00] text-xs font-bold uppercase tracking-wide whitespace-nowrap overflow-hidden shrink-0"
+                    className="flex items-center gap-1.5 shrink-0"
                   >
-                    <span className="hidden sm:inline">{activeRole}</span>
-                    <XCircle className="w-3.5 h-3.5 shrink-0" />
-                  </motion.button>
+                    {/* Selected categories chips */}
+                    {activeCategories.slice(0, 2).map(cat => (
+                      <motion.button
+                        key={cat}
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0 }}
+                        onClick={() => handleCategoryToggle(cat)}
+                        className="flex items-center gap-1 px-2 py-1.5 sm:py-2 bg-[#FFAB00]/15 border border-[#FFAB00]/25 rounded-lg text-[#FFAB00] text-[10px] sm:text-xs font-bold uppercase tracking-wide whitespace-nowrap overflow-hidden"
+                      >
+                        <span className="hidden sm:inline">{cat}</span>
+                        <span className="sm:hidden">{cat.slice(0, 4)}</span>
+                        <X className="w-3 h-3 shrink-0" />
+                      </motion.button>
+                    ))}
+                    {/* More indicator */}
+                    {activeCategories.length > 2 && (
+                      <span className="text-[10px] text-gray-500 font-mono">+{activeCategories.length - 2}</span>
+                    )}
+                    {/* Selected status chips */}
+                    {activeStatuses.slice(0, 1).map(status => {
+                      const statusInfo = statusOptions.find(s => s.value === status);
+                      return (
+                        <motion.button
+                          key={status}
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          exit={{ scale: 0 }}
+                          onClick={() => handleStatusToggle(status)}
+                          className="flex items-center gap-1 px-2 py-1.5 sm:py-2 border rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wide whitespace-nowrap overflow-hidden"
+                          style={{
+                            backgroundColor: `${statusInfo?.color}15`,
+                            borderColor: `${statusInfo?.color}40`,
+                            color: statusInfo?.color
+                          }}
+                        >
+                          <span className="hidden sm:inline">{statusInfo?.label}</span>
+                          <span className="sm:hidden">{statusInfo?.label.split(' ')[0]}</span>
+                          <X className="w-3 h-3 shrink-0" />
+                        </motion.button>
+                      );
+                    })}
+                    {activeStatuses.length > 1 && (
+                      <span className="text-[10px] text-gray-500 font-mono">+{activeStatuses.length - 1}</span>
+                    )}
+                    {/* Clear all button */}
+                    <motion.button
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      onClick={clearAllFilters}
+                      className="p-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors"
+                      title="Clear all filters"
+                    >
+                      <XCircle className="w-3.5 h-3.5" />
+                    </motion.button>
+                  </motion.div>
                 )}
               </AnimatePresence>
 
@@ -854,61 +962,81 @@ const Portfolios = () => {
               {/* Right fade - only on mobile */}
               <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-16 bg-gradient-to-l from-[#0a0a0a] to-transparent z-10 pointer-events-none sm:opacity-0" />
 
-              {/* Desktop: Show first 6 categories + More button + Search */}
+              {/* Desktop: Show first 6 categories + More button + Status filters */}
               <div className="hidden sm:flex items-center gap-2 flex-wrap">
-                {/* "All" button */}
+                {/* "All" button - clears filters */}
                 <button
-                  onClick={() => handleCategoryChange("All")}
-                  className={`group relative whitespace-nowrap px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all duration-300 rounded-lg shrink-0 ${activeRole === "All"
+                  onClick={clearAllFilters}
+                  className={`group relative whitespace-nowrap px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all duration-300 rounded-lg shrink-0 ${!hasActiveFilters
                     ? "bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.15)]"
                     : "bg-white/[0.04] text-gray-500 hover:text-white hover:bg-white/[0.08] border border-white/[0.06]"
                     }`}
                 >
                   <span className="flex items-center gap-1.5">
-                    <Zap className={`w-3 h-3 ${activeRole === "All" ? "text-black" : "text-[#FFAB00]"}`} />
+                    <Zap className={`w-3 h-3 ${!hasActiveFilters ? "text-black" : "text-[#FFAB00]"}`} />
                     All
                   </span>
-                  {activeRole === "All" && (
-                    <motion.div
-                      layoutId="activeFilterDesktop"
-                      className="absolute inset-0 rounded-lg bg-white -z-10"
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                    />
-                  )}
                 </button>
 
                 {/* Separator */}
                 <div className="w-px h-6 bg-white/[0.06] shrink-0 mx-0.5" />
 
-                {/* First 6 role filters */}
-                {roles.filter(r => r !== "All").slice(0, 8).map((role) => (
-                  <button
-                    key={role}
-                    onClick={() => handleCategoryChange(role)}
-                    className={`group relative whitespace-nowrap px-3 sm:px-4 py-2 text-[11px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-300 rounded-lg shrink-0 ${activeRole === role
-                      ? "bg-[#FFAB00] text-black shadow-[0_0_20px_rgba(255,171,0,0.25)]"
-                      : "bg-white/[0.03] text-gray-500 hover:text-white hover:bg-white/[0.07] border border-transparent hover:border-white/[0.08]"
-                      }`}
-                  >
-                    {role}
-                    {activeRole === role && (
-                      <motion.div
-                        layoutId="activeFilterGoldDesktop"
-                        className="absolute inset-0 rounded-lg bg-[#FFAB00] -z-10"
-                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                      />
-                    )}
-                  </button>
-                ))}
+                {/* First 8 role filters (multi-select) */}
+                {roles.slice(0, 8).map((role) => {
+                  const isSelected = activeCategories.includes(role);
+                  return (
+                    <button
+                      key={role}
+                      onClick={() => handleCategoryToggle(role)}
+                      className={`group relative whitespace-nowrap px-3 sm:px-4 py-2 text-[11px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-300 rounded-lg shrink-0 flex items-center gap-1.5 ${isSelected
+                        ? "bg-[#FFAB00] text-black shadow-[0_0_20px_rgba(255,171,0,0.25)]"
+                        : "bg-white/[0.03] text-gray-500 hover:text-white hover:bg-white/[0.07] border border-transparent hover:border-white/[0.08]"
+                        }`}
+                    >
+                      {isSelected && <CheckCircle className="w-3 h-3" />}
+                      {role}
+                    </button>
+                  );
+                })}
 
                 {/* More button for desktop */}
-                {roles.filter(r => r !== "All").length > 6 && (
+                {roles.length > 8 && (
                   <MoreCategoriesButton
-                    roles={roles.filter(r => r !== "All").slice(6)}
-                    activeRole={activeRole}
-                    onCategoryChange={handleCategoryChange}
+                    roles={roles.slice(8)}
+                    activeCategories={activeCategories}
+                    onCategoryToggle={handleCategoryToggle}
                   />
                 )}
+
+                {/* Separator before status filters */}
+                <div className="w-px h-6 bg-white/[0.06] shrink-0 mx-1" />
+
+                {/* Status Filters */}
+                <div className="flex items-center gap-1.5">
+                  <Filter className="w-3 h-3 text-gray-500" />
+                  {statusOptions.map((status) => {
+                    const isSelected = activeStatuses.includes(status.value);
+                    return (
+                      <button
+                        key={status.value}
+                        onClick={() => handleStatusToggle(status.value)}
+                        className={`group relative whitespace-nowrap px-3 py-2 text-[11px] font-bold uppercase tracking-wider transition-all duration-300 rounded-lg shrink-0 flex items-center gap-1.5 border ${isSelected
+                          ? ""
+                          : "bg-white/[0.03] text-gray-500 hover:text-white hover:bg-white/[0.07] border-transparent hover:border-white/[0.08]"
+                          }`}
+                        style={isSelected ? {
+                          backgroundColor: `${status.color}20`,
+                          borderColor: `${status.color}50`,
+                          color: status.color,
+                          boxShadow: `0 0 15px ${status.color}30`
+                        } : {}}
+                      >
+                        {isSelected && <CheckCircle className="w-3 h-3" />}
+                        {status.label}
+                      </button>
+                    );
+                  })}
+                </div>
 
                 {/* Category search input for desktop */}
                 {/* <div className="ml-auto flex items-center gap-2">
@@ -954,48 +1082,78 @@ const Portfolios = () => {
                 >
                   {/* "All" button */}
                   <button
-                    onClick={() => handleCategoryChange("All")}
-                    className={`group relative whitespace-nowrap px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all duration-300 rounded-lg shrink-0 ${activeRole === "All"
+                    onClick={clearAllFilters}
+                    className={`group relative whitespace-nowrap px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all duration-300 rounded-lg shrink-0 ${!hasActiveFilters
                       ? "bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.15)]"
                       : "bg-white/[0.04] text-gray-500 hover:text-white hover:bg-white/[0.08] border border-white/[0.06]"
                       }`}
                   >
                     <span className="flex items-center gap-1.5">
-                      <Zap className={`w-3 h-3 ${activeRole === "All" ? "text-black" : "text-[#FFAB00]"}`} />
+                      <Zap className={`w-3 h-3 ${!hasActiveFilters ? "text-black" : "text-[#FFAB00]"}`} />
                       All
                     </span>
-                    {activeRole === "All" && (
-                      <motion.div
-                        layoutId="activeFilterMobile"
-                        className="absolute inset-0 rounded-lg bg-white -z-10"
-                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                      />
-                    )}
                   </button>
 
                   {/* Separator */}
                   <div className="w-px h-6 bg-white/[0.06] shrink-0 mx-0.5" />
 
-                  {/* Role filters for mobile */}
-                  {roles.filter(r => r !== "All").map((role) => (
-                    <button
-                      key={role}
-                      onClick={() => handleCategoryChange(role)}
-                      className={`group relative whitespace-nowrap px-3 py-2 text-[11px] font-bold uppercase tracking-wider transition-all duration-300 rounded-lg shrink-0 ${activeRole === role
-                        ? "bg-[#FFAB00] text-black shadow-[0_0_20px_rgba(255,171,0,0.25)]"
-                        : "bg-white/[0.03] text-gray-500 hover:text-white hover:bg-white/[0.07] border border-transparent hover:border-white/[0.08]"
-                        }`}
-                    >
-                      {role}
-                      {activeRole === role && (
-                        <motion.div
-                          layoutId="activeFilterGoldMobile"
-                          className="absolute inset-0 rounded-lg bg-[#FFAB00] -z-10"
-                          transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  {/* Status filters for mobile */}
+                  {statusOptions.map((status) => {
+                    const isSelected = activeStatuses.includes(status.value);
+                    return (
+                      <button
+                        key={status.value}
+                        onClick={() => handleStatusToggle(status.value)}
+                        className={`group relative whitespace-nowrap px-3 py-2 text-[11px] font-bold uppercase tracking-wider transition-all duration-300 rounded-lg shrink-0 flex items-center gap-1.5 border ${isSelected
+                            ? ""
+                            : "bg-white/[0.05] text-gray-300 border-white/[0.1]"
+                          }`}
+                        style={
+                          isSelected
+                            ? {
+                              backgroundColor: `${status.color}20`,
+                              borderColor: `${status.color}50`,
+                              color: status.color,
+                            }
+                            : {
+                              borderColor: `${status.color}30`,
+                            }
+                        }
+                      >
+                        {/* Always-visible colored dot */}
+                        <span
+                          className="w-2 h-2 rounded-full shrink-0"
+                          style={{
+                            backgroundColor: status.color,
+                            boxShadow: `0 0 6px ${status.color}50`,
+                          }}
                         />
-                      )}
-                    </button>
-                  ))}
+                        {isSelected && <CheckCircle className="w-3 h-3" />}
+                        {status.label.split(" ")[0]}
+                      </button>
+                    );
+                  })}
+
+                  {/* Separator */}
+                  <div className="w-px h-6 bg-white/[0.06] shrink-0 mx-0.5" />
+
+                  {/* Role filters for mobile (multi-select) */}
+                  {roles.map((role) => {
+                    const isSelected = activeCategories.includes(role);
+                    return (
+                      <button
+                        key={role}
+                        onClick={() => handleCategoryToggle(role)}
+                        className={`group relative whitespace-nowrap px-3 py-2 text-[11px] font-bold uppercase tracking-wider transition-all duration-300 rounded-lg shrink-0 flex items-center gap-1 ${isSelected
+                          ? "bg-[#FFAB00] text-black shadow-[0_0_20px_rgba(255,171,0,0.25)]"
+                          : "bg-white/[0.03] text-gray-500 hover:text-white hover:bg-white/[0.07] border border-transparent hover:border-white/[0.08]"
+                          }`}
+                      >
+                        {isSelected && <CheckCircle className="w-3 h-3" />}
+                        {role}
+                      </button>
+                    );
+                  })}
 
                   {/* End spacer for scroll padding */}
                   <div className="w-8 shrink-0" aria-hidden="true" />
@@ -1021,7 +1179,7 @@ const Portfolios = () => {
               >
                 <ErrorState
                   message={error}
-                  onRetry={() => activeRole === "All" ? refreshRails() : refreshList()}
+                  onRetry={() => !hasActiveFilters ? refreshRails() : refreshList()}
                 />
               </motion.div>
             )}
@@ -1047,8 +1205,19 @@ const Portfolios = () => {
                   <Terminal className="w-3 h-3 text-[#FFAB00]" />
                   {isSearchActive ? (
                     <>Searching: <span className="text-white">"{searchQuery}"</span></>
+                  ) : hasActiveFilters ? (
+                    <>
+                      {activeCategories.length > 0 && (
+                        <span className="text-white">{activeCategories.slice(0, 3).join(', ')}{activeCategories.length > 3 ? ` +${activeCategories.length - 3}` : ''}</span>
+                      )}
+                      {activeCategories.length > 0 && activeStatuses.length > 0 && <span> • </span>}
+                      {activeStatuses.length > 0 && (
+                        <span className="text-emerald-400">{activeStatuses.map(s => statusOptions.find(o => o.value === s)?.label).join(', ')}</span>
+                      )}
+                      <span> • </span><span className="text-[#FFAB00]">{displayDevelopers.length}</span> profiles
+                    </>
                   ) : (
-                    <><span className="text-white">{activeRole}</span> • <span className="text-[#FFAB00]">{displayDevelopers.length}</span> profiles</>
+                    <><span className="text-white">All</span> • <span className="text-[#FFAB00]">{displayDevelopers.length}</span> profiles</>
                   )}
                   {isLoading && <Loader2 className="w-3 h-3 text-[#FFAB00] animate-spin ml-2" />}
                   {isDemoMode && (
@@ -1066,7 +1235,7 @@ const Portfolios = () => {
                     ))}
                   </div>
                 ) : displayDevelopers.length === 0 ? (
-                  <EmptyState category={isSearchActive ? `"${searchQuery}"` : activeRole} />
+                  <EmptyState category={isSearchActive ? `"${searchQuery}"` : hasActiveFilters ? activeCategories.join(', ') || 'selected filters' : 'All'} />
                 ) : (
                   <ResponsiveMasonryGrid
                     developers={displayDevelopers}
@@ -1096,7 +1265,7 @@ const Portfolios = () => {
                     <Loader2 className="w-8 h-8 text-[#FFAB00] animate-spin" />
                   </div>
                 ) : displayDevelopers.length === 0 ? (
-                  <EmptyState category={isSearchActive ? `"${searchQuery}"` : activeRole} />
+                  <EmptyState category={isSearchActive ? `"${searchQuery}"` : hasActiveFilters ? activeCategories.join(', ') || 'selected filters' : 'All'} />
                 ) : (
                   displayDevelopers.map((dev) => (
                     <TacticalRow

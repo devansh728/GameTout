@@ -249,6 +249,15 @@ export type PortfolioListResponse = PaginatedResponse<PortfolioDetail>;
  */
 export type PortfolioSearchResponse = PaginatedResponse<PortfolioCard>;
 
+/**
+ * Filter options for portfolio search
+ * Supports multiple categories and statuses (OR logic within each)
+ */
+export interface PortfolioFilters {
+  categories: string[];          // Frontend display names (will be converted to backend enums)
+  statuses: JobProfileStatus[];  // Backend status enums
+}
+
 // ===========================================
 // Frontend UI Types (derived from backend data)
 // ===========================================

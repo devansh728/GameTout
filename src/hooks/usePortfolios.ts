@@ -5,11 +5,15 @@ import {
   Developer,
   detailToDeveloper,
   JobCategory,
+  JobProfileStatus,
+  PortfolioFilters,
   BACKEND_TO_CATEGORY,
 } from "@/types/portfolio";
 
 interface UsePortfoliosOptions {
-  category?: string;
+  category?: string;              // Legacy single category support
+  categories?: string[];          // Multiple categories (new)
+  statuses?: JobProfileStatus[];  // Multiple statuses (new)
   initialPage?: number;
   pageSize?: number;
   autoFetch?: boolean;
@@ -25,6 +29,7 @@ interface UsePortfoliosReturn {
   totalPages: number;
   totalElements: number;
   fetchPortfolios: (category?: string, page?: number) => Promise<void>;
+  fetchWithFilters: (filters: PortfolioFilters, page?: number) => Promise<void>;
   loadMore: () => Promise<void>;
   refresh: () => Promise<void>;
   getByCategory: (category: string) => Developer[];
@@ -32,11 +37,15 @@ interface UsePortfoliosReturn {
 
 /**
  * Hook for fetching and managing portfolio listings
- * Handles pagination, caching, and category filtering
+ * Handles pagination, caching, and category/status filtering
+ * 
+ * Supports both legacy single-category mode and new multi-filter mode
  */
 export function usePortfolios(options: UsePortfoliosOptions = {}): UsePortfoliosReturn {
   const {
     category = "All",
+    categories = [],
+    statuses = [],
     initialPage = 0,
     pageSize = 20,
     autoFetch = true,
@@ -50,28 +59,47 @@ export function usePortfolios(options: UsePortfoliosOptions = {}): UsePortfolios
   const [totalElements, setTotalElements] = useState(0);
   const [hasMore, setHasMore] = useState(true);
 
-  // Simple cache - just store by category
+  // Track current filters for loadMore
+  const currentFiltersRef = useRef<PortfolioFilters>({ categories: [], statuses: [] });
+
+  // Simple cache - store by filter key
   const cacheRef = useRef<Map<string, PortfolioDetail[]>>(new Map());
 
-  const fetchPortfolios = useCallback(
-    async (cat: string = category, page: number = 0) => {
+  // Generate cache key from filters
+  const getCacheKey = (filters: PortfolioFilters): string => {
+    return `${filters.categories.sort().join(',')}|${filters.statuses.sort().join(',')}`;
+  };
+
+  /**
+   * Fetch portfolios with multiple filters (new method)
+   */
+  const fetchWithFilters = useCallback(
+    async (filters: PortfolioFilters, page: number = 0) => {
       setLoading(true);
       setError(null);
+      currentFiltersRef.current = filters;
 
       try {
-        const response = await portfolioService.list(cat, page, pageSize);
+        // If no filters selected, use listAll
+        const hasFilters = filters.categories.length > 0 || filters.statuses.length > 0;
+        
+        const response = hasFilters
+          ? await portfolioService.listByFilters(filters, page, pageSize)
+          : await portfolioService.listAll(page, pageSize);
+        
         const newPortfolios = response.content;
+        const cacheKey = getCacheKey(filters);
 
         if (page === 0) {
           setPortfolios(newPortfolios);
-          cacheRef.current.set(cat, newPortfolios);
+          cacheRef.current.set(cacheKey, newPortfolios);
         } else {
           setPortfolios((prev) => {
             const merged = [...prev, ...newPortfolios];
             const unique = Array.from(
               new Map(merged.map((p) => [p.id, p])).values()
             );
-            cacheRef.current.set(cat, unique);
+            cacheRef.current.set(cacheKey, unique);
             return unique;
           });
         }
@@ -87,34 +115,57 @@ export function usePortfolios(options: UsePortfoliosOptions = {}): UsePortfolios
         setLoading(false);
       }
     },
-    [category, pageSize]
+    [pageSize]
+  );
+
+  /**
+   * Legacy single-category fetch (backwards compatible)
+   */
+  const fetchPortfolios = useCallback(
+    async (cat: string = category, page: number = 0) => {
+      // Convert single category to filters format
+      const filters: PortfolioFilters = {
+        categories: cat === "All" ? [] : [cat],
+        statuses: [],
+      };
+      await fetchWithFilters(filters, page);
+    },
+    [category, fetchWithFilters]
   );
 
   const loadMore = useCallback(async () => {
     if (!hasMore || loading) return;
-    await fetchPortfolios(category, currentPage + 1);
-  }, [fetchPortfolios, category, currentPage, hasMore, loading]);
+    await fetchWithFilters(currentFiltersRef.current, currentPage + 1);
+  }, [fetchWithFilters, currentPage, hasMore, loading]);
 
   const refresh = useCallback(async () => {
     cacheRef.current.clear();
-    await fetchPortfolios(category, 0);
-  }, [fetchPortfolios, category]);
+    await fetchWithFilters(currentFiltersRef.current, 0);
+  }, [fetchWithFilters]);
 
-  // Auto-fetch on mount and category change
+  // Auto-fetch on mount and filter changes
   useEffect(() => {
     if (autoFetch) {
-      const cached = cacheRef.current.get(category);
+      // Determine filters from options
+      const filters: PortfolioFilters = {
+        categories: categories.length > 0 ? categories : (category === "All" ? [] : [category]),
+        statuses: statuses,
+      };
+
+      const cacheKey = getCacheKey(filters);
+      const cached = cacheRef.current.get(cacheKey);
+      
       if (cached && cached.length > 0) {
         setPortfolios(cached);
-        // Estimate pagination from cached data (optional)
         setTotalElements(cached.length);
         setTotalPages(Math.ceil(cached.length / pageSize));
         setHasMore(pageSize < cached.length);
+        currentFiltersRef.current = filters;
       } else {
-        fetchPortfolios(category, 0);
+        fetchWithFilters(filters, 0);
       }
     }
-  }, [category, autoFetch, fetchPortfolios, pageSize]);
+  }, [category, JSON.stringify(categories), JSON.stringify(statuses), autoFetch, fetchWithFilters, pageSize]);
 
   // Transform portfolios to developers for UI
   const developers: Developer[] = portfolios.map((p) => {
@@ -141,6 +192,7 @@ export function usePortfolios(options: UsePortfoliosOptions = {}): UsePortfolios
     totalPages,
     totalElements,
     fetchPortfolios,
+    fetchWithFilters,
     loadMore,
     refresh,
     getByCategory,
