@@ -251,19 +251,20 @@ const StatusBadge = ({ status }: { status: string }) => {
   let textColor = "text-gray-500";
   let shadowColor = "";
 
-  if (status === "Open for Work") {
+  // Check against enum values or label text
+  if (status === "Open for Work" || status === "OPEN" || status === JobProfileStatus.OPEN) {
     dotColor = "bg-green-500";
     bgColor = "bg-green-500/10";
     borderColor = "border-green-500";
     textColor = "text-green-500";
     shadowColor = "shadow-[0_0_10px_#22c55e]";
-  } else if (status === "Freelance") {
+  } else if (status === "Freelance" || status === "FREELANCE" || status === JobProfileStatus.FREELANCE) {
     dotColor = "bg-white";
     bgColor = "bg-white/10";
     borderColor = "border-white";
     textColor = "text-white";
     shadowColor = "shadow-[0_0_10px_#ffffff]";
-  } else if (status === "Deployed") {
+  } else if (status === "Deployed" || status === "DEPLOYED" || status === JobProfileStatus.DEPLOYED) {
     dotColor = "bg-red-500";
     bgColor = "bg-red-500/10";
     borderColor = "border-red-500";
