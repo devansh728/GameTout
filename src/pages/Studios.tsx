@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { statsService } from "@/services/statsService";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
+import { SecurityAuthModal } from "@/components/SecurityAuthModal";
 import { HeroTagline } from "@/components/HeroTagline";
 import { CustomDropdown } from "@/components/CustomDropdown";
 
@@ -238,6 +239,7 @@ const Studios = () => {
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [totalStudios, setTotalStudios] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => {
     statsService.getStudiosCount().then(res => setTotalStudios(res.data.count));
@@ -344,13 +346,15 @@ const Studios = () => {
                 />
               </motion.button>
             ) : (
-              <a
-                href="/login"
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setShowAuthModal(true)}
                 className="group relative flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/20 text-white font-bold uppercase text-xs tracking-wide overflow-hidden rounded-sm hover:border-[#FFAB00]/50 hover:bg-white/5 transition-all"
               >
                 <LogIn className="w-4 h-4" />
                 <span>Login to Submit</span>
-              </a>
+              </motion.button>
             )}
           </div>
 
@@ -797,6 +801,19 @@ const Studios = () => {
           isSubmitting={submitting}
           error={submitError}
           success={submitSuccess}
+        />
+
+        {/* Auth Modal */}
+        <SecurityAuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          onSuccess={() => {
+            setShowAuthModal(false);
+            toast({
+              title: "🔓 Access Granted",
+              description: "You can now submit your studio.",
+            });
+          }}
         />
 
         <Footer />
