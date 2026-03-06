@@ -520,7 +520,10 @@ const Portfolios = () => {
     refresh: refreshList
   } = usePortfolios({
     categories: activeCategories,
-    statuses: activeStatuses.length > 0 ? activeStatuses : [JobProfileStatus.OPEN], // Never send empty
+    // Only default to OPEN when categories are selected; empty for ALL view (uses listAll)
+    statuses: activeCategories.length > 0 
+      ? (activeStatuses.length > 0 ? activeStatuses : [JobProfileStatus.OPEN])
+      : [],
     autoFetch: !isDemoMode
   });
 
