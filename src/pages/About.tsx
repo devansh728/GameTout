@@ -572,7 +572,7 @@ const About = () => {
 
                 <h1 className="font-display text-[clamp(2.2rem,6vw,5rem)] leading-[0.92] mb-6 sm:mb-8 tracking-tight">
                   <span className="text-gradient-gold">
-                    GAMETOUT<sup className="text-[0.4em]">™</sup>
+                    GAMETOUT<sup className="text-xs">™</sup>
                   </span>
                   <br />
                   <span className="text-foreground">Voice of Indie Games</span>
