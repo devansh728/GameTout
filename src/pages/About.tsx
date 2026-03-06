@@ -162,8 +162,8 @@ const ContactSection = () => {
                 className="h-[2px] bg-primary mx-auto mb-6 sm:mb-8"
               />
               {/* <div className="inline-flex items-center gap-2 px-3 sm:px-5 py-2 rounded-full bg-primary/5 border border-primary/10 mb-6 sm:mb-8"> */}
-              {/* <Terminal className="w-4 h-4 sm:w-5 sm:h-5 text-primary" /> */}
-              {/* <span className="font-mono text-sm sm:text-base text-primary tracking-wider">system.contact()</span> */}
+                {/* <Terminal className="w-4 h-4 sm:w-5 sm:h-5 text-primary" /> */}
+                {/* <span className="font-mono text-sm sm:text-base text-primary tracking-wider">system.contact()</span> */}
               {/* </div> */}
 
               <h2 className="font-display text-3xl sm:text-5xl md:text-6xl lg:text-7xl mb-4 sm:mb-8 tracking-tight">
@@ -571,9 +571,7 @@ const About = () => {
                 </motion.div>
 
                 <h1 className="font-display text-[clamp(2.2rem,6vw,5rem)] leading-[0.92] mb-6 sm:mb-8 tracking-tight">
-                  <span className="text-gradient-gold">
-                    GAMETOUT<sup className="text-xs">™</sup>
-                  </span>
+                  <span className="text-gradient-gold">GAMETOUT™</span>
                   <br />
                   <span className="text-foreground">Voice of Indie Games</span>
                 </h1>
@@ -594,14 +592,11 @@ const About = () => {
                   className="space-y-4 sm:space-y-6 max-w-xl mx-auto lg:mx-0"
                 >
                   <p className="text-foreground/85 leading-[1.7] sm:leading-[1.8] text-base sm:text-lg">
-                    GameTout™ is a highly visible and respected figure in the Indian game development ecosystem,
-                    known for his commitment to being upfront and speaking his mind. His work is closely followed
-                    by almost all studios and key individuals in the industry.
+                    WeBuildGame makes hiring simple.  
+Game Developers showcase portfolios, Game Studios discover talent, and both save time and money an affordable bridge between creators and opportunities in the gaming industry.
                   </p>
                   <p className="text-foreground/75 leading-[1.7] sm:leading-[1.8] text-base sm:text-lg">
-                    A dedicated game reviewer, documentary maker, and prominent Video Game Journalist, he
-                    specializes in ground-level interviews and critical analysis of industry events like IGDC.
-                    He is an essential advocate, documentarian, and connector for the Indian gamedev scene.
+                    GameTout™ is a highly visible and respected figure in the Indian game development ecosystem. He is a dedicated game reviewer, documentary maker, and prominent Video Game Journalist, he specializes in ground-level interviews and critical analysis of industry events like IGDC. He is an essential advocate, documentarian, and connector for the Indian gamedev scene.
                   </p>
                 </motion.div>
 
@@ -824,8 +819,8 @@ const About = () => {
                   Connect with the source. Join the movement.
                 </p> */}
 
-        {/* Email Copy Button */}
-        {/* <motion.button
+                {/* Email Copy Button */}
+                {/* <motion.button
                   onClick={copyEmail}
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
