@@ -16,7 +16,7 @@ import AdminFeatured from "@/admin/pages/AdminFeatured";
 import AdminDashboard from "@/admin/pages/AdminDashboard";
 import { AdminGuard } from "@/admin/AdminGuard";
 
-
+import FAQ from "./pages/FAQ";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Documentary from "./pages/Documentary";
@@ -45,6 +45,8 @@ const AnimatedRoutes = () => {
         <Route path="/" element={<Portfolios />} />
         {/* Hidden Featured Page - moved from root */}
         {/* <Route path="/featured" element={<Index />} />  */}
+
+        <Route path="/faq" element={<FAQ />} />
         
         <Route path="/about" element={<About />} />
         {/* <Route path="/documentary" element={<Documentary />} /> */}
