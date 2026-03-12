@@ -492,6 +492,7 @@ export interface PortfolioDetail {
   coverPhotoUrl: string | null;
   profilePhotoUrl: string | null;
   contactEmail: string | null;
+  mobile: string | null;
   resumeUrl: string | null;
   skills: SkillDTO[];
   socials: SocialLinkDTO[];
@@ -516,6 +517,7 @@ export interface PortfolioRequest {
   coverPhotoUrl?: string;
   profilePhotoUrl?: string;
   contactEmail: string;
+  mobile?: string;
   skills: SkillDTO[];
   socials: SocialLinkDTO[];
   resumeUrl?: string;

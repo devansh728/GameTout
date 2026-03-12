@@ -64,7 +64,7 @@ const socials = [
     url: "https://www.youtube.com/@GameTout",
     color: "#FF0000",
     gradient: "from-[#FF0000] to-[#CC0000]",
-    description: "Tutorials & devlogs",
+    description: "Podcasts & reviews",
     stat: "100K+",
     statLabel: "Subscribers",
     badge: "Live"
@@ -76,7 +76,7 @@ const socials = [
     url: "https://www.instagram.com/game_tout",
     color: "#E4405F",
     gradient: "from-[#E4405F] via-[#C13584] to-[#833AB4]",
-    description: "Art & screenshots",
+    description: "Life updates & behind the scenes",
     stat: "50K+",
     statLabel: "Followers",
     badge: "New Post"

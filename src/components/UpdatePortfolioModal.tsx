@@ -325,6 +325,7 @@ export const UpdatePortfolioModal = ({
     jobStatus: "Open for Work",
     profileSummary: "",
     contactEmail: "",
+    mobile: "",
     profilePhotoUrl: "",
     coverPhotoUrl: "",
     resumeUrl: "",
@@ -351,6 +352,7 @@ export const UpdatePortfolioModal = ({
             : "Deployed",
         profileSummary: initialData.profileSummary || "",
         contactEmail: initialData.contactEmail || "",
+        mobile: initialData.mobile || "",
         profilePhotoUrl: initialData.profilePhotoUrl || "",
         coverPhotoUrl: initialData.coverPhotoUrl || "",
         resumeUrl: initialData.resumeUrl || "",
@@ -546,6 +548,7 @@ export const UpdatePortfolioModal = ({
       jobStatus: DISPLAY_TO_STATUS[formData.jobStatus] || JobProfileStatus.OPEN,
       profileSummary: formData.profileSummary?.trim() || undefined,
       contactEmail: formData.contactEmail.trim(),
+      mobile: clean(formData.mobile),
       profilePhotoUrl: clean(formData.profilePhotoUrl),
       coverPhotoUrl: clean(formData.coverPhotoUrl),
       resumeUrl: clean(formData.resumeUrl),
@@ -677,6 +680,17 @@ export const UpdatePortfolioModal = ({
                         className="w-full bg-black/30 border-b border-white/10 text-gray-400 text-sm py-2 cursor-not-allowed"
                       />
                       <p className="text-xs text-gray-500 mt-1">Email cannot be changed here</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-gray-400 uppercase mb-2">Mobile (Optional)</label>
+                      <input
+                        type="tel"
+                        value={formData.mobile}
+                        onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                        className="w-full bg-black/50 border-b border-white/20 text-white text-sm py-2 focus:border-[#FFAB00] outline-none transition-colors"
+                        placeholder="+91 98765 43210"
+                      />
                     </div>
 
                     <div>

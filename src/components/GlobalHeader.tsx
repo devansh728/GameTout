@@ -229,7 +229,7 @@ export const GlobalHeader = ({ onLoginClick, isAuthenticated }: GlobalHeaderProp
   return (
     <>
       {/* --- MAIN HEADER BAR (Fixed Top) --- */}
-      <header className="fixed top-0 left-0 right-0 h-24 z-50 px-6 md:px-12 flex items-center justify-between gap-4 pointer-events-none">
+      <header className="fixed top-0 left-0 right-0 h-24 z-50 px-6 md:px-12 flex items-center justify-between gap-4 pointer-events-none bg-[#0a0a0a] ">
 
         {/* 1. LEFT: LOGO (Pointer Auto) */}
         <div className="pointer-events-auto flex items-center gap-6 flex-shrink-0">

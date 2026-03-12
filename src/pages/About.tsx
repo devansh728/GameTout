@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useInView, useMotionValue, useTransform, animate, useScroll } from "framer-motion";
-import { Copy, Check, Headphones, Users, Gamepad2, Film, MessageSquare, Award, Send, Terminal, Mail, User, Lock, ChevronDown, Zap, Globe, ArrowRight } from "lucide-react";
+import { Copy, Check, Headphones, Users, Gamepad2, Film, MessageSquare, Award, Send, Terminal, Mail, User, Lock, ChevronDown, Zap, Globe, ArrowRight, ExternalLink } from "lucide-react";
 import { PageTransition, FadeInView } from "@/components/PageTransition";
 import { TypewriterText } from "@/components/TypewriterText";
 import { Footer } from "@/components/Footer";
@@ -571,7 +571,7 @@ const About = () => {
                 </motion.div>
 
                 <h1 className="font-display text-[clamp(2.2rem,6vw,5rem)] leading-[0.92] mb-6 sm:mb-8 tracking-tight">
-                  <span className="text-gradient-gold">GAMETOUT™</span>
+                  <span className="text-gradient-gold">GAMETOUT</span><sup className="text-[0.45em] align-super text-primary/80 font-normal">™</sup>
                   <br />
                   <span className="text-foreground">Voice of Indie Games</span>
                 </h1>
@@ -596,7 +596,7 @@ const About = () => {
 Game Developers showcase portfolios, Game Studios discover talent, and both save time and money an affordable bridge between creators and opportunities in the gaming industry.
                   </p>
                   <p className="text-foreground/75 leading-[1.7] sm:leading-[1.8] text-base sm:text-lg">
-                    GameTout™ is a highly visible and respected figure in the Indian game development ecosystem. He is a dedicated game reviewer, documentary maker, and prominent Video Game Journalist, he specializes in ground-level interviews and critical analysis of industry events like IGDC. He is an essential advocate, documentarian, and connector for the Indian gamedev scene.
+                    GameTout<sup className="text-[0.5em]">™</sup> is a highly visible and respected figure in the Indian game development ecosystem. He is a dedicated game reviewer, documentary maker, and prominent Video Game Journalist, he specializes in ground-level interviews and critical analysis of industry events like IGDC. He is an essential advocate, documentarian, and connector for the Indian gamedev scene.
                   </p>
                 </motion.div>
 
@@ -604,6 +604,7 @@ Game Developers showcase portfolios, Game Studios discover talent, and both save
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 2 }}
+                  className="mt-4 sm:mt-6"
                 >
                   <SocialLink3D />
                 </motion.div>
@@ -613,7 +614,7 @@ Game Developers showcase portfolios, Game Studios discover talent, and both save
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 2.5 }}
-                  className="mt-12 sm:mt-16 hidden lg:flex items-center gap-3"
+                  className="mt-6 sm:mt-8 hidden lg:flex items-center gap-3"
                 >
                   <motion.div
                     animate={{ y: [0, 6, 0] }}
@@ -628,6 +629,121 @@ Game Developers showcase portfolios, Game Studios discover talent, and both save
               </div>
             </div>
           </motion.div>
+        </section>
+
+        {/* ===== TEAM SECTION ===== */}
+        <section className="relative py-12 sm:py-16 md:py-20 px-4 md:px-8">
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/[0.03] rounded-full blur-3xl" />
+          </div>
+
+          <div className="max-w-6xl mx-auto relative z-10">
+            <FadeInView>
+              <div className="text-center mb-8 sm:mb-12">
+                <motion.div
+                  initial={{ width: 0 }}
+                  whileInView={{ width: "4rem" }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8 }}
+                  className="h-[2px] bg-primary mx-auto mb-6 sm:mb-8"
+                />
+                {/* <span className="font-mono text-xs sm:text-sm text-primary font-semibold uppercase tracking-[0.2em] sm:tracking-[0.3em]">
+                  // The Squad
+                </span> */}
+                <h2 className="font-display text-3xl sm:text-4xl md:text-5xl mt-3 sm:mt-4 tracking-tight">
+                  Meet the <span className="text-gradient-gold">Team</span>
+                </h2>
+              </div>
+            </FadeInView>
+
+            {/* Desktop: 3 equal cards | Mobile: stacked */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+
+              {[{
+                index: "01",
+                name: "Member Name",
+                role: "Role / Title",
+                desc: "Brief 2-line description about this team member and their contribution to the project.",
+                img: "/team/member1.jpg",
+                link: "#",
+                delay: 0.1,
+              }, {
+                index: "02",
+                name: "Member Name",
+                role: "Role / Title",
+                desc: "Brief 2-line description about this team member and their contribution to the project.",
+                img: "/team/member2.jpg",
+                link: "#",
+                delay: 0.2,
+              }, {
+                index: "03",
+                name: "Member Name",
+                role: "Role / Title",
+                desc: "Brief 2-line description about this team member and their contribution to the project.",
+                img: "/team/member3.jpg",
+                link: "#",
+                delay: 0.3,
+              }].map((member) => (
+                <motion.div
+                  key={member.index}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.6, delay: member.delay, ease: [0.25, 0.1, 0, 1] }}
+                  whileHover={{ y: -6 }}
+                  className="group relative rounded-2xl overflow-hidden flex flex-col"
+                  style={{
+                    background: "linear-gradient(165deg, hsl(0 0% 7% / 0.9) 0%, hsl(0 0% 3% / 0.9) 100%)",
+                    border: "1px solid hsl(0 0% 100% / 0.08)",
+                  }}
+                >
+                  {/* Top accent line */}
+                  <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  {/* Hover glow */}
+                  <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
+                    style={{ background: "radial-gradient(circle at 50% 0%, hsl(43 100% 50% / 0.06) 0%, transparent 70%)" }}
+                  />
+
+                  {/* Photo */}
+                  <div className="relative aspect-[4/3] overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent">
+                      <img
+                        src={member.img}
+                        alt={member.name}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-[hsl(0,0%,4%)] via-transparent to-transparent" />
+                    {/* Index badge */}
+                    <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center">
+                      <span className="font-mono text-[10px] text-primary font-bold">{member.index}</span>
+                    </div>
+                  </div>
+
+                  {/* Details */}
+                  <div className="p-5 sm:p-6 flex flex-col flex-1">
+                    <h3 className="font-display text-xl text-foreground mb-1 tracking-tight">{member.name}</h3>
+                    <p className="text-foreground/50 text-[11px] font-mono uppercase tracking-wider mb-3">{member.role}</p>
+                    <p className="text-foreground/60 text-sm leading-relaxed mb-5 flex-1">{member.desc}</p>
+                    <motion.a
+                      href={member.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-wider hover:bg-primary/20 hover:border-primary/40 transition-all duration-300 w-fit"
+                      whileHover={{ x: 4 }}
+                      whileTap={{ scale: 0.97 }}
+                    >
+                      Connect <ExternalLink className="w-3 h-3" />
+                    </motion.a>
+                  </div>
+                </motion.div>
+              ))}
+
+            </div>
+          </div>
         </section>
 
         {/* ===== STATS SECTION ===== */}
@@ -654,7 +770,7 @@ Game Developers showcase portfolios, Game Studios discover talent, and both save
                   className="h-[2px] bg-primary mx-auto mb-6 sm:mb-8"
                 />
                 <span className="font-mono text-xs sm:text-sm text-primary font-semibold uppercase tracking-[0.2em] sm:tracking-[0.3em]">
-                  // Mission Stats
+                  // GameTout Stats
                 </span>
                 <h2 className="font-display text-3xl sm:text-4xl md:text-5xl mt-3 sm:mt-4 tracking-tight">
                   Career <span className="text-gradient-gold">Metrics</span>

@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
-import { MapPin, UserPlus, List, Grid, CheckCircle, Clock, XCircle, Zap, Search, Terminal, ChevronDown, Filter, Loader2, AlertCircle, RefreshCw, Crown, Sparkles, Shield, Lock, Calendar, Radio, Wifi, Cpu, Signal, Activity, Hexagon, Triangle, Circle, X } from "lucide-react";
+import { MapPin, UserPlus, List, Grid, CheckCircle, Clock, XCircle, Zap, Search, Terminal, ChevronDown, Filter, Loader2, AlertCircle, RefreshCw, Crown, Sparkles, Shield, Lock, Calendar, Radio, Wifi, Cpu, Signal, Activity, Hexagon, Triangle, Circle, X, ArrowUp } from "lucide-react";
 import { PageTransition, FadeInView } from "@/components/PageTransition";
 import { Footer } from "@/components/Footer";
 import { CreatePortfolioModal } from "@/components/CreatePortfolioModal";
@@ -715,6 +715,14 @@ const Portfolios = () => {
   // Portfolio count state
   const [totalProfiles, setTotalProfiles] = useState(0);
 
+  // Scroll position for HeroTagline fade + back-to-top
+  const [scrollY, setScrollY] = useState(0);
+  useEffect(() => {
+    const onScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   const { dbUser } = useAuth();
   // Elite Access Hook
   const {
@@ -949,13 +957,19 @@ const Portfolios = () => {
 
   return (
     <PageTransition>
-      <main className="min-h-screen bg-background pt-20 selection:bg-[#FFAB00] selection:text-black relative overflow-hidden">
+      <main className="min-h-screen bg-background pt-24 selection:bg-[#FFAB00] selection:text-black relative" style={{ overflowX: 'clip' }}>
 
-        <HeroTagline
-          phrase="Create your free portfolio"
-          size="sm"
-          className="mb-4"
-        />
+        {/* HeroTagline - fades out as user scrolls */}
+        <div
+          className="transition-opacity duration-200 ease-out"
+          style={{ opacity: Math.max(0, 1 - scrollY / 150) }}
+        >
+          <HeroTagline
+            phrase="Create your free portfolio"
+            size="sm"
+            className="mb-4"
+          />
+        </div>
 
         {/* --- GLOBAL BG EFFECTS (Cyber Grid) --- */}
         <div className="fixed inset-0 pointer-events-none z-0 opacity-20"
@@ -1037,7 +1051,11 @@ const Portfolios = () => {
           )}
         </AnimatePresence>
 
-        {/* NEW COMPACT HEADER */}
+        {/* STICKY WRAPPER: CompactHeader + Control Deck - pins below GlobalHeader */}
+        <div className="sticky top-24 z-40 bg-background">
+
+        {/* CompactHeader with its own background for scroll-behind */}
+        <div className="relative bg-background">
         <CompactHeader
           onMyProfileClick={handleMyProfileClick}
           isLoadingMyProfile={isFetchingMyProfile}
@@ -1046,11 +1064,13 @@ const Portfolios = () => {
           totalProfiles={totalProfiles}
           showDemoToggle={showDemoFeature}
         />
+        </div>
 
         {/* CONTROL DECK - Redesigned */}
-        <section className="sticky top-20 z-40 mb-6">
+        <section className="relative mb-0">
           {/* Backdrop */}
-          <div className="absolute inset-0 bg-[#0a0a0a]/90 backdrop-blur-2xl" />
+          <div className="absolute inset-0 bg-background" />
+          <div className="absolute inset-0 bg-[#0a0a0a]" />
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#FFAB00]/30 to-transparent" />
 
           <div className="relative px-4 md:px-8 max-w-7xl mx-auto py-3 sm:py-4">
@@ -1411,6 +1431,10 @@ const Portfolios = () => {
             </div>
           </div>
         </section>
+        </div>{/* end sticky wrapper */}
+
+        {/* Spacer below sticky section */}
+        <div className="h-6" />
 
         {/* DATABASE CONTENT */}
         <section className="px-4 md:px-8 max-w-[1600px] mx-auto pb-20 min-h-[500px] relative z-10">
@@ -1557,6 +1581,26 @@ const Portfolios = () => {
         </section>
 
         <Footer />
+
+        {/* Back to Top Button */}
+        <AnimatePresence>
+          {scrollY > 400 && (
+            <motion.button
+              key="back-to-top"
+              initial={{ opacity: 0, y: 20, scale: 0.8 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.8 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-40 p-3 rounded-full bg-gradient-to-r from-[#FFAB00] to-[#FF8C00] text-black shadow-[0_0_20px_rgba(255,171,0,0.4)] hover:shadow-[0_0_30px_rgba(255,171,0,0.6)] transition-shadow"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              title="Back to top"
+            >
+              <ArrowUp className="w-5 h-5" />
+            </motion.button>
+          )}
+        </AnimatePresence>
       </main>
     </PageTransition>
   );

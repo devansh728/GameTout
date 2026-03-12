@@ -375,6 +375,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData, 
     jobStatus: "Open for Work",
     profileSummary: "",
     contactEmail: "",
+    mobile: "",
     profilePhotoUrl: "",
     coverPhotoUrl: "",
     resumeUrl: "",
@@ -404,6 +405,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData, 
             : "Deployed",
         profileSummary: initialData.profileSummary || "",
         contactEmail: initialData.contactEmail || "",
+        mobile: initialData.mobile || "",
         profilePhotoUrl: initialData.profilePhotoUrl || "",
         coverPhotoUrl: initialData.coverPhotoUrl || "",
         resumeUrl: initialData.resumeUrl || "",
@@ -426,6 +428,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData, 
         jobStatus: "Open for Work",
         profileSummary: "",
         contactEmail: dbUser?.email || "",
+        mobile: "",
         profilePhotoUrl: "",
         coverPhotoUrl: "",
         resumeUrl: "",
@@ -470,6 +473,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData, 
         jobStatus: "Open for Work",
         profileSummary: "",
         contactEmail: "",
+        mobile: "",
         profilePhotoUrl: "",
         coverPhotoUrl: "",
         resumeUrl: "",
@@ -631,6 +635,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData, 
       jobStatus: DISPLAY_TO_STATUS[formData.jobStatus] || JobProfileStatus.OPEN,
       profileSummary: formData.profileSummary?.trim() || undefined,
       contactEmail: formData.contactEmail.trim(),
+      mobile: clean(formData.mobile),
       profilePhotoUrl: clean(formData.profilePhotoUrl),
       coverPhotoUrl: clean(formData.coverPhotoUrl),
       resumeUrl: clean(formData.resumeUrl),
@@ -1045,6 +1050,17 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData, 
                           placeholder="operative@email.com"
                           value={formData.contactEmail}
                           onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-300 uppercase">Phone Number (Optional)</label>
+                        <input
+                          type="tel"
+                          className="w-full bg-black/50 border border-white/20 p-3 rounded-sm text-white focus:border-[#FFAB00] focus:outline-none transition-colors font-mono"
+                          placeholder="e.g, +919876543210"
+                          value={formData.mobile}
+                          onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
                         />
                       </div>
 

@@ -3,7 +3,8 @@ import { motion, AnimatePresence, Variants } from "framer-motion";
 import {
     X, MapPin, Download, Github, Linkedin, Globe, Mail,
     Award, Terminal, Shield, CheckCircle, ExternalLink,
-    Gamepad2, Code2, Zap, Star, Heart, Loader2
+    Gamepad2, Code2, Zap, Star, Heart, Loader2,
+    Phone
 } from "lucide-react";
 import { SkillBar } from "@/components/HealthBar";
 import { usePortfolioDetail } from "@/hooks/usePortfolioDetail";
@@ -147,6 +148,7 @@ export const ProfileViewModal = ({ isOpen, onClose, developer, portfolioId }: Pr
         isPremium: portfolio?.isPremium ?? developer.isPremium,
         profileSummary: portfolio?.profileSummary || null, // Full summary
         contactEmail: portfolio?.contactEmail || null,
+        mobile: portfolio?.mobile || null,
         resumeUrl: portfolio?.resumeUrl || null,
         socials: portfolio?.socials || [],
         likesCount: portfolio?.likesCount || 0,
@@ -400,6 +402,18 @@ export const ProfileViewModal = ({ isOpen, onClose, developer, portfolioId }: Pr
                                                             />
                                                             <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 relative z-10" />
                                                             <span className="relative z-10">Contact</span>
+                                                        </motion.a>
+                                                    )}
+
+                                                    {displayData.mobile && (
+                                                        <motion.a
+                                                            href={`tel:${displayData.mobile}`}
+                                                            className="group flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 bg-[#FFAB00] text-black font-bold uppercase text-[10px] sm:text-xs rounded hover:bg-[#FFAB00]/90 transition-all duration-300"
+                                                            whileHover={{ scale: 1.05 }}
+                                                            whileTap={{ scale: 0.95 }}
+                                                        >
+                                                            <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                                            <span>Call</span>
                                                         </motion.a>
                                                     )}
 
