@@ -75,14 +75,19 @@ export function useAdvancedFilter(): UseAdvancedFilterReturn {
       setError(null);
 
       try {
+        // Normalize engine preferences to uppercase (ensure enum case consistency)
+        const normalizedEngines = enginePreferences.map(e => 
+          typeof e === 'string' ? (e.toUpperCase() as GameEngine) : e
+        );
+
         // Build request object with current filter state
         const request: AdvancedFilterRequest = {
           jobCategories,
           jobStatuses,
-          skillNames,
+          skillNames: skillNames.map(s => s.toLowerCase()),
           minExperienceYears,
           maxExperienceYears,
-          enginePreferences,
+          enginePreferences: normalizedEngines,
           location,
           page,
           size: 20,
