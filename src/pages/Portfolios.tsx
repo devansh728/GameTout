@@ -1311,7 +1311,7 @@ const Portfolios = () => {
                 )}
 
                 {/* Advanced Filter Button */}
-                <button
+                {/* <button
                   onClick={() => setIsMoreFiltersOpen(true)}
                   className={`group relative whitespace-nowrap px-3 sm:px-4 py-2 text-[11px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-300 rounded-lg shrink-0 flex items-center gap-1.5 ${usingAdvancedFilter
                     ? "bg-[#FF6B9D] text-white shadow-[0_0_20px_rgba(255,107,157,0.25)]"
@@ -1321,7 +1321,7 @@ const Portfolios = () => {
                 >
                   <Sparkles className="w-3 h-3" />
                   More Filters
-                </button>
+                </button> */}
 
                 {/* Separator before status filters */}
                 <div className="w-px h-6 bg-white/[0.06] shrink-0 mx-1" />

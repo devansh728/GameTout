@@ -632,7 +632,7 @@ Game Developers showcase portfolios, Game Studios discover talent, and both save
         </section>
 
         {/* ===== TEAM SECTION ===== */}
-        <section className="relative py-12 sm:py-16 md:py-20 px-4 md:px-8">
+        {/* <section className="relative py-12 sm:py-16 md:py-20 px-4 md:px-8">
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/[0.03] rounded-full blur-3xl" />
           </div>
@@ -646,18 +646,18 @@ Game Developers showcase portfolios, Game Studios discover talent, and both save
                   viewport={{ once: true }}
                   transition={{ duration: 0.8 }}
                   className="h-[2px] bg-primary mx-auto mb-6 sm:mb-8"
-                />
+                /> */}
                 {/* <span className="font-mono text-xs sm:text-sm text-primary font-semibold uppercase tracking-[0.2em] sm:tracking-[0.3em]">
                   // The Squad
                 </span> */}
-                <h2 className="font-display text-3xl sm:text-4xl md:text-5xl mt-3 sm:mt-4 tracking-tight">
+                {/* <h2 className="font-display text-3xl sm:text-4xl md:text-5xl mt-3 sm:mt-4 tracking-tight">
                   Meet the <span className="text-gradient-gold">Team</span>
                 </h2>
               </div>
-            </FadeInView>
+            </FadeInView> */}
 
             {/* Desktop: 3 equal cards | Mobile: stacked */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+            {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
 
               {[{
                 index: "01",
@@ -696,16 +696,15 @@ Game Developers showcase portfolios, Game Studios discover talent, and both save
                     background: "linear-gradient(165deg, hsl(0 0% 7% / 0.9) 0%, hsl(0 0% 3% / 0.9) 100%)",
                     border: "1px solid hsl(0 0% 100% / 0.08)",
                   }}
-                >
-                  {/* Top accent line */}
-                  <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  {/* Hover glow */}
+                > */}
+                  {/* <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  
                   <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
                     style={{ background: "radial-gradient(circle at 50% 0%, hsl(43 100% 50% / 0.06) 0%, transparent 70%)" }}
-                  />
+                  /> */}
 
                   {/* Photo */}
-                  <div className="relative aspect-[4/3] overflow-hidden">
+                  {/* <div className="relative aspect-[4/3] overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent">
                       <img
                         src={member.img}
@@ -715,16 +714,16 @@ Game Developers showcase portfolios, Game Studios discover talent, and both save
                           (e.target as HTMLImageElement).style.display = 'none';
                         }}
                       />
-                    </div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-[hsl(0,0%,4%)] via-transparent to-transparent" />
-                    {/* Index badge */}
+                    </div> */}
+                    {/* <div className="absolute inset-0 bg-gradient-to-t from-[hsl(0,0%,4%)] via-transparent to-transparent" />
+                 
                     <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center">
                       <span className="font-mono text-[10px] text-primary font-bold">{member.index}</span>
                     </div>
-                  </div>
+                  </div> */}
 
                   {/* Details */}
-                  <div className="p-5 sm:p-6 flex flex-col flex-1">
+                  {/* <div className="p-5 sm:p-6 flex flex-col flex-1">
                     <h3 className="font-display text-xl text-foreground mb-1 tracking-tight">{member.name}</h3>
                     <p className="text-foreground/50 text-[11px] font-mono uppercase tracking-wider mb-3">{member.role}</p>
                     <p className="text-foreground/60 text-sm leading-relaxed mb-5 flex-1">{member.desc}</p>
@@ -744,7 +743,7 @@ Game Developers showcase portfolios, Game Studios discover talent, and both save
 
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* ===== STATS SECTION ===== */}
         <section className="relative py-16 sm:py-24 px-4 md:px-8">
@@ -967,7 +966,7 @@ Game Developers showcase portfolios, Game Studios discover talent, and both save
         </section> */}
 
         {/* ===== CONTACT SECTION ===== */}
-        <ContactSection />
+        {/* <ContactSection /> */}
 
         <Footer />
       </main>

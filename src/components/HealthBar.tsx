@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { scoreToSkillLevel, SKILL_LEVEL_LABELS, skillLevelToScore } from "@/utils/skillLevel";
 
 interface HealthBarProps {
   value: number;
@@ -55,16 +56,20 @@ interface SkillBarProps {
 }
 
 export const SkillBar = ({ skill, level, maxLevel = 100 }: SkillBarProps) => {
+  const levelKey = scoreToSkillLevel(level);
+  const levelLabel = SKILL_LEVEL_LABELS[levelKey];
+  const normalizedLevel = skillLevelToScore(levelKey);
+
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-xs">
         <span className="text-muted-foreground">{skill}</span>
-        <span className="font-mono text-primary">{level}%</span>
+        <span className="font-mono text-primary uppercase">{levelLabel}</span>
       </div>
       <div className="h-1.5 bg-muted rounded-full overflow-hidden">
         <motion.div
           initial={{ width: 0 }}
-          whileInView={{ width: `${(level / maxLevel) * 100}%` }}
+          whileInView={{ width: `${(normalizedLevel / maxLevel) * 100}%` }}
           viewport={{ once: true }}
           transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
           className="h-full bg-gradient-to-r from-primary to-primary/60 rounded-full"

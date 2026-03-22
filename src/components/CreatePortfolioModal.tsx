@@ -13,6 +13,14 @@ import { mediaUploadService } from "@/services/mediaUploadService";
 import { portfolioService } from "@/services/portfolioService";
 import React from "react";
 import { toast } from "./ui/sonner";
+import {
+  SKILL_LEVEL_OPTIONS,
+  normalizeSkillScore,
+  scoreToSkillLevel,
+  skillLevelToScore,
+  type SkillLevel,
+} from "@/utils/skillLevel";
+import { addDiagonalWatermarkToPdf } from "@/utils/pdfWatermark";
 
 interface CreatePortfolioModalProps {
   isOpen: boolean;
@@ -76,6 +84,7 @@ const engineToEnum: Record<string, GameEngine> = {
 
 const MAX_SHORT_DESCRIPTION = 100;
 const MAX_PROFILE_SUMMARY = 500;
+const MAX_RESUME_SIZE_BYTES = 10 * 1024 * 1024;
 
 // Platform options with icons
 const PLATFORM_OPTIONS = [
@@ -463,7 +472,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData, 
     coverPhotoUrl: "",
     resumeUrl: "",
     enginePreference: "",
-    skills: [{ name: "", score: 50 }],
+    skills: [{ name: "", score: 33 }],
     socials: [{ platform: "", url: "" }]
   });
 
@@ -496,8 +505,8 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData, 
         enginePreference: initialData.enginePreference || "",
         // Ensure arrays have at least one empty item if empty
         skills: initialData.skills && initialData.skills.length > 0
-          ? initialData.skills.map(s => ({ name: s.name, score: s.score || 50 }))
-          : [{ name: "", score: 50 }],
+          ? initialData.skills.map(s => ({ name: s.name, score: normalizeSkillScore(s.score) }))
+          : [{ name: "", score: 33 }],
         socials: initialData.socials && initialData.socials.length > 0
           ? initialData.socials.map(s => ({ platform: s.platform, url: s.url }))
           : [{ platform: "", url: "" }]
@@ -518,7 +527,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData, 
         coverPhotoUrl: "",
         resumeUrl: "",
         enginePreference: "",
-        skills: [{ name: "", score: 50 }],
+        skills: [{ name: "", score: 33 }],
         socials: [{ platform: "", url: "" }]
       });
     }
@@ -564,7 +573,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData, 
         coverPhotoUrl: "",
         resumeUrl: "",
         enginePreference: "",
-        skills: [{ name: "", score: 50 }],
+        skills: [{ name: "", score: 33 }],
         socials: [{ platform: "", url: "" }]
       });
 
@@ -593,7 +602,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData, 
       });
       return;
     }
-    setFormData({ ...formData, skills: [...formData.skills, { name: "", score: 50 }] });
+    setFormData({ ...formData, skills: [...formData.skills, { name: "", score: 33 }] });
   };
 
   const handleRemoveSkill = (index: number) => {
@@ -609,6 +618,10 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData, 
       newSkills[index].score = value as number;
     }
     setFormData({ ...formData, skills: newSkills });
+  };
+
+  const handleSkillLevelChange = (index: number, level: SkillLevel) => {
+    handleSkillChange(index, "score", skillLevelToScore(level));
   };
 
   const handleAddSocial = () => {
@@ -638,7 +651,23 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData, 
   }, []);
 
   const handleResumeUpload = useCallback(async (file: File) => {
-    return await mediaUploadService.uploadFile(file, true);
+    try {
+      const watermarkedFile = await addDiagonalWatermarkToPdf(file, "WEBUILDGAME");
+
+      if (watermarkedFile.size > MAX_RESUME_SIZE_BYTES) {
+        toast.error("Watermarked resume exceeds 10MB", {
+          description: "Please compress your PDF and try again.",
+        });
+        throw new Error("Watermarked resume exceeds size limit");
+      }
+
+      return await mediaUploadService.uploadFile(watermarkedFile, true);
+    } catch (error) {
+      toast.error("Failed to process resume watermark", {
+        description: "Please upload a valid PDF resume.",
+      });
+      throw error;
+    }
   }, []);
 
   const handleProfilePhotoDelete = async () => {
@@ -726,7 +755,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData, 
       profilePhotoUrl: clean(formData.profilePhotoUrl),
       coverPhotoUrl: clean(formData.coverPhotoUrl),
       resumeUrl: clean(formData.resumeUrl),
-      enginePreference: formData.enginePreference ? (formData.enginePreference as any) : undefined,
+      enginePreference: formData.enginePreference ? engineToEnum[formData.enginePreference] : undefined,
       skills: formData.skills
         .filter(s => s.name && s.name.trim() !== "")
         .map(s => ({ name: s.name.trim(), score: s.score })),
@@ -947,7 +976,6 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData, 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
             className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50"
           />
 
@@ -1289,16 +1317,24 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData, 
                             value={skill.name}
                             onChange={(e) => handleSkillChange(index, "name", e.target.value)}
                           />
-                          <div className="flex-1 flex items-center gap-3">
-                            <input
-                              type="range"
-                              min="0"
-                              max="100"
-                              className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#FFAB00]"
-                              value={skill.score}
-                              onChange={(e) => handleSkillChange(index, "score", parseInt(e.target.value))}
-                            />
-                            <span className="text-xs font-mono text-[#FFAB00] w-8">{skill.score}%</span>
+                          <div className="flex-1 flex items-center gap-2">
+                            {SKILL_LEVEL_OPTIONS.map((option) => {
+                              const active = scoreToSkillLevel(skill.score) === option.value;
+                              return (
+                                <button
+                                  key={option.value}
+                                  type="button"
+                                  onClick={() => handleSkillLevelChange(index, option.value)}
+                                  className={`px-2.5 py-1.5 rounded-md text-[11px] font-bold uppercase tracking-wide border transition-all ${
+                                    active
+                                      ? "bg-[#FFAB00] text-black border-[#FFAB00] shadow-[0_0_12px_rgba(255,171,0,0.35)]"
+                                      : "bg-white/5 text-gray-300 border-white/15 hover:border-[#FFAB00]/40"
+                                  }`}
+                                >
+                                  {option.label}
+                                </button>
+                              );
+                            })}
                           </div>
                           {index > 0 && (
                             <button type="button" onClick={() => handleRemoveSkill(index)} className="text-red-500 hover:text-red-400">

@@ -14,6 +14,14 @@ import {
 import { MediaUploader } from "@/components/MediaUploader";
 import { mediaUploadService } from "@/services/mediaUploadService";
 import { toast } from "./ui/sonner";
+import {
+  SKILL_LEVEL_OPTIONS,
+  normalizeSkillScore,
+  scoreToSkillLevel,
+  skillLevelToScore,
+  type SkillLevel,
+} from "@/utils/skillLevel";
+import { addDiagonalWatermarkToPdf } from "@/utils/pdfWatermark";
 
 interface UpdatePortfolioModalProps {
   isOpen: boolean;
@@ -72,6 +80,7 @@ const engineToEnum: Record<string, GameEngine> = {
   "Godot": GameEngine.GODOT,
   "Other": GameEngine.OTHER,
 };
+const MAX_RESUME_SIZE_BYTES = 5 * 1024 * 1024;
 
 const PLATFORM_OPTIONS = [
   { value: "LinkedIn", label: "LinkedIn", icon: Linkedin, color: "#0077B5" },
@@ -401,7 +410,7 @@ export const UpdatePortfolioModal = ({
     coverPhotoUrl: "",
     resumeUrl: "",
     enginePreference: "",
-    skills: [{ name: "", score: 50 }],
+    skills: [{ name: "", score: 33 }],
     socials: [{ platform: "", url: "" }]
   });
 
@@ -430,8 +439,8 @@ export const UpdatePortfolioModal = ({
         resumeUrl: initialData.resumeUrl || "",
         enginePreference: initialData.enginePreference || "",
         skills: initialData.skills && initialData.skills.length > 0
-          ? initialData.skills.map(s => ({ name: s.name, score: s.score || 50 }))
-          : [{ name: "", score: 50 }],
+          ? initialData.skills.map(s => ({ name: s.name, score: normalizeSkillScore(s.score) }))
+          : [{ name: "", score: 33 }],
         socials: initialData.socials && initialData.socials.length > 0
           ? initialData.socials.map(s => ({ platform: s.platform, url: s.url }))
           : [{ platform: "", url: "" }]
@@ -461,7 +470,7 @@ export const UpdatePortfolioModal = ({
       });
       return;
     }
-    setFormData({ ...formData, skills: [...formData.skills, { name: "", score: 50 }] });
+    setFormData({ ...formData, skills: [...formData.skills, { name: "", score: 33 }] });
   };
 
   const handleRemoveSkill = (index: number) => {
@@ -477,6 +486,10 @@ export const UpdatePortfolioModal = ({
       newSkills[index].score = value as number;
     }
     setFormData({ ...formData, skills: newSkills });
+  };
+
+  const handleSkillLevelChange = (index: number, level: SkillLevel) => {
+    handleSkillChange(index, "score", skillLevelToScore(level));
   };
 
   const handleAddSocial = () => {
@@ -532,7 +545,16 @@ export const UpdatePortfolioModal = ({
 
   const handleResumeUpload = useCallback(async (file: File) => {
     try {
-      const result = await mediaUploadService.uploadFile(file, true);
+      const watermarkedFile = await addDiagonalWatermarkToPdf(file, "WEBUILDGAME");
+
+      if (watermarkedFile.size > MAX_RESUME_SIZE_BYTES) {
+        toast.error("Watermarked resume exceeds 5MB", {
+          description: "Please compress your PDF and try again.",
+        });
+        throw new Error("Watermarked resume exceeds size limit");
+      }
+
+      const result = await mediaUploadService.uploadFile(watermarkedFile, true);
       setFormData(prev => ({ ...prev, resumeUrl: result.publicUrl }));
       toast.success("Resume uploaded successfully");
       return result;
@@ -625,7 +647,7 @@ export const UpdatePortfolioModal = ({
       profilePhotoUrl: clean(formData.profilePhotoUrl),
       coverPhotoUrl: clean(formData.coverPhotoUrl),
       resumeUrl: clean(formData.resumeUrl),
-      enginePreference: formData.enginePreference ? (formData.enginePreference as any) : undefined,
+      enginePreference: formData.enginePreference ? engineToEnum[formData.enginePreference] : undefined,
       skills: formData.skills
         .filter(s => s.name && s.name.trim() !== "")
         .map(s => ({ name: s.name.trim(), score: s.score })),
@@ -649,7 +671,6 @@ export const UpdatePortfolioModal = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
             className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md"
           />
 
@@ -931,15 +952,25 @@ export const UpdatePortfolioModal = ({
                             )}
                           </div>
                           <div className="flex items-center gap-3">
-                            <input
-                              type="range"
-                              min="0"
-                              max="100"
-                              value={skill.score}
-                              onChange={(e) => handleSkillChange(index, "score", parseInt(e.target.value))}
-                              className="flex-1 h-2 bg-black/50 rounded-lg appearance-none cursor-pointer"
-                            />
-                            <span className="text-xs text-gray-400 w-8 text-right">{skill.score}%</span>
+                            <div className="flex-1 flex items-center gap-2">
+                              {SKILL_LEVEL_OPTIONS.map((option) => {
+                                const active = scoreToSkillLevel(skill.score) === option.value;
+                                return (
+                                  <button
+                                    key={option.value}
+                                    type="button"
+                                    onClick={() => handleSkillLevelChange(index, option.value)}
+                                    className={`px-2.5 py-1.5 rounded-md text-[11px] font-bold uppercase tracking-wide border transition-all ${
+                                      active
+                                        ? "bg-[#FFAB00] text-black border-[#FFAB00] shadow-[0_0_12px_rgba(255,171,0,0.35)]"
+                                        : "bg-white/5 text-gray-300 border-white/15 hover:border-[#FFAB00]/40"
+                                    }`}
+                                  >
+                                    {option.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
                           </div>
                         </div>
                       ))}

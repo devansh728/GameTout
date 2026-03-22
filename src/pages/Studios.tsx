@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   MapPin, Users, ExternalLink, Star, Building, Loader2, AlertCircle,
   Filter, Plus, Search, XCircle, Grid, Zap, Globe,
-  Terminal, Mail, Phone, Youtube, Linkedin, Twitter, Briefcase, LogIn
+  Terminal, Mail, Phone, Youtube, Linkedin, Twitter, Briefcase, LogIn, ArrowUp
 } from "lucide-react";
 import { PageTransition, FadeInView } from "@/components/PageTransition";
 import { Footer } from "@/components/Footer";
@@ -240,6 +240,13 @@ const Studios = () => {
   const [totalStudios, setTotalStudios] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const onScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
     statsService.getStudiosCount().then(res => setTotalStudios(res.data.count));
@@ -292,14 +299,19 @@ const Studios = () => {
 
   return (
     <PageTransition>
-      <main className="min-h-screen bg-background pt-20 selection:bg-[#FFAB00] selection:text-black relative overflow-hidden">
+      <main className="min-h-screen bg-background pt-20 selection:bg-[#FFAB00] selection:text-black relative" style={{ overflowX: "clip" }}>
 
         {/* HeroTagline */}
-        <HeroTagline
-          phrase="Register Your Studio for Free"
-          size="sm"
-          className="mb-4"
-        />
+        <div
+          className="transition-opacity duration-200 ease-out"
+          style={{ opacity: Math.max(0, 1 - scrollY / 150) }}
+        >
+          <HeroTagline
+            phrase="Register Your Studio for Free"
+            size="sm"
+            className="mb-4"
+          />
+        </div>
 
         {/* Background Effects */}
         <div
@@ -311,61 +323,63 @@ const Studios = () => {
         />
         <div className="fixed inset-0 pointer-events-none z-0 bg-gradient-to-b from-background via-transparent to-background" />
 
-        {/* Compact Header */}
-        <section className="px-4 md:px-8 max-w-7xl mx-auto mb-4 relative z-10">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            {/* Left: Title & Stats */}
-            <div className="flex items-center gap-4">
-              <h1 className="font-display text-2xl sm:text-3xl md:text-4xl text-white uppercase tracking-tight">
-                Game <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFAB00] via-yellow-400 to-[#FFAB00]">Studios</span>
-              </h1>
+        {/* Sticky Wrapper: Header + Controls */}
+        <div className="sticky top-24 z-40 bg-background">
+          {/* Compact Header */}
+          <section className="px-4 md:px-8 max-w-7xl mx-auto mb-0 relative z-10 bg-background">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              {/* Left: Title & Stats */}
+              <div className="flex items-center gap-4">
+                <h1 className="font-display text-2xl sm:text-3xl md:text-4xl text-white uppercase tracking-tight">
+                  Game <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFAB00] via-yellow-400 to-[#FFAB00]">Studios</span>
+                </h1>
 
-              {/* Stats Badge */}
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
-                <Building className="w-3 h-3 text-[#FFAB00]" />
-                <span className="text-[10px] font-mono text-gray-400">
-                  <span className="text-white font-bold"><AnimatedCounter value={totalStudios} /></span> Listed
-                </span>
+                {/* Stats Badge */}
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
+                  <Building className="w-3 h-3 text-[#FFAB00]" />
+                  <span className="text-[10px] font-mono text-gray-400">
+                    <span className="text-white font-bold"><AnimatedCounter value={totalStudios} /></span> Listed
+                  </span>
+                </div>
               </div>
+
+              {/* Right: Submit CTA - Auth Protected */}
+              {isAuthenticated ? (
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => setIsSubmitModalOpen(true)}
+                  className="group relative flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#FFAB00] to-[#FF8C00] text-black font-bold uppercase text-xs tracking-wide overflow-hidden rounded-sm shadow-[0_0_20px_rgba(255,171,0,0.3)] hover:shadow-[0_0_30px_rgba(255,171,0,0.5)] transition-shadow"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Submit Studio</span>
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full"
+                    animate={{ translateX: ["-100%", "200%"] }}
+                    transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                  />
+                </motion.button>
+              ) : (
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => setShowAuthModal(true)}
+                  className="group relative flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/20 text-white font-bold uppercase text-xs tracking-wide overflow-hidden rounded-sm hover:border-[#FFAB00]/50 hover:bg-white/5 transition-all"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>Login to Submit</span>
+                </motion.button>
+              )}
             </div>
 
-            {/* Right: Submit CTA - Auth Protected */}
-            {isAuthenticated ? (
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => setIsSubmitModalOpen(true)}
-                className="group relative flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#FFAB00] to-[#FF8C00] text-black font-bold uppercase text-xs tracking-wide overflow-hidden rounded-sm shadow-[0_0_20px_rgba(255,171,0,0.3)] hover:shadow-[0_0_30px_rgba(255,171,0,0.5)] transition-shadow"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Submit Studio</span>
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full"
-                  animate={{ translateX: ["-100%", "200%"] }}
-                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-                />
-              </motion.button>
-            ) : (
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => setShowAuthModal(true)}
-                className="group relative flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/20 text-white font-bold uppercase text-xs tracking-wide overflow-hidden rounded-sm hover:border-[#FFAB00]/50 hover:bg-white/5 transition-all"
-              >
-                <LogIn className="w-4 h-4" />
-                <span>Login to Submit</span>
-              </motion.button>
-            )}
-          </div>
+            {/* Tagline */}
+            <p className="text-xs sm:text-sm text-gray-500 font-mono mt-2 mb-3">
+              {'>'} Discover India's thriving game development ecosystem
+            </p>
+          </section>
 
-          {/* Tagline */}
-          <p className="text-xs sm:text-sm text-gray-500 font-mono mt-2">
-            {'>'} Discover India's thriving game development ecosystem
-          </p>
-        </section>
-
-        {/* Control Deck - Sticky Filters */}
-        <section className="sticky top-20 z-40 mb-6">
+          {/* Control Deck */}
+          <section className="relative mb-0">
           <div className="absolute inset-0 bg-[#0a0a0a]/90 backdrop-blur-2xl" />
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#FFAB00]/30 to-transparent" />
 
@@ -497,7 +511,11 @@ const Studios = () => {
               </div>
             </div>
           </div>
-        </section>
+          </section>
+        </div>
+
+        {/* Spacer below sticky section */}
+        <div className="h-6" />
 
         {/* Studio Grid */}
         <section className="px-4 md:px-8 max-w-7xl mx-auto pb-20 min-h-[400px] relative z-10">
@@ -815,6 +833,25 @@ const Studios = () => {
             });
           }}
         />
+
+        <AnimatePresence>
+          {scrollY > 400 && (
+            <motion.button
+              key="back-to-top"
+              initial={{ opacity: 0, y: 20, scale: 0.8 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.8 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-40 p-3 rounded-full bg-gradient-to-r from-[#FFAB00] to-[#FF8C00] text-black shadow-[0_0_20px_rgba(255,171,0,0.4)] hover:shadow-[0_0_30px_rgba(255,171,0,0.6)] transition-shadow"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              title="Back to top"
+            >
+              <ArrowUp className="w-5 h-5" />
+            </motion.button>
+          )}
+        </AnimatePresence>
 
         <Footer />
       </main>
