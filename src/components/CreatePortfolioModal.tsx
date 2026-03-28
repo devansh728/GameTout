@@ -9,7 +9,6 @@ import { usePortfolioMutation } from "@/hooks/usePortfolioDetail";
 import { useAuth } from "@/context/AuthContext";
 import { JobCategory, JobProfileStatus, PortfolioRequest, CATEGORY_TO_BACKEND, DISPLAY_TO_STATUS, PortfolioDetail, BACKEND_TO_CATEGORY, GameEngine } from "@/types/portfolio";
 import { MediaUploader } from "@/components/MediaUploader";
-import { ImageCropper } from "@/components/ImageCropper";
 import { mediaUploadService } from "@/services/mediaUploadService";
 import { portfolioService } from "@/services/portfolioService";
 import React from "react";
@@ -604,11 +603,6 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData, 
     socials: [{ platform: "", url: "" }]
   });
 
-  // Image Cropper States
-  const [cropperOpen, setCropperOpen] = useState<false | "profile" | "cover">(false);
-  const [imageToCrop, setImageToCrop] = useState<string>("");
-  const [pendingPhotoType, setPendingPhotoType] = useState<"profile" | "cover" | null>(null);
-
   // Validation Errors State
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
 
@@ -777,88 +771,54 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData, 
     setFormData({ ...formData, socials: newSocials });
   };
 
-  // Handle file uploads via presigned URLs
-  const handleProfilePhotoSelect = useCallback((file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setImageToCrop(e.target?.result as string);
-      setPendingPhotoType("profile");
-      setCropperOpen("profile");
-    };
-    reader.readAsDataURL(file);
-  }, []);
-
-  const handleCoverPhotoSelect = useCallback((file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setImageToCrop(e.target?.result as string);
-      setPendingPhotoType("cover");
-      setCropperOpen("cover");
-    };
-    reader.readAsDataURL(file);
-  }, []);
-
-  const handleCroppedImage = useCallback(
-    async (croppedBlob: Blob) => {
-      try {
-        // Upload the cropped image
-        const croppedFile = new File([croppedBlob], "cropped-image.jpg", {
-          type: "image/jpeg",
-        });
-
-        const result = await mediaUploadService.uploadFile(croppedFile, false);
-
-        if (result.publicUrl) {
-          if (pendingPhotoType === "profile") {
-            setFormData((prev) => ({ ...prev, profilePhotoUrl: result.publicUrl }));
-            toast.success("Profile photo updated");
-          } else if (pendingPhotoType === "cover") {
-            setFormData((prev) => ({ ...prev, coverPhotoUrl: result.publicUrl }));
-            toast.success("Cover photo updated");
-          }
-        }
-
-        // Close cropper and reset
-        setCropperOpen(false);
-        setImageToCrop("");
-        setPendingPhotoType(null);
-      } catch (error) {
-        console.error("Error uploading cropped image:", error);
-        toast.error("Failed to upload cropped image");
-      }
-    },
-    [pendingPhotoType]
-  );
-
+  // Handle file uploads via presigned URLs - direct upload without cropping
   const handleProfilePhotoUpload = useCallback(async (file: File) => {
-    handleProfilePhotoSelect(file);
-    // Return placeholder result - actual upload happens in handleCroppedImage
-    return {
-      objectKey: "",
-      publicUrl: "",
-      metadata: {
-        originalFilename: file.name,
-        contentType: file.type,
-        size: file.size,
-        uploadDate: new Date()
+    try {
+      const result = await mediaUploadService.uploadFile(file, false);
+      if (result.publicUrl) {
+        setFormData((prev) => ({ ...prev, profilePhotoUrl: result.publicUrl }));
+        toast.success("Profile photo uploaded successfully");
       }
-    };
-  }, [handleProfilePhotoSelect]);
+      return result;
+    } catch (error) {
+      console.error("Error uploading profile photo:", error);
+      toast.error("Failed to upload profile photo");
+      return {
+        objectKey: "",
+        publicUrl: "",
+        metadata: {
+          originalFilename: file.name,
+          contentType: file.type,
+          size: file.size,
+          uploadDate: new Date()
+        }
+      };
+    }
+  }, []);
 
   const handleCoverPhotoUpload = useCallback(async (file: File) => {
-    handleCoverPhotoSelect(file);
-    // Return placeholder result - actual upload happens in handleCroppedImage
-    return {
-      objectKey: "",
-      publicUrl: "",
-      metadata: {
-        originalFilename: file.name,
-        contentType: file.type,
-        size: file.size,
-        uploadDate: new Date()
+    try {
+      const result = await mediaUploadService.uploadFile(file, false);
+      if (result.publicUrl) {
+        setFormData((prev) => ({ ...prev, coverPhotoUrl: result.publicUrl }));
+        toast.success("Cover photo uploaded successfully");
       }
-    };
-  }, [handleCoverPhotoSelect]);
+      return result;
+    } catch (error) {
+      console.error("Error uploading cover photo:", error);
+      toast.error("Failed to upload cover photo");
+      return {
+        objectKey: "",
+        publicUrl: "",
+        metadata: {
+          originalFilename: file.name,
+          contentType: file.type,
+          size: file.size,
+          uploadDate: new Date()
+        }
+      };
+    }
+  }, []);
 
   const handleResumeUpload = useCallback(async (file: File) => {
     try {
@@ -1481,8 +1441,6 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData, 
                           accept="image"
                           value={formData.profilePhotoUrl}
                           onUpload={handleProfilePhotoUpload}
-                          onComplete={(url) => setFormData({ ...formData, profilePhotoUrl: url })}
-                          deferredUpload
                           onClear={handleProfilePhotoDelete}
                           label="profile photo"
                         />
@@ -1493,8 +1451,6 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData, 
                           accept="image"
                           value={formData.coverPhotoUrl}
                           onUpload={handleCoverPhotoUpload}
-                          onComplete={(url) => setFormData({ ...formData, coverPhotoUrl: url })}
-                          deferredUpload
                           onClear={handleCoverPhotoDelete}
                           label="cover photo"
                         />
@@ -1712,36 +1668,7 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSuccess, initialData, 
             </div>
           </motion.div>
 
-          {/* Image Cropper Modal */}
-          <ImageCropper
-            isOpen={cropperOpen === "profile"}
-            imageSrc={imageToCrop}
-            aspect={1}
-            cropShape="rect"
-            title="Crop Profile Photo"
-            description="Adjust your photo to fit a square format (1:1). You can zoom and rotate as needed."
-            onCrop={handleCroppedImage}
-            onClose={() => {
-              setCropperOpen(false);
-              setImageToCrop("");
-              setPendingPhotoType(null);
-            }}
-          />
 
-          <ImageCropper
-            isOpen={cropperOpen === "cover"}
-            imageSrc={imageToCrop}
-            aspect={16 / 9}
-            cropShape="rect"
-            title="Crop Cover Photo"
-            description="Adjust your cover photo to fit a widescreen format (16:9). You can zoom and rotate as needed."
-            onCrop={handleCroppedImage}
-            onClose={() => {
-              setCropperOpen(false);
-              setImageToCrop("");
-              setPendingPhotoType(null);
-            }}
-          />
         </>
       )}
     </AnimatePresence>
