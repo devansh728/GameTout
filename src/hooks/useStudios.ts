@@ -24,7 +24,7 @@ export const useStudios = (
   size: number = 20,
   filters?: StudioFilters
 ) => {
-  const hasFilters = filters && (filters.country || filters.city || filters.ratings);
+  const hasFilters = filters && (filters.country || filters.city || filters.ratings || filters.category || filters.hiringStatus);
 
   return useQuery({
     queryKey: studioKeys.list(page, size, filters),

@@ -171,18 +171,17 @@ const StudioCard = ({
             )}
             {/* Hiring Status Indicator Dot */}
             {studio.hiringStatus && studio.hiringStatus !== "NOT_HIRING" && (
-              <motion.div 
+              <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className={`absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-[#0a0a0a] ${
-                  studio.hiringStatus === "HIRING" 
-                    ? "bg-green-500" 
+                className={`absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-[#0a0a0a] ${studio.hiringStatus === "HIRING"
+                    ? "bg-green-500"
                     : "bg-yellow-500"
-                }`}
+                  }`}
                 title={studio.hiringStatus === "HIRING" ? "Hiring" : "Open to Hire"}
               >
-                <span className="absolute inset-0 rounded-full animate-ping opacity-50" 
-                  style={{ backgroundColor: studio.hiringStatus === "HIRING" ? "#22c55e" : "#eab308" }} 
+                <span className="absolute inset-0 rounded-full animate-ping opacity-50"
+                  style={{ backgroundColor: studio.hiringStatus === "HIRING" ? "#22c55e" : "#eab308" }}
                 />
               </motion.div>
             )}
@@ -270,7 +269,9 @@ const Studios = () => {
     setPage(0);
     setFilters(prev => ({
       ...prev,
-      [key]: value || undefined
+      [key]: key === "ratings"
+        ? (value ? Number(value) : undefined)
+        : (value || undefined),
     }));
   };
 
@@ -380,137 +381,137 @@ const Studios = () => {
 
           {/* Control Deck */}
           <section className="relative mb-0">
-          <div className="absolute inset-0 bg-[#0a0a0a]/90 backdrop-blur-2xl" />
-          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#FFAB00]/30 to-transparent" />
+            <div className="absolute inset-0 bg-[#0a0a0a]/90 backdrop-blur-2xl" />
+            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#FFAB00]/30 to-transparent" />
 
-          <div className="relative px-4 md:px-8 max-w-7xl mx-auto py-3">
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div className="relative px-4 md:px-8 max-w-7xl mx-auto py-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
 
-              {/* Search Input */}
-              <div className="relative flex-1 max-w-md">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600">
-                  <Search className="w-4 h-4" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search studios..."
-                  className="w-full bg-white/[0.04] border border-white/[0.06] rounded-lg pl-10 pr-10 py-2.5 text-sm text-white focus:outline-none focus:border-[#FFAB00]/50 focus:bg-white/[0.06] transition-all duration-300 font-mono placeholder:text-gray-600"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                {searchQuery && (
-                  <motion.button
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-white/10 transition-colors"
-                  >
-                    <XCircle className="w-4 h-4 text-gray-500 hover:text-white" />
-                  </motion.button>
-                )}
-              </div>
-
-              {/* Filter Dropdowns */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <div className="flex items-center gap-2 text-gray-500">
-                  <Filter className="w-3.5 h-3.5" />
-                </div>
-
-                {/* Country Filter */}
-                <div className="w-36">
-                  <CustomDropdown
-                    value={filters.country || ""}
-                    onChange={(value) => handleFilterChange("country", value)}
-                    placeholder="Countries"
-                    options={[
-                      { value: "", label: "Countries" },
-                      ...countries.map((country) => ({ value: country, label: country })),
-                    ]}
-                    searchable={countries.length > 10}
+                {/* Search Input */}
+                <div className="relative flex-1 max-w-md">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600">
+                    <Search className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search studios..."
+                    className="w-full bg-white/[0.04] border border-white/[0.06] rounded-lg pl-10 pr-10 py-2.5 text-sm text-white focus:outline-none focus:border-[#FFAB00]/50 focus:bg-white/[0.06] transition-all duration-300 font-mono placeholder:text-gray-600"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                   />
-                </div>
-
-                {/* City Filter */}
-                <div className="w-36">
-                  <CustomDropdown
-                    value={filters.city || ""}
-                    onChange={(value) => handleFilterChange("city", value)}
-                    placeholder="All Cities"
-                    options={[
-                      { value: "", label: "Cities" },
-                      ...cities.map((city) => ({ value: city, label: city })),
-                    ]}
-                    searchable={cities.length > 10}
-                  />
-                </div>
-
-                {/* Rating Filter */}
-                <div className="w-32">
-                  <CustomDropdown
-                    value={filters.ratings?.toString() || ""}
-                    onChange={(value) => handleFilterChange("ratings", value)}
-                    placeholder="All Ratings"
-                    icon={<Star className="w-3 h-3" />}
-                    options={[
-                      { value: "", label: "Ratings" },
-                      { value: "5", label: "5 Stars" },
-                      { value: "4", label: "4+ Stars" },
-                      { value: "3", label: "3+ Stars" },
-                      { value: "2", label: "2+ Stars" },
-                      { value: "1", label: "1+ Stars" },
-                    ]}
-                  />
-                </div>
-
-                {/* Category Filter */}
-                <div className="w-36">
-                  <CustomDropdown
-                    value={filters.category || ""}
-                    onChange={(value) => handleFilterChange("category", value)}
-                    placeholder="Category"
-                    icon={<Grid className="w-3 h-3" />}
-                    options={[
-                      { value: "", label: "Category" },
-                      { value: "PRODUCT_BASED", label: "Product/IP Based" },
-                      { value: "SERVICE_BASED", label: "Service Based" },
-                    ]}
-                  />
-                </div>
-
-                {/* Hiring Status Filter */}
-                <div className="w-36">
-                  <CustomDropdown
-                    value={filters.hiringStatus || ""}
-                    onChange={(value) => handleFilterChange("hiringStatus", value)}
-                    placeholder="Hiring"
-                    icon={<Zap className="w-3 h-3" />}
-                    options={[
-                      { value: "", label: "Hiring Status" },
-                      { value: "HIRING", label: "Hiring" },
-                      { value: "OPEN_TO_HIRE", label: "Open to Hire" },
-                      { value: "NOT_HIRING", label: "Not Hiring" },
-                    ]}
-                  />
-                </div>
-
-                {/* Clear Filters */}
-                <AnimatePresence>
-                  {hasActiveFilters && (
+                  {searchQuery && (
                     <motion.button
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0, opacity: 0 }}
-                      onClick={() => setFilters({})}
-                      className="flex items-center gap-1 px-2 py-1.5 text-xs text-[#FFAB00] hover:bg-[#FFAB00]/10 rounded-lg transition-colors"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-white/10 transition-colors"
                     >
-                      <XCircle className="w-3 h-3" />
-                      Clear
+                      <XCircle className="w-4 h-4 text-gray-500 hover:text-white" />
                     </motion.button>
                   )}
-                </AnimatePresence>
+                </div>
+
+                {/* Filter Dropdowns */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-2 text-gray-500">
+                    <Filter className="w-3.5 h-3.5" />
+                  </div>
+
+                  {/* Country Filter */}
+                  <div className="w-36">
+                    <CustomDropdown
+                      value={filters.country || ""}
+                      onChange={(value) => handleFilterChange("country", value)}
+                      placeholder="Countries"
+                      options={[
+                        { value: "", label: "Countries" },
+                        ...countries.map((country) => ({ value: country, label: country })),
+                      ]}
+                      searchable={countries.length > 10}
+                    />
+                  </div>
+
+                  {/* City Filter */}
+                  <div className="w-36">
+                    <CustomDropdown
+                      value={filters.city || ""}
+                      onChange={(value) => handleFilterChange("city", value)}
+                      placeholder="All Cities"
+                      options={[
+                        { value: "", label: "Cities" },
+                        ...cities.map((city) => ({ value: city, label: city })),
+                      ]}
+                      searchable={cities.length > 10}
+                    />
+                  </div>
+
+                  {/* Rating Filter */}
+                  <div className="w-32">
+                    <CustomDropdown
+                      value={filters.ratings?.toString() || ""}
+                      onChange={(value) => handleFilterChange("ratings", value)}
+                      placeholder="All Ratings"
+                      icon={<Star className="w-3 h-3" />}
+                      options={[
+                        { value: "", label: "Ratings" },
+                        { value: "5", label: "5 Stars" },
+                        { value: "4", label: "4+ Stars" },
+                        { value: "3", label: "3+ Stars" },
+                        { value: "2", label: "2+ Stars" },
+                        { value: "1", label: "1+ Stars" },
+                      ]}
+                    />
+                  </div>
+
+                  {/* Category Filter */}
+                  <div className="w-36">
+                    <CustomDropdown
+                      value={filters.category || ""}
+                      onChange={(value) => handleFilterChange("category", value)}
+                      placeholder="Category"
+                      icon={<Grid className="w-3 h-3" />}
+                      options={[
+                        { value: "", label: "Category" },
+                        { value: "PRODUCT_BASED", label: "Product/IP Based" },
+                        { value: "SERVICE_BASED", label: "Service Based" },
+                      ]}
+                    />
+                  </div>
+
+                  {/* Hiring Status Filter */}
+                  <div className="w-36">
+                    <CustomDropdown
+                      value={filters.hiringStatus || ""}
+                      onChange={(value) => handleFilterChange("hiringStatus", value)}
+                      placeholder="Hiring"
+                      icon={<Zap className="w-3 h-3" />}
+                      options={[
+                        { value: "", label: "Hiring Status" },
+                        { value: "HIRING", label: "Hiring" },
+                        { value: "OPEN_TO_HIRE", label: "Open to Hire" },
+                        { value: "NOT_HIRING", label: "Not Hiring" },
+                      ]}
+                    />
+                  </div>
+
+                  {/* Clear Filters */}
+                  <AnimatePresence>
+                    {hasActiveFilters && (
+                      <motion.button
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0 }}
+                        onClick={() => setFilters({})}
+                        className="flex items-center gap-1 px-2 py-1.5 text-xs text-[#FFAB00] hover:bg-[#FFAB00]/10 rounded-lg transition-colors"
+                      >
+                        <XCircle className="w-3 h-3" />
+                        Clear
+                      </motion.button>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
             </div>
-          </div>
           </section>
         </div>
 
@@ -633,11 +634,10 @@ const Studios = () => {
                       )}
                       {/* Hiring Status Indicator */}
                       {selectedStudio.hiringStatus && selectedStudio.hiringStatus !== "NOT_HIRING" && (
-                        <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-[#0a0a0a] ${
-                          selectedStudio.hiringStatus === "HIRING" ? "bg-green-500" : "bg-yellow-500"
-                        }`}>
-                          <span className="absolute inset-0 rounded-full animate-ping opacity-50" 
-                            style={{ backgroundColor: selectedStudio.hiringStatus === "HIRING" ? "#22c55e" : "#eab308" }} 
+                        <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-[#0a0a0a] ${selectedStudio.hiringStatus === "HIRING" ? "bg-green-500" : "bg-yellow-500"
+                          }`}>
+                          <span className="absolute inset-0 rounded-full animate-ping opacity-50"
+                            style={{ backgroundColor: selectedStudio.hiringStatus === "HIRING" ? "#22c55e" : "#eab308" }}
                           />
                         </div>
                       )}
@@ -656,13 +656,12 @@ const Studios = () => {
                   {/* Status Badges */}
                   <div className="flex flex-wrap gap-2 mt-2">
                     {selectedStudio.hiringStatus && (
-                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold uppercase ${
-                        selectedStudio.hiringStatus === "HIRING" 
-                          ? "bg-green-500/20 text-green-400 border border-green-500/30" 
+                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold uppercase ${selectedStudio.hiringStatus === "HIRING"
+                          ? "bg-green-500/20 text-green-400 border border-green-500/30"
                           : selectedStudio.hiringStatus === "OPEN_TO_HIRE"
                             ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
                             : "bg-gray-500/20 text-gray-400 border border-gray-500/30"
-                      }`}>
+                        }`}>
                         <Zap className="w-3 h-3" />
                         {selectedStudio.hiringStatus === "HIRING" ? "Hiring" : selectedStudio.hiringStatus === "OPEN_TO_HIRE" ? "Open to Hire" : "Not Hiring"}
                       </span>
@@ -715,7 +714,7 @@ const Studios = () => {
                       <h4 className="font-display text-base text-white mb-3">Contact</h4>
                       <div className="space-y-2">
                         {selectedStudio.studioEmail && (
-                          <a 
+                          <a
                             href={`mailto:${selectedStudio.studioEmail}`}
                             className="flex items-center gap-2 p-3 rounded-lg bg-white/5 border border-white/10 hover:border-[#FFAB00]/30 transition-colors group"
                           >
@@ -724,7 +723,7 @@ const Studios = () => {
                           </a>
                         )}
                         {selectedStudio.studioMobile && (
-                          <a 
+                          <a
                             href={`tel:${selectedStudio.studioMobile}`}
                             className="flex items-center gap-2 p-3 rounded-lg bg-white/5 border border-white/10 hover:border-[#FFAB00]/30 transition-colors group"
                           >
