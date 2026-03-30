@@ -9,6 +9,8 @@ import {
   JobCategory,
 } from "@/types/portfolio";
 import { advancedFilterService } from "@/services/advancedFilterService";
+import { toast } from "sonner"; 
+
 
 interface UseAdvancedFilterReturn {
   // State - Filter criteria
@@ -76,7 +78,7 @@ export function useAdvancedFilter(): UseAdvancedFilterReturn {
 
       try {
         // Normalize engine preferences to uppercase (ensure enum case consistency)
-        const normalizedEngines = enginePreferences.map(e => 
+        const normalizedEngines = enginePreferences.map(e =>
           typeof e === 'string' ? (e.toUpperCase() as GameEngine) : e
         );
 
@@ -100,6 +102,12 @@ export function useAdvancedFilter(): UseAdvancedFilterReturn {
         if (page === 0) {
           // New search - replace results
           setDevelopers(devs);
+          if (devs.length === 0) {
+            toast.info("No portfolios found for that filter", {
+              description: "Showing all available profiles instead",
+              duration: 4000,
+            });
+          }
         } else {
           // Load more - append results
           setDevelopers((prev) => {
